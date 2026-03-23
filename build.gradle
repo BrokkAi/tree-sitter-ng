@@ -212,9 +212,12 @@ subprojects {
         dependsOn downloadSource, rootProject.downloadZig
     }
 
-    tasks.withType(Javadoc) {
+    tasks.withType(Javadoc).configureEach {
         options.locale = 'en_US'
         options.JFlags = ["-Duser.language=en_US"]
+        if (JavaVersion.current().isJava8Compatible()) {
+            options.addStringOption('Xdoclint:all,-missing', '-quiet')
+        }
     }
 }
 

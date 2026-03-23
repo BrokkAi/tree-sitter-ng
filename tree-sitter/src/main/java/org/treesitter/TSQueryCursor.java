@@ -23,7 +23,6 @@ public class TSQueryCursor implements AutoCloseable {
         }
     }
 
-    private @Nullable TSNode node;
     private @Nullable TSTree tree;
     private @Nullable TSQuery query;
     private byte[] sourceBytes = new byte[0];
@@ -48,7 +47,6 @@ public class TSQueryCursor implements AutoCloseable {
         this.ptr = ptr;
         this.progressPayloadPtr = progressPayloadPtr;
         this.cleanable = CleanerRunner.register(this, new TSQueryCursorCleanAction(ptr, progressPayloadPtr));
-        this.node = null;
         this.tree = null;
         this.query = null;
     }
@@ -113,7 +111,6 @@ public class TSQueryCursor implements AutoCloseable {
             throw new IllegalStateException("Source text is required to evaluate text-based predicates");
         }
         executed = true;
-        this.node = node;
         this.tree = node.getTree();
         this.query = query;
         this.sourceBytes =
@@ -153,7 +150,6 @@ public class TSQueryCursor implements AutoCloseable {
             throw new IllegalStateException("Source text is required to evaluate text-based predicates");
         }
         executed = true;
-        this.node = node;
         this.tree = node.getTree();
         this.query = query;
         this.sourceBytes =
