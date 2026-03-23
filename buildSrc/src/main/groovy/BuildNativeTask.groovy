@@ -32,13 +32,13 @@ class BuildNativeTask extends DefaultTask{
     FileCollection additionalCFiles = project.files()
 
     @InputFiles
-    List<Directory> additionalIncludeDirs = []
+    FileCollection additionalIncludeDirs = project.files()
 
     @InputFile
     RegularFile zigExe
 
     @Input
-    List<String> getTargets(){
+    List<String> getTargets() {
         def props = (String) project.rootProject.properties.get("treeSitterTargets")
         if(props == null){
             throw new GradleException("Can't find `treeSitterTargets` in gradle.properties")
@@ -69,12 +69,12 @@ class BuildNativeTask extends DefaultTask{
     }
 
     @Input
-    String getLibName(){
+    String getLibName() {
         return project.name
     }
 
     @Internal
-    Directory getJniOutDir(){
+    Directory getJniOutDir() {
         return project.layout.buildDirectory.dir("jni-libs/lib").get()
     }
 
@@ -104,15 +104,15 @@ class BuildNativeTask extends DefaultTask{
         }
     }
 
-    @Internal
-    FileCollection getJniCFiles(){
+    @InputFiles
+    FileCollection getJniCFiles() {
         return jniCDir.asFileTree.matching {
             include("*.c")
         }
     }
 
     @InputFiles
-    FileCollection getParserSourceFiles(){
+    FileCollection getParserSourceFiles() {
         def dir = srcDir.dir("src")
         if (!dir.asFile.exists()) return project.files()
         dir.asFileTree.matching {
@@ -122,8 +122,8 @@ class BuildNativeTask extends DefaultTask{
         }
     }
 
-    @Internal
-    FileCollection getParserCFiles(){
+    @InputFiles
+    FileCollection getParserCFiles() {
         def dir = srcDir.dir("src")
         if (!dir.asFile.exists()) return project.files()
         dir.asFileTree.matching {
@@ -184,9 +184,9 @@ class BuildNativeTask extends DefaultTask{
                     "-I", jniMdIncludeDir,
                     "-o", jniOutFile
             ]
-            additionalIncludeDirs.forEach { f ->
+            additionalIncludeDirs.each { f ->
                 cmd.add("-I")
-                cmd.add(f)
+                cmd.add(f.absolutePath)
             }
             cmd.addAll(jniCFiles)
             cmd.addAll(parserCFiles)
