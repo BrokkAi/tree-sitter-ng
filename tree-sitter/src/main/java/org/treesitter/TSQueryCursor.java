@@ -107,6 +107,9 @@ public class TSQueryCursor implements AutoCloseable {
      */
     public void exec(TSQuery query, TSNode node, @Nullable CharSequence sourceText) {
         ensureOpen();
+        if (sourceText == null && query.hasTextPredicates()) {
+            throw new IllegalStateException("Source text is required to evaluate text-based predicates");
+        }
         executed = true;
         this.node = node;
         this.query = query;
@@ -143,6 +146,9 @@ public class TSQueryCursor implements AutoCloseable {
     public void execWithOptions(
             TSQuery query, TSNode node, @Nullable CharSequence sourceText, TSQueryProgress progress) {
         ensureOpen();
+        if (sourceText == null && query.hasTextPredicates()) {
+            throw new IllegalStateException("Source text is required to evaluate text-based predicates");
+        }
         executed = true;
         this.node = node;
         this.query = query;
