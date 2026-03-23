@@ -45,3 +45,9 @@ bin/
 /secring.gpg
 /playground
 **/.claude
+
+### BROKK'S CONFIGURATION ###
+**/.brokk/**
+!AGENTS.md
+!**/.brokk/style.md
+!**/.brokk/project.properties
