@@ -20,6 +20,18 @@ class Main {
 }
 ```
 
+# Commands
+
+```bash
+# Compile Java and native modules
+./gradlew compile
+
+# Build and test all subprojects
+./gradlew build
+```
+
+> **Note**: Native binaries are generated into `src/main/resources/lib` during the build process and are ignored by Git. They are built automatically in CI and do not need to be committed to the repository.
+
 # Features
 - 100% [Tree Sitter API](https://github.com/tree-sitter/tree-sitter/blob/master/lib/include/tree_sitter/api.h) coverage.
 - Easy to bootstrap cross compiling environments powered by [Zig](https://ziglang.org/).

@@ -10,5 +10,5 @@ tasks.named('downloadSource') {
 
 tasks.named('buildNative') {
     additionalCFiles = downloadSource.srcDir.files("lib/src/lib.c")
-    additionalIncludeDirs = [downloadSource.srcDir.dir("lib/src")]
+    additionalIncludeDirs = project.files(downloadSource.srcDir.dir("lib/src"))
 }

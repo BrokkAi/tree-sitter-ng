@@ -6,5 +6,5 @@ tasks.named("buildNative") {
     additionalCFiles = newSrcDir.asFileTree.matching {
         include("**/*.c")
     }
-    additionalIncludeDirs = [newSrcDir]
+    additionalIncludeDirs = project.files(newSrcDir)
 }

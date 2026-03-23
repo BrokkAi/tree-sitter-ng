@@ -40,12 +40,12 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-**/*.lib
-**/*.log
-**/*.pdb
 /secring.gpg
 /playground
 **/.claude
+
+# Native build outputs
+**/src/main/resources/lib/
 
 ### BROKK'S CONFIGURATION ###
 **/.brokk/**

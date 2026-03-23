@@ -32,13 +32,13 @@ class BuildNativeTask extends DefaultTask{
     FileCollection additionalCFiles = project.files()
 
     @InputFiles
-    List<Directory> additionalIncludeDirs = []
+    FileCollection additionalIncludeDirs = project.files()
 
     @InputFile
     RegularFile zigExe
 
     @Input
-    List<String> getTargets(){
+    List<String> getTargets() {
         def props = (String) project.rootProject.properties.get("treeSitterTargets")
         if(props == null){
             throw new GradleException("Can't find `treeSitterTargets` in gradle.properties")
@@ -50,12 +50,16 @@ class BuildNativeTask extends DefaultTask{
 
     @Input
     String getLibVersion(){
-        return project.property("libVersion")
+        if (project.hasProperty("libVersion")) {
+            return project.property("libVersion")
+        }
+        return project.version == "unspecified" ? "0.0.0" : project.version.toString()
     }
 
-    @InputDirectory
+    @Internal
     Directory getSrcDir(){
-        def srcDirName = "$libName-$libVersion"
+        def version = getLibVersion()
+        def srcDirName = (version == "0.0.0" || version == "unspecified") ? libName : "$libName-$version"
         return downloadDir.dir(srcDirName)
     }
 
@@ -65,13 +69,13 @@ class BuildNativeTask extends DefaultTask{
     }
 
     @Input
-    String getLibName(){
+    String getLibName() {
         return project.name
     }
 
     @Internal
-    Directory getJniOutDir(){
-        return project.layout.projectDirectory.dir("src/main/resources/lib")
+    Directory getJniOutDir() {
+        return project.layout.buildDirectory.dir("jni-libs/lib").get()
     }
 
     @OutputFiles
@@ -100,25 +104,29 @@ class BuildNativeTask extends DefaultTask{
         }
     }
 
-    @Internal
-    FileCollection getJniCFiles(){
+    @InputFiles
+    FileCollection getJniCFiles() {
         return jniCDir.asFileTree.matching {
             include("*.c")
         }
     }
 
     @InputFiles
-    FileCollection getParserSourceFiles(){
-        srcDir.dir("src").asFileTree.matching {
+    FileCollection getParserSourceFiles() {
+        def dir = srcDir.dir("src")
+        if (!dir.asFile.exists()) return project.files()
+        dir.asFileTree.matching {
             include("**/*.c")
             include("**/*.h")
             include("**/*.cpp")
         }
     }
 
-    @Internal
-    FileCollection getParserCFiles(){
-        srcDir.dir("src").asFileTree.matching {
+    @InputFiles
+    FileCollection getParserCFiles() {
+        def dir = srcDir.dir("src")
+        if (!dir.asFile.exists()) return project.files()
+        dir.asFileTree.matching {
             include("**/*.c")
             include("**/*.cpp")
         }
@@ -155,6 +163,10 @@ class BuildNativeTask extends DefaultTask{
 
     @TaskAction
     def buildNative() {
+        if (!srcDir.asFile.exists() && jniCFiles.isEmpty()) {
+            logger.lifecycle("No source found for native build in project ${project.name}, skipping.")
+            return
+        }
         jniOutDir.asFile.mkdirs()
         targets.each {target ->
             def jniMdIncludeDir = getJniMdInclude(target)
@@ -172,9 +184,9 @@ class BuildNativeTask extends DefaultTask{
                     "-I", jniMdIncludeDir,
                     "-o", jniOutFile
             ]
-            additionalIncludeDirs.forEach { f ->
+            additionalIncludeDirs.each { f ->
                 cmd.add("-I")
-                cmd.add(f)
+                cmd.add(f.absolutePath)
             }
             cmd.addAll(jniCFiles)
             cmd.addAll(parserCFiles)
