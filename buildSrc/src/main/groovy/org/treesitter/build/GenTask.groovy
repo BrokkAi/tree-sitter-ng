@@ -31,6 +31,9 @@ package org.treesitter;
 
 import org.treesitter.utils.NativeUtils;
 
+/**
+ * Tree-sitter language binding for $libShortName.
+ */
 public class $className extends TSLanguage {
 
     static {
@@ -38,6 +41,9 @@ public class $className extends TSLanguage {
     }
     private native static long tree_sitter_$idName();
 
+    /**
+     * Create a new instance of the $libShortName language.
+     */
     public $className() {
         super(tree_sitter_$idName());
     }
