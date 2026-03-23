@@ -238,6 +238,19 @@ tasks.register('downloadZig', DownloadZigTask){
     dependsOn downloadMiniSign
 }
 
+tasks.register("compile") {
+    group = "build"
+    description = "Compile Java and build native modules for all subprojects"
+    subprojects.forEach { sub ->
+        // All subprojects have 'java' plugin applied in subprojects block
+        dependsOn(sub.tasks.named("compileJava"))
+        // buildNative is registered in the subprojects block for all projects
+        // However, we only want to depend on it if it's actually applicable/desired
+        // based on the subprojects block logic (which excludes demo and tests for some parts)
+        dependsOn(sub.tasks.named("buildNative"))
+    }
+}
+
 tasks.register("gen", GenTask) {
     group = "build setup"
     description = "Generate sub project for tree sitter parser"
