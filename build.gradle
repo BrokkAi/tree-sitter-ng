@@ -19,6 +19,7 @@ allprojects {
     }
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+        options.compilerArgs << "-Werror"
     }
 }
 
@@ -62,6 +63,7 @@ subprojects {
     }
 
     tasks.named("check") {
+        dependsOn("tidy")
         dependsOn("analyze")
     }
 

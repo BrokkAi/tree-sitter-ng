@@ -141,8 +141,7 @@ public class TSQueryCursor implements AutoCloseable {
         executed = true;
         this.node = node;
         this.query = query;
-        this.sourceBytes =
-                sourceText == null ? null : sourceText.toString().getBytes(StandardCharsets.UTF_8);
+        this.sourceBytes = sourceText == null ? null : sourceText.toString().getBytes(StandardCharsets.UTF_8);
         ts_query_cursor_exec_with_options(ptr, query.getPtr(), node, progress, progressPayloadPtr);
     }
 

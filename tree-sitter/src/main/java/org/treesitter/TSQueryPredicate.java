@@ -97,8 +97,7 @@ public abstract class TSQueryPredicate {
             super(name);
             this.captureId = captureId;
             this.literalValue = literalValue;
-            this.literalBytes =
-                    literalValue == null ? null : literalValue.getBytes(StandardCharsets.UTF_8);
+            this.literalBytes = literalValue == null ? null : literalValue.getBytes(StandardCharsets.UTF_8);
             this.valueId = valueId;
             this.isPositive = !name.contains("not-");
             this.isAny = name.startsWith("any-");
@@ -214,9 +213,8 @@ public abstract class TSQueryPredicate {
             super(name);
             this.captureId = captureId;
             this.values = new HashSet<>(values);
-            this.valueBytes = values.stream()
-                    .map(s -> s.getBytes(StandardCharsets.UTF_8))
-                    .collect(Collectors.toList());
+            this.valueBytes =
+                    values.stream().map(s -> s.getBytes(StandardCharsets.UTF_8)).collect(Collectors.toList());
             this.isPositive = name.equals("any-of?");
         }
 
