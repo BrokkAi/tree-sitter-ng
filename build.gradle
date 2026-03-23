@@ -199,17 +199,37 @@ subprojects {
         mustRunAfter("spotlessCheck")
     }
 
-    tasks.register('downloadSource', DownloadSourceTask)
-
-    if (project.name != 'tree-sitter' && project.name != 'tree-sitter-demo' && project.name != 'tree-sitter-tests') {
-        tasks.named('test') {
-            dependsOn tasks.named('downloadSource')
-        }
+    tasks.withType(ProcessResources).configureEach {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
-    tasks.register('buildNative', BuildNativeTask) {
-        zigExe = rootProject.downloadZig.zigExe
-        dependsOn downloadSource, rootProject.downloadZig
+    if (project.name != 'tree-sitter' && project.name != 'tree-sitter-demo' && project.name != 'tree-sitter-tests') {
+        def downloadSource = tasks.register('downloadSource', DownloadSourceTask)
+
+        tasks.named('test') {
+            dependsOn downloadSource
+        }
+
+        def buildNative = tasks.register('buildNative', BuildNativeTask) {
+            zigExe = rootProject.downloadZig.zigExe
+            dependsOn downloadSource, rootProject.downloadZig
+        }
+
+        sourceSets.main.resources {
+            srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+        }
+    } else if (project.name == 'tree-sitter') {
+        // tree-sitter core also needs to build its native part
+        def downloadSource = tasks.register('downloadSource', DownloadSourceTask)
+
+        def buildNative = tasks.register('buildNative', BuildNativeTask) {
+            zigExe = rootProject.downloadZig.zigExe
+            dependsOn downloadSource, rootProject.downloadZig
+        }
+
+        sourceSets.main.resources {
+            srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+        }
     }
 
     tasks.withType(Javadoc).configureEach {
@@ -242,12 +262,10 @@ tasks.register("compile") {
     group = "build"
     description = "Compile Java and build native modules for all subprojects"
     subprojects.forEach { sub ->
-        // All subprojects have 'java' plugin applied in subprojects block
         dependsOn(sub.tasks.named("compileJava"))
-        // buildNative is registered in the subprojects block for all projects
-        // However, we only want to depend on it if it's actually applicable/desired
-        // based on the subprojects block logic (which excludes demo and tests for some parts)
-        dependsOn(sub.tasks.named("buildNative"))
+        sub.tasks.matching { it.name == "buildNative" }.all { t ->
+            dependsOn(t)
+        }
     }
 }
 

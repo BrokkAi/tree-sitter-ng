@@ -50,12 +50,16 @@ class BuildNativeTask extends DefaultTask{
 
     @Input
     String getLibVersion(){
-        return project.property("libVersion")
+        if (project.hasProperty("libVersion")) {
+            return project.property("libVersion")
+        }
+        return project.version == "unspecified" ? "0.0.0" : project.version.toString()
     }
 
-    @InputDirectory
+    @Internal
     Directory getSrcDir(){
-        def srcDirName = "$libName-$libVersion"
+        def version = getLibVersion()
+        def srcDirName = (version == "0.0.0" || version == "unspecified") ? libName : "$libName-$version"
         return downloadDir.dir(srcDirName)
     }
 
@@ -71,7 +75,7 @@ class BuildNativeTask extends DefaultTask{
 
     @Internal
     Directory getJniOutDir(){
-        return project.layout.projectDirectory.dir("src/main/resources/lib")
+        return project.layout.buildDirectory.dir("jni-libs/lib").get()
     }
 
     @OutputFiles
@@ -109,7 +113,9 @@ class BuildNativeTask extends DefaultTask{
 
     @InputFiles
     FileCollection getParserSourceFiles(){
-        srcDir.dir("src").asFileTree.matching {
+        def dir = srcDir.dir("src")
+        if (!dir.asFile.exists()) return project.files()
+        dir.asFileTree.matching {
             include("**/*.c")
             include("**/*.h")
             include("**/*.cpp")
@@ -118,7 +124,9 @@ class BuildNativeTask extends DefaultTask{
 
     @Internal
     FileCollection getParserCFiles(){
-        srcDir.dir("src").asFileTree.matching {
+        def dir = srcDir.dir("src")
+        if (!dir.asFile.exists()) return project.files()
+        dir.asFileTree.matching {
             include("**/*.c")
             include("**/*.cpp")
         }
@@ -155,6 +163,10 @@ class BuildNativeTask extends DefaultTask{
 
     @TaskAction
     def buildNative() {
+        if (!srcDir.asFile.exists() && jniCFiles.isEmpty()) {
+            logger.lifecycle("No source found for native build in project ${project.name}, skipping.")
+            return
+        }
         jniOutDir.asFile.mkdirs()
         targets.each {target ->
             def jniMdIncludeDir = getJniMdInclude(target)

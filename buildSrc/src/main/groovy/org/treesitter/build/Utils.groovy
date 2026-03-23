@@ -112,7 +112,7 @@ abstract class Utils {
     }
 
     static Directory jniOutDir(Project project){
-        return project.layout.projectDirectory.dir("src/main/resources/lib")
+        return project.layout.buildDirectory.dir("jni-libs/lib").get()
     }
 
     static RegularFile jniOutFile(Project project, String target, String name){

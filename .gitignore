@@ -40,9 +40,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-**/*.lib
-**/*.log
-**/*.pdb
 /secring.gpg
 /playground
 **/.claude
