@@ -1,8 +1,10 @@
 package org.treesitter;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -51,7 +53,7 @@ public abstract class TSQueryPredicate {
             int start = n.getStartByte();
             int end = n.getEndByte();
             int length = Math.min(end, sourceBytes.length) - start;
-            return new String(sourceBytes, start, length, java.nio.charset.StandardCharsets.UTF_8);
+            return new String(sourceBytes, start, length, StandardCharsets.UTF_8);
         });
     }
 
@@ -96,7 +98,7 @@ public abstract class TSQueryPredicate {
             this.captureId = captureId;
             this.literalValue = literalValue;
             this.literalBytes =
-                    literalValue == null ? null : literalValue.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    literalValue == null ? null : literalValue.getBytes(StandardCharsets.UTF_8);
             this.valueId = valueId;
             this.isPositive = !name.contains("not-");
             this.isAny = name.startsWith("any-");
@@ -119,7 +121,7 @@ public abstract class TSQueryPredicate {
             List<TSNode> nodes2 = findNodes(match, valueId);
             if (nodes1.isEmpty() || nodes2.isEmpty()) return !isPositive;
 
-            java.util.function.Predicate<TSNode> predicate = n1 -> {
+            Predicate<TSNode> predicate = n1 -> {
                 String text1 = textProvider.apply(n1);
                 return nodes2.stream().anyMatch(n2 -> Objects.equals(text1, textProvider.apply(n2))) == isPositive;
             };
@@ -131,7 +133,7 @@ public abstract class TSQueryPredicate {
             List<TSNode> nodes2 = findNodes(match, valueId);
             if (nodes1.isEmpty() || nodes2.isEmpty()) return !isPositive;
 
-            java.util.function.Predicate<TSNode> predicate = n1 -> {
+            Predicate<TSNode> predicate = n1 -> {
                 int s1 = n1.getStartByte();
                 int l1 = n1.getEndByte() - s1;
                 return nodes2.stream().anyMatch(n2 -> {
@@ -147,7 +149,7 @@ public abstract class TSQueryPredicate {
         private boolean testLiteral(TSQueryMatch match, Function<TSNode, String> textProvider) {
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;
-            java.util.function.Predicate<TSNode> predicate = node -> {
+            Predicate<TSNode> predicate = node -> {
                 String text = textProvider.apply(node);
                 return Objects.equals(text, literalValue) == isPositive;
             };
@@ -157,7 +159,7 @@ public abstract class TSQueryPredicate {
         private boolean testLiteral(TSQueryMatch match, byte[] sourceBytes) {
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;
-            java.util.function.Predicate<TSNode> predicate = node -> {
+            Predicate<TSNode> predicate = node -> {
                 int start = node.getStartByte();
                 int length = node.getEndByte() - start;
                 return arrayEquals(sourceBytes, start, length, literalBytes, 0, literalBytes.length) == isPositive;
@@ -189,7 +191,7 @@ public abstract class TSQueryPredicate {
         public boolean test(TSQueryMatch match, Function<TSNode, String> textProvider) {
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;
-            java.util.function.Predicate<TSNode> predicate = n -> {
+            Predicate<TSNode> predicate = n -> {
                 String text = textProvider.apply(n);
                 return text != null && pattern.matcher(text).find() == isPositive;
             };
@@ -213,7 +215,7 @@ public abstract class TSQueryPredicate {
             this.captureId = captureId;
             this.values = new HashSet<>(values);
             this.valueBytes = values.stream()
-                    .map(s -> s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                    .map(s -> s.getBytes(StandardCharsets.UTF_8))
                     .collect(Collectors.toList());
             this.isPositive = name.equals("any-of?");
         }
@@ -222,7 +224,7 @@ public abstract class TSQueryPredicate {
         public boolean test(TSQueryMatch match, Function<TSNode, String> textProvider) {
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;
-            java.util.function.Predicate<TSNode> predicate = node -> {
+            Predicate<TSNode> predicate = node -> {
                 String text = textProvider.apply(node);
                 return (text != null && values.contains(text)) == isPositive;
             };
@@ -235,7 +237,7 @@ public abstract class TSQueryPredicate {
             if (sourceBytes == null) return super.test(match, sourceBytes);
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;
-            java.util.function.Predicate<TSNode> predicate = node -> {
+            Predicate<TSNode> predicate = node -> {
                 int start = node.getStartByte();
                 int length = node.getEndByte() - start;
                 return valueBytes.stream().anyMatch(val -> arrayEquals(sourceBytes, start, length, val, 0, val.length))

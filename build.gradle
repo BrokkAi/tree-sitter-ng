@@ -7,6 +7,7 @@ import java.net.http.HttpResponse
 plugins {
     alias(libs.plugins.download)
     alias(libs.plugins.nexus.staging)
+    alias(libs.plugins.errorprone) apply false
     id 'com.diffplug.spotless' version '6.25.0' apply false
     id 'base'
 }
@@ -31,6 +32,7 @@ subprojects {
     apply plugin: 'signing'
     apply plugin: 'maven-publish'
     apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'net.ltgt.errorprone'
 
     spotless {
         java {
@@ -47,16 +49,69 @@ subprojects {
         dependsOn("spotlessApply")
     }
 
+    tasks.register("analyze") {
+        group = "verification"
+        description = "Run errorprone checks"
+        dependsOn(tasks.withType(JavaCompile))
+    }
+
+    tasks.register("fix") {
+        group = "formatting"
+        description = "Run errorprone auto-patching"
+        dependsOn(tasks.withType(JavaCompile))
+    }
+
+    tasks.named("check") {
+        dependsOn("analyze")
+    }
+
     repositories {
         mavenCentral()
     }
 
     dependencies {
+        errorprone(libs.errorprone.core)
+        errorprone(libs.nullaway)
+
         testImplementation platform(libs.junit.bom)
         testImplementation 'org.junit.jupiter:junit-jupiter'
         if(project.name != 'tree-sitter'){
             testImplementation project(":tree-sitter-tests")
             implementation project(":tree-sitter")
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        def isFix = gradle.startParameter.taskNames.contains("fix")
+        options.errorprone {
+            if (isFix) {
+                errorproneArgs.addAll(
+                    "-XepPatchChecks:UnnecessarilyFullyQualified,MissingOverride,RemoveUnusedImports,RedundantNullCheck,RedundantThrows,OperatorPrecedence,UnnecessaryParentheses,EmptyBlockTag,ClassCanBeStatic",
+                    "-XepPatchLocation:IN_PLACE"
+                )
+            }
+
+            disable("FutureReturnValueIgnored")
+            disable("MissingSummary")
+            disable("NonCanonicalType")
+
+            excludedPaths = ".*/src/main/java/(dev/|eu/).*"
+
+            error("NullAway")
+            warn("UnnecessarilyFullyQualified")
+            warn("EmptyBlockTag")
+
+            option("NullAway:AnnotatedPackages", "io.github.bonede")
+            option("NullAway:ExcludedFieldAnnotations",
+                   "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll,org.junit.jupiter.api.Test")
+            option("NullAway:ExcludedClassAnnotations",
+                   "org.junit.jupiter.api.extension.ExtendWith,org.junit.jupiter.api.TestInstance")
+            option("NullAway:AcknowledgeRestrictiveAnnotations", "true")
+            option("NullAway:CheckOptionalEmptiness", "true")
+            option("NullAway:KnownInitializers",
+                   "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll")
+            option("NullAway:HandleTestAssertionLibraries", "true")
+            option("NullAway:ExcludedPaths", ".*/src/main/java/dev/.*")
         }
     }
 

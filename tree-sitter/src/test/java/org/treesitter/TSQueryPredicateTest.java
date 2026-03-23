@@ -2,6 +2,7 @@ package org.treesitter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -126,10 +127,10 @@ class TSQueryPredicateTest {
         cursor.exec(query, root, src);
         assertTrue(cursor.nextMatch(match), "Should match '世界' because it is not '😊'");
         // Verify it matched the second string, not the first
-        byte[] srcBytes = src.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] srcBytes = src.getBytes(StandardCharsets.UTF_8);
         int start = match.getCaptures()[0].getNode().getStartByte();
         int end = match.getCaptures()[0].getNode().getEndByte();
-        String matchedText = new String(srcBytes, start, end - start, java.nio.charset.StandardCharsets.UTF_8);
+        String matchedText = new String(srcBytes, start, end - start, StandardCharsets.UTF_8);
         assertEquals("\"\u4E16\u754C\"", matchedText);
         assertFalse(cursor.nextMatch(match), "Should not match the emoji string");
 
