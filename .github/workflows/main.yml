@@ -20,6 +20,8 @@ jobs:
           distribution: 'corretto'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4.2.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
       - name: Run Spotless and Error Prone
         run: ./gradlew spotlessCheck analyze --stacktrace
 
@@ -43,5 +45,7 @@ jobs:
           distribution: 'corretto'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4.2.1
+        with:
+          cache-read-only: true
       - name: Test with Gradle
         run: ./gradlew test --stacktrace
