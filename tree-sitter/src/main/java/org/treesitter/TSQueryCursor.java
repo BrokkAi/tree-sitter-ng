@@ -24,6 +24,7 @@ public class TSQueryCursor implements AutoCloseable {
     }
 
     private @Nullable TSNode node;
+    private @Nullable TSTree tree;
     private @Nullable TSQuery query;
     private byte[] sourceBytes = new byte[0];
 
@@ -48,6 +49,7 @@ public class TSQueryCursor implements AutoCloseable {
         this.progressPayloadPtr = progressPayloadPtr;
         this.cleanable = CleanerRunner.register(this, new TSQueryCursorCleanAction(ptr, progressPayloadPtr));
         this.node = null;
+        this.tree = null;
         this.query = null;
     }
 
@@ -112,6 +114,7 @@ public class TSQueryCursor implements AutoCloseable {
         }
         executed = true;
         this.node = node;
+        this.tree = node.getTree();
         this.query = query;
         this.sourceBytes =
                 sourceText == null ? new byte[0] : sourceText.toString().getBytes(StandardCharsets.UTF_8);
@@ -151,6 +154,7 @@ public class TSQueryCursor implements AutoCloseable {
         }
         executed = true;
         this.node = node;
+        this.tree = node.getTree();
         this.query = query;
         this.sourceBytes =
                 sourceText == null ? new byte[0] : sourceText.toString().getBytes(StandardCharsets.UTF_8);
@@ -329,11 +333,10 @@ public class TSQueryCursor implements AutoCloseable {
 
     private void addTsTreeRef(TSQueryMatch match) {
         TSQueryCapture[] matchCaptures = match.getCaptures();
-        TSNode cursorNode = this.node;
-        if (cursorNode != null) {
-            TSTree tree = cursorNode.getTree();
+        TSTree currentTree = this.tree;
+        if (currentTree != null) {
             for (TSQueryCapture capture : matchCaptures) {
-                capture.getNode().setTree(tree);
+                capture.getNode().setTree(currentTree);
             }
         }
     }
