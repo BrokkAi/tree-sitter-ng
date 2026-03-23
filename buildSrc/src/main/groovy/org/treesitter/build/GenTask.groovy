@@ -58,6 +58,20 @@ public class $className extends TSLanguage {
         }
     }
 
+    static void genPackageInfo(File projectDir) {
+        def packageInfoFile = new File(projectDir, "src/main/java/org/treesitter/package-info.java")
+        def content = """
+@NullMarked
+package org.treesitter;
+
+import org.jspecify.annotations.NullMarked;
+"""
+        packageInfoFile.getParentFile().mkdirs()
+        try (OutputStream outputStream = new FileOutputStream(packageInfoFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content.trim() + System.lineSeparator()) }
+        }
+    }
+
     static void genJavaTestFile(File projectDir, String libShortName){
         def capitalized = capitalizedLibName(libShortName)
         def classFile = new File(projectDir, "src/test/java/org/treesitter/TreeSitter${capitalized}Test.java")
@@ -158,6 +172,7 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TreeSitter${capitalized}_tree_1sitte
         project.rootProject.mkdir(projectDir)
 
         genProperties(projectDir, version)
+        genPackageInfo(projectDir)
         genJavaFile(projectDir, libShortName)
         genJniCFile(projectDir, libShortName)
         genBuildGradle(projectDir, libShortName, url)

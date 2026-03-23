@@ -11,11 +11,15 @@ public class TestAttributes {
     private List<String> languages = new ArrayList<>();
     private List<String> platforms = new ArrayList<>();
 
-    public TestAttributes() {
+    public TestAttributes() {}
 
-    }
-
-    public TestAttributes(boolean skip, String platform, boolean failFast, boolean error, List<String> languages, List<String> platforms) {
+    public TestAttributes(
+            boolean skip,
+            String platform,
+            boolean failFast,
+            boolean error,
+            List<String> languages,
+            List<String> platforms) {
         this.skip = skip;
         this.platform = platform;
         this.failFast = failFast;
@@ -24,11 +28,11 @@ public class TestAttributes {
         this.platforms = platforms;
     }
 
-    public void addLanguage(String lang){
+    public void addLanguage(String lang) {
         this.languages.add(lang);
     }
 
-    public void addPlatform(String platform){
+    public void addPlatform(String platform) {
         this.platforms.add(platform);
     }
 

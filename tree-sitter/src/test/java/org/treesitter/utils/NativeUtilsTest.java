@@ -1,13 +1,13 @@
 package org.treesitter.utils;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Locale;
+import org.junit.jupiter.api.Test;
 
 class NativeUtilsTest {
 
@@ -28,7 +28,7 @@ class NativeUtilsTest {
     void loadLibInMultipleProcesses() throws IOException, InterruptedException {
         String javaHome = System.getProperty("java.home");
         String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
-        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+        if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) {
             javaBin += ".exe";
         }
         String classpath = System.getProperty("java.class.path");

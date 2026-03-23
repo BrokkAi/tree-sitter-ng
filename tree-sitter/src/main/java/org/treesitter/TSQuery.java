@@ -1,16 +1,29 @@
 package org.treesitter;
 
-import java.lang.ref.Cleaner.Cleanable;
+import static org.treesitter.TSParser.ts_query_capture_count;
+import static org.treesitter.TSParser.ts_query_capture_name_for_id;
+import static org.treesitter.TSParser.ts_query_capture_quantifier_for_id;
+import static org.treesitter.TSParser.ts_query_delete;
+import static org.treesitter.TSParser.ts_query_disable_capture;
+import static org.treesitter.TSParser.ts_query_disable_pattern;
+import static org.treesitter.TSParser.ts_query_end_byte_for_pattern;
+import static org.treesitter.TSParser.ts_query_is_pattern_guaranteed_at_step;
+import static org.treesitter.TSParser.ts_query_is_pattern_non_local;
+import static org.treesitter.TSParser.ts_query_is_pattern_rooted;
+import static org.treesitter.TSParser.ts_query_new;
+import static org.treesitter.TSParser.ts_query_pattern_count;
+import static org.treesitter.TSParser.ts_query_predicates_for_pattern;
+import static org.treesitter.TSParser.ts_query_start_byte_for_pattern;
+import static org.treesitter.TSParser.ts_query_string_count;
+import static org.treesitter.TSParser.ts_query_string_value_for_id;
 
+import java.lang.ref.Cleaner.Cleanable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.treesitter.TSParser.*;
-
 public class TSQuery implements AutoCloseable {
     private final long ptr;
-    private TSLanguage lang;
-    private List<List<TSQueryPredicate>> predicates;
+    private List<List<TSQueryPredicate>> predicates = new ArrayList<>();
     private final Cleanable cleanable;
     private boolean closed = false;
 
@@ -59,12 +72,11 @@ public class TSQuery implements AutoCloseable {
      *
      * @throws TSQueryException If the query is invalid
      */
-    public TSQuery(TSLanguage language, String query){
+    public TSQuery(TSLanguage language, String query) {
         this(ts_query_new(language.getPtr(), query));
         if (ptr == 0) {
             throw new TSQueryException("Syntax error in query: " + query);
         }
-        this.lang = language;
         this.predicates = parsePredicates();
     }
 
@@ -76,7 +88,7 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The number of patterns.
      */
-    public int getPatternCount(){
+    public int getPatternCount() {
         ensureOpen();
         return ts_query_pattern_count(ptr);
     }
@@ -86,7 +98,7 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The number of captures.
      */
-    public int getCaptureCount(){
+    public int getCaptureCount() {
         ensureOpen();
         return ts_query_capture_count(ptr);
     }
@@ -96,11 +108,10 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The number of strings.
      */
-    public int getStringCount(){
+    public int getStringCount() {
         ensureOpen();
         return ts_query_string_count(ptr);
     }
-
 
     /**
      * Get the byte offset where the given pattern starts in the query's source.<br>
@@ -155,7 +166,9 @@ public class TSQuery implements AutoCloseable {
      */
     public TSQueryPredicateStep[] getPredicateForPattern(int patternIndex) {
         ensureOpen();
-        return ts_query_predicates_for_pattern(ptr, patternIndex);
+        TSQueryPredicateStep[] steps = ts_query_predicates_for_pattern(ptr, patternIndex);
+        if (steps == null) return new TSQueryPredicateStep[0];
+        return steps;
     }
 
     /**
@@ -200,7 +213,6 @@ public class TSQuery implements AutoCloseable {
         return ts_query_is_pattern_guaranteed_at_step(ptr, byteOffset);
     }
 
-
     /**
      * Get the name and length of one of the query's captures, or one of the
      * query's string literals. Each capture and string is associated with a
@@ -213,7 +225,7 @@ public class TSQuery implements AutoCloseable {
     public String getCaptureNameForId(int captureId) {
         ensureOpen();
         int captureCount = getCaptureCount();
-        if(captureId >= captureCount){
+        if (captureId >= captureCount) {
             throw new TSException("Invalid capture id: " + captureId);
         }
         return ts_query_capture_name_for_id(ptr, captureId);
@@ -233,22 +245,35 @@ public class TSQuery implements AutoCloseable {
         return predicates.get(patternIndex);
     }
 
+    /**
+     * Check if the query contains any text-dependent predicates.
+     *
+     * @return True if any pattern in the query contains a predicate that requires text.
+     */
+    public boolean hasTextPredicates() {
+        for (List<TSQueryPredicate> patternPredicates : predicates) {
+            for (TSQueryPredicate predicate : patternPredicates) {
+                if (predicate.requiresText()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private List<List<TSQueryPredicate>> parsePredicates() {
         int patternCount = getPatternCount();
         List<List<TSQueryPredicate>> result = new ArrayList<>(patternCount);
         for (int i = 0; i < patternCount; i++) {
             TSQueryPredicateStep[] steps = getPredicateForPattern(i);
             List<TSQueryPredicate> patternPredicates = new ArrayList<>();
-            if (steps == null) {
-                result.add(patternPredicates);
-                continue;
-            }
             int stepIndex = 0;
             while (stepIndex < steps.length) {
                 // Find the number of arguments until Done sentinel
                 int nargs = 0;
-                while (stepIndex + nargs < steps.length &&
-                        steps[stepIndex + nargs].getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeDone) {
+                while (stepIndex + nargs < steps.length
+                        && steps[stepIndex + nargs].getType()
+                                != TSQueryPredicateStepType.TSQueryPredicateStepTypeDone) {
                     nargs++;
                 }
 
@@ -293,7 +318,7 @@ public class TSQuery implements AutoCloseable {
         TSQueryPredicateStep arg2 = steps[start + 2];
         int arg2ValueId = arg2.getValueId();
         boolean isCapture = arg2.getType() == TSQueryPredicateStepType.TSQueryPredicateStepTypeCapture;
-        String literalValue = isCapture ? null : getStringValueForId(arg2ValueId);
+        String literalValue = isCapture ? "" : getStringValueForId(arg2ValueId);
 
         return new TSQueryPredicate.TSQueryPredicateEq(name, captureId, literalValue, arg2ValueId, isCapture);
     }
@@ -319,7 +344,8 @@ public class TSQuery implements AutoCloseable {
 
     private TSQueryPredicate handleAnyOf(String name, TSQueryPredicateStep[] steps, int start, int nargs) {
         if (nargs < 3) {
-            throw new TSQueryException(String.format("Predicate #%s expects at least 2 arguments, got %d", name, nargs - 1));
+            throw new TSQueryException(
+                    String.format("Predicate #%s expects at least 2 arguments, got %d", name, nargs - 1));
         }
         TSQueryPredicateStep arg1 = steps[start + 1];
         if (arg1.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeCapture) {
@@ -389,13 +415,19 @@ public class TSQuery implements AutoCloseable {
     public TSQuantifier getCaptureQuantifierForId(int patternId, int captureId) {
         ensureOpen();
         int quantifier = ts_query_capture_quantifier_for_id(ptr, patternId, captureId);
-        switch (quantifier){
-            case 0: return TSQuantifier.TSQuantifierZero;
-            case 1: return TSQuantifier.TSQuantifierZeroOrOne;
-            case 2: return TSQuantifier.TSQuantifierZeroOrMore;
-            case 3: return TSQuantifier.TSQuantifierOne;
-            case 4: return TSQuantifier.TSQuantifierOneOrMore;
-            default: throw new TSException("Can't handle quantifier type: %d" + quantifier);
+        switch (quantifier) {
+            case 0:
+                return TSQuantifier.TSQuantifierZero;
+            case 1:
+                return TSQuantifier.TSQuantifierZeroOrOne;
+            case 2:
+                return TSQuantifier.TSQuantifierZeroOrMore;
+            case 3:
+                return TSQuantifier.TSQuantifierOne;
+            case 4:
+                return TSQuantifier.TSQuantifierOneOrMore;
+            default:
+                throw new TSException("Can't handle quantifier type: %d" + quantifier);
         }
     }
 

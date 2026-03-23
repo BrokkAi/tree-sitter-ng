@@ -1,24 +1,19 @@
 package org.treesitter.tests;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
+import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.treesitter.TSLanguage;
 import org.treesitter.TreeSitterScala;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class CorpusTestTest {
-
-    private static List<TestExample> examples;
 
     private CorpusTest loadTest(String filename) throws IOException {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filename)) {
-            return new CorpusTest(inputStream, filename);
+            assertNotNull(inputStream);
+            return new CorpusTest(inputStream);
         }
     }
 
@@ -34,5 +29,4 @@ class CorpusTestTest {
         TSLanguage lang = new TreeSitterScala();
         CorpusTest.runAllTestsInFolder("src/test/resources/test/corpus", lang, "scala");
     }
-
 }

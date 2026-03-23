@@ -1,7 +1,5 @@
 package org.treesitter;
 
-import org.treesitter.utils.NativeUtils;
-
 import java.lang.ref.Cleaner.Cleanable;
 
 public abstract class TSLanguage implements AutoCloseable {
@@ -9,7 +7,7 @@ public abstract class TSLanguage implements AutoCloseable {
     private final Cleanable cleanable;
     private boolean closed = false;
 
-    protected TSLanguage(long ptr){
+    protected TSLanguage(long ptr) {
         this.ptr = ptr;
         this.cleanable = CleanerRunner.register(this, new TSLanguageCleanAction(ptr));
     }
@@ -31,16 +29,17 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @param libFilePath Path to language library, e.g. lib/tree-sitter-json.so.
      * @param lang Name of the language. e.g. tree-sitter-json.
-     * @return
+     *
      */
-    public static TSLanguage load(String libFilePath, String lang){
+    public static TSLanguage load(String libFilePath, String lang) {
         long ptr = TSParser.ts_load_lang(libFilePath, lang);
-        if(ptr == 0){
+        if (ptr == 0) {
             throw new RuntimeException("Cannot find symbol for: " + lang + " in: " + libFilePath);
         }
         return new AnonymousLanguage(ptr);
     }
-    protected long getPtr(){
+
+    protected long getPtr() {
         ensureOpen();
         return this.ptr;
     }
@@ -51,7 +50,7 @@ public abstract class TSLanguage implements AutoCloseable {
      * Tree-sitter.
      * @return ABI version.
      */
-    public int abiVersion(){
+    public int abiVersion() {
         ensureOpen();
         return TSParser.ts_language_abi_version(this.getPtr());
     }
@@ -62,7 +61,7 @@ public abstract class TSLanguage implements AutoCloseable {
      * the language's `tree-sitter.json` file.
      * @return Metadata of the language. Maybe <code>null</code>.
      */
-    public TSLanguageMetadata metadata(){
+    public TSLanguageMetadata metadata() {
         ensureOpen();
         return TSParser.ts_language_metadata(this.getPtr());
     }
@@ -72,7 +71,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return Supertypes of the language.
      */
-    public int[] supertypes(){
+    public int[] supertypes() {
         ensureOpen();
         return TSParser.ts_language_supertypes(this.getPtr());
     }
@@ -82,7 +81,7 @@ public abstract class TSLanguage implements AutoCloseable {
      * @param supertype The supertype.
      * @return Subtypes of the supertype.
      */
-    public int[] subtypes(int supertype){
+    public int[] subtypes(int supertype) {
         ensureOpen();
         return TSParser.ts_language_subtypes(this.getPtr(), supertype);
     }
@@ -92,19 +91,17 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return <code>NULL</code>in older parsers.
      */
-    public String name(){
+    public String name() {
         ensureOpen();
         return TSParser.ts_language_name(this.getPtr());
     }
-
-
 
     /**
      * Get the number of distinct field names in the language.
      *
      * @return The number of fields.
      */
-    public int fieldCount(){
+    public int fieldCount() {
         ensureOpen();
         return TSParser.ts_language_field_count(this.getPtr());
     }
@@ -116,7 +113,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return The field name string.
      */
-    public String fieldNameForId(int id){
+    public String fieldNameForId(int id) {
         ensureOpen();
         return TSParser.ts_language_field_name_for_id(this.getPtr(), id);
     }
@@ -128,7 +125,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return The field id.
      */
-    public int fieldIdForName(String name){
+    public int fieldIdForName(String name) {
         ensureOpen();
         return TSParser.ts_language_field_id_for_name(this.getPtr(), name);
     }
@@ -143,15 +140,20 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return The symbol type.
      */
-    public TSSymbolType symbolType(int symbol){
+    public TSSymbolType symbolType(int symbol) {
         ensureOpen();
         int type = TSParser.ts_language_symbol_type(this.getPtr(), symbol);
-        switch (type){
-            case 0: return TSSymbolType.TSSymbolTypeRegular;
-            case 1: return TSSymbolType.TSSymbolTypeAnonymous;
-            case 2: return TSSymbolType.TSSymbolTypeSupertype;
-            case 3: return TSSymbolType.TSSymbolTypeAuxiliary;
-            default: throw new TSException("Can't handle symbol type: %d" + type);
+        switch (type) {
+            case 0:
+                return TSSymbolType.TSSymbolTypeRegular;
+            case 1:
+                return TSSymbolType.TSSymbolTypeAnonymous;
+            case 2:
+                return TSSymbolType.TSSymbolTypeSupertype;
+            case 3:
+                return TSSymbolType.TSSymbolTypeAuxiliary;
+            default:
+                throw new TSException("Can't handle symbol type: %d" + type);
         }
     }
 
@@ -160,7 +162,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return the number of symbols.
      */
-    public int symbolCount(){
+    public int symbolCount() {
         ensureOpen();
         return TSParser.ts_language_symbol_count(this.getPtr());
     }
@@ -172,7 +174,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return the node type string.
      */
-    public String symbolName(int symbol){
+    public String symbolName(int symbol) {
         ensureOpen();
         return TSParser.ts_language_symbol_name(this.getPtr(), symbol);
     }
@@ -185,7 +187,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return the node type id.
      */
-    public int symbolForName(String name, boolean isNamed){
+    public int symbolForName(String name, boolean isNamed) {
         ensureOpen();
         return TSParser.ts_language_symbol_for_name(this.getPtr(), name, isNamed);
     }
@@ -197,12 +199,12 @@ public abstract class TSLanguage implements AutoCloseable {
      */
     public abstract TSLanguage copy();
 
-    protected long copyPtr(){
+    protected long copyPtr() {
         ensureOpen();
         return TSParser.ts_language_copy(getPtr());
     }
 
-    public static class TSLanguageCleanAction implements Runnable{
+    public static class TSLanguageCleanAction implements Runnable {
         private long ptr;
 
         public TSLanguageCleanAction(long ptr) {
@@ -224,7 +226,7 @@ public abstract class TSLanguage implements AutoCloseable {
      * @param symbol Symbol id
      * @return Next state
      */
-    public int nextState(int state, int symbol){
+    public int nextState(int state, int symbol) {
         ensureOpen();
         return TSParser.ts_language_next_state(ptr, state, symbol);
     }
@@ -234,9 +236,8 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return Valid states counts
      */
-    public int stateCount(){
+    public int stateCount() {
         ensureOpen();
         return TSParser.ts_language_state_count(ptr);
     }
-
 }

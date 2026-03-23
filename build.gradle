@@ -7,6 +7,8 @@ import java.net.http.HttpResponse
 plugins {
     alias(libs.plugins.download)
     alias(libs.plugins.nexus.staging)
+    alias(libs.plugins.errorprone) apply false
+    id 'com.diffplug.spotless' version '6.25.0' apply false
     id 'base'
 }
 
@@ -17,6 +19,7 @@ allprojects {
     }
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+        options.compilerArgs << "-Werror"
     }
 }
 
@@ -29,17 +32,109 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'signing'
     apply plugin: 'maven-publish'
+    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'net.ltgt.errorprone'
+
+    spotless {
+        java {
+            target("src/**/*.java")
+            targetExclude("**/build/**", "**/test/resources/**", "**/generated/**")
+            palantirJavaFormat(libs.versions.palantirJavaFormat.get())
+            removeUnusedImports()
+        }
+    }
+
+    tasks.register("tidy") {
+        group = "formatting"
+        description = "Runs Spotless formatting"
+        dependsOn("spotlessApply")
+    }
+
+    tasks.register("analyze") {
+        group = "verification"
+        description = "Run errorprone checks"
+        dependsOn("compileJava", "compileTestJava")
+    }
+
+    tasks.register("fix") {
+        group = "formatting"
+        description = "Run errorprone auto-patching"
+        dependsOn("compileJava", "compileTestJava")
+    }
+
+    tasks.register("verifyPackageInfo") {
+        group = "verification"
+        description = "Ensures every package with Java files has a package-info.java"
+        doLast {
+            def sourceSets = project.extensions.getByType(SourceSetContainer)
+            sourceSets.main.java.srcDirs.each { srcDir ->
+                if (!srcDir.exists()) return
+                srcDir.eachDirRecurse { dir ->
+                    def javaFiles = dir.listFiles({ file -> file.name.endsWith(".java") && file.name != "package-info.java" } as FileFilter)
+                    if (javaFiles && !new File(dir, "package-info.java").exists()) {
+                        def pkg = srcDir.relativePath(dir).replace(File.separator, ".")
+                        throw new GradleException("Missing package-info.java in package: ${pkg} (at ${dir.absolutePath}). " +
+                                "Please create it and add @org.jspecify.annotations.NullMarked.")
+                    }
+                }
+            }
+        }
+    }
+
+    tasks.named("check") {
+        dependsOn("tidy")
+        dependsOn("verifyPackageInfo")
+        dependsOn("analyze")
+    }
 
     repositories {
         mavenCentral()
     }
 
     dependencies {
+        compileOnly libs.jspecify
+        errorprone(libs.errorprone.core)
+        errorprone(libs.nullaway)
+
         testImplementation platform(libs.junit.bom)
         testImplementation 'org.junit.jupiter:junit-jupiter'
         if(project.name != 'tree-sitter'){
             testImplementation project(":tree-sitter-tests")
             implementation project(":tree-sitter")
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        def isFix = gradle.startParameter.taskNames.contains("fix")
+        options.errorprone {
+            if (isFix) {
+                errorproneArgs.addAll(
+                    "-XepPatchChecks:UnnecessarilyFullyQualified,MissingOverride,RemoveUnusedImports,RedundantNullCheck,RedundantThrows,OperatorPrecedence,UnnecessaryParentheses,EmptyBlockTag,ClassCanBeStatic",
+                    "-XepPatchLocation:IN_PLACE"
+                )
+            }
+
+            disable("FutureReturnValueIgnored")
+            disable("MissingSummary")
+            disable("NonCanonicalType")
+
+            excludedPaths = ".*/src/main/java/(dev/|eu/).*"
+
+            error("NullAway")
+            warn("UnnecessarilyFullyQualified")
+            warn("EmptyBlockTag")
+
+            option("NullAway:AnnotatedPackages", "io.github.bonede")
+            option("NullAway:ExcludedFieldAnnotations",
+                   "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll,org.junit.jupiter.api.Test")
+            option("NullAway:ExcludedClassAnnotations",
+                   "org.junit.jupiter.api.extension.ExtendWith,org.junit.jupiter.api.TestInstance")
+            option("NullAway:AcknowledgeRestrictiveAnnotations", "true")
+            option("NullAway:CheckOptionalEmptiness", "true")
+            option("NullAway:KnownInitializers",
+                   "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll")
+            option("NullAway:HandleTestAssertionLibraries", "true")
+            option("NullAway:ExcludedPaths", ".*/src/main/java/dev/.*")
         }
     }
 
@@ -101,6 +196,7 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        mustRunAfter("spotlessCheck")
     }
 
     tasks.register('downloadSource', DownloadSourceTask)
@@ -116,9 +212,12 @@ subprojects {
         dependsOn downloadSource, rootProject.downloadZig
     }
 
-    tasks.withType(Javadoc) {
+    tasks.withType(Javadoc).configureEach {
         options.locale = 'en_US'
         options.JFlags = ["-Duser.language=en_US"]
+        if (JavaVersion.current().isJava8Compatible()) {
+            options.addStringOption('Xdoclint:all,-missing', '-quiet')
+        }
     }
 }
 

@@ -1,9 +1,8 @@
 package org.treesitter;
 
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.treesitter.tests.CorpusTest;
-
-import java.io.IOException;
 
 class TreeSitterJavascriptTest {
     @Test

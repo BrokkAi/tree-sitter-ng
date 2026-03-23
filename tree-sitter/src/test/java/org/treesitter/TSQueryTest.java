@@ -1,33 +1,34 @@
 package org.treesitter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class TSQueryTest {
     public static final String JSON_SRC = "[1, null]";
-    private TSTree tree;
     private TSLanguage json;
     private TSParser parser;
     private TSQuery query;
+    private TSTree tree;
 
     @BeforeEach
     void beforeEach() {
         parser = new TSParser();
         json = new TreeSitterJson();
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
         query = new TSQuery(json, "((document) @root (#eq? @root \"foo\"))");
     }
+
     @Test
-    void newQuery(){
+    void newQuery() {
+        assertNotNull(tree);
         assertThrows(TSQueryException.class, () -> new TSQuery(json, "invalid query"));
         assertDoesNotThrow(() -> new TSQuery(json, "(document)"));
     }
-
 
     @Test
     void getPatternCount() {
@@ -54,7 +55,6 @@ class TSQueryTest {
         assertEquals(37, query.getEndByteForPattern(0));
     }
 
-
     @Test
     void getPredicateForPattern() {
         assertEquals(4, query.getPredicateForPattern(0).length);
@@ -74,7 +74,6 @@ class TSQueryTest {
     void isPatternGuaranteedAtStep() {
         assertFalse(query.isPatternGuaranteedAtStep(3));
     }
-
 
     @Test
     void getCaptureNameForId() {

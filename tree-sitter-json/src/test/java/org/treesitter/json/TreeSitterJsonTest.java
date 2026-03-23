@@ -1,10 +1,9 @@
 package org.treesitter.json;
 
-import org.junit.jupiter.api.Test;
-import org.treesitter.tests.CorpusTest;
-import org.treesitter.TreeSitterJson;
-
 import java.io.IOException;
+import org.junit.jupiter.api.Test;
+import org.treesitter.TreeSitterJson;
+import org.treesitter.tests.CorpusTest;
 
 class TreeSitterJsonTest {
     @Test
