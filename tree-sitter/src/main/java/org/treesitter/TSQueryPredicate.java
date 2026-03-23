@@ -38,6 +38,15 @@ public abstract class TSQueryPredicate {
     public abstract boolean test(TSQueryMatch match, Function<TSNode, String> textProvider);
 
     /**
+     * Check if the predicate requires text to be evaluated.
+     *
+     * @return true if the predicate requires text.
+     */
+    public boolean requiresText() {
+        return false;
+    }
+
+    /**
      * Test the predicate against a match using raw source bytes to avoid allocations.
      *
      * @param match       The query match.
@@ -106,6 +115,11 @@ public abstract class TSQueryPredicate {
         @Override
         public boolean test(TSQueryMatch match, byte[] sourceBytes) {
             return isCapture ? testCapture(match, sourceBytes) : testLiteral(match, sourceBytes);
+        }
+
+        @Override
+        public boolean requiresText() {
+            return true;
         }
 
         private boolean testCapture(TSQueryMatch match, Function<TSNode, String> textProvider) {
@@ -189,6 +203,11 @@ public abstract class TSQueryPredicate {
             };
             return isAny ? nodes.stream().anyMatch(predicate) : nodes.stream().allMatch(predicate);
         }
+
+        @Override
+        public boolean requiresText() {
+            return true;
+        }
     }
 
     /**
@@ -234,6 +253,11 @@ public abstract class TSQueryPredicate {
                         == isPositive;
             };
             return nodes.stream().allMatch(predicate);
+        }
+
+        @Override
+        public boolean requiresText() {
+            return true;
         }
     }
 

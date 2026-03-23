@@ -7,8 +7,6 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 class TreeSitterCssTest {
     private TSParser parser;
 
