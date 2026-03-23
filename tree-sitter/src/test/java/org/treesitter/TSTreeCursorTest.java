@@ -29,7 +29,7 @@ class TSTreeCursorTest {
 
     @Test
     void reset() {
-        rootCursor.reset(arrayNode);
+        rootCursor.reset();
         assertEquals("array", rootCursor.currentNode().getType());
     }
 

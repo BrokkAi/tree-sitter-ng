@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class TSTreeTest {
     public static final String JSON_SRC = "[1, null]";
+    @SuppressWarnings("NullAway.init")
     private static TSTree tree;
     private static TSLanguage json = new TreeSitterJson();
     private static TSParser parser = new TSParser();
@@ -63,25 +64,22 @@ class TSTreeTest {
         parser.reset();
         byte[] buf = new byte[1024];
         String newJsonSrc = "[1, null, 4]";
-        TSReader reader = new TSReader() {
-            @Override
-            public int read(byte[] buf, int offset, TSPoint position) {
-                ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-                if (edited.get()) {
-                    if (offset >= newJsonSrc.length()) {
-                        return 0;
-                    }
-
-                    byteBuffer.put(newJsonSrc.getBytes());
-                    return newJsonSrc.length();
-                } else {
-                    if (offset >= JSON_SRC.length()) {
-                        return 0;
-                    }
-                    ByteBuffer charBuffer = ByteBuffer.wrap(buf);
-                    charBuffer.put(JSON_SRC.getBytes());
-                    return JSON_SRC.length();
+        TSReader reader = (buf1, offset, position) -> {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(buf1);
+            if (edited.get()) {
+                if (offset >= newJsonSrc.length()) {
+                    return 0;
                 }
+
+                byteBuffer.put(newJsonSrc.getBytes());
+                return newJsonSrc.length();
+            } else {
+                if (offset >= JSON_SRC.length()) {
+                    return 0;
+                }
+                ByteBuffer charBuffer = ByteBuffer.wrap(buf1);
+                charBuffer.put(JSON_SRC.getBytes());
+                return JSON_SRC.length();
             }
         };
         tree = parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8);

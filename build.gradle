@@ -53,13 +53,18 @@ subprojects {
     tasks.register("analyze") {
         group = "verification"
         description = "Run errorprone checks"
-        dependsOn(tasks.withType(JavaCompile))
+        dependsOn("compileJava", "compileTestJava")
+        doFirst {
+            tasks.withType(JavaCompile).configureEach {
+                outputs.upToDateWhen { false }
+            }
+        }
     }
 
     tasks.register("fix") {
         group = "formatting"
         description = "Run errorprone auto-patching"
-        dependsOn(tasks.withType(JavaCompile))
+        dependsOn("compileJava", "compileTestJava")
     }
 
     tasks.register("verifyPackageInfo") {

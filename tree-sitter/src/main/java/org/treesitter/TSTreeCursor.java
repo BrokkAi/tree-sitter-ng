@@ -1,14 +1,13 @@
 package org.treesitter;
 
-import org.jspecify.annotations.Nullable;
-
 import static org.treesitter.TSParser.*;
 
 import java.lang.ref.Cleaner.Cleanable;
+import org.jspecify.annotations.Nullable;
 
 public class TSTreeCursor implements AutoCloseable {
     private final long ptr;
-    private @Nullable TSNode node;
+    private final TSNode node;
     private final Cleanable cleanable;
     private boolean closed = false;
 
@@ -32,8 +31,9 @@ public class TSTreeCursor implements AutoCloseable {
         }
     }
 
-    private TSTreeCursor(long ptr) {
+    private TSTreeCursor(long ptr, TSNode node) {
         this.ptr = ptr;
+        this.node = node;
         this.cleanable = CleanerRunner.register(this, new TSTreeCursorCleanAction(ptr));
     }
 
@@ -55,20 +55,16 @@ public class TSTreeCursor implements AutoCloseable {
      * @param node The node to start the cursor at.
      */
     public TSTreeCursor(TSNode node) {
-        this(TSParser.ts_tree_cursor_new(node));
-        this.node = node;
+        this(TSParser.ts_tree_cursor_new(node), node);
     }
 
     /**
      * Re-initialize a tree cursor to start at the original node that the cursor was
      * constructed with.
-     *
-     * @param node The node to start the cursor at.
      */
-    public void reset(TSNode node) {
+    public void reset() {
         ensureOpen();
         ts_tree_cursor_reset(ptr, node);
-        this.node = node;
     }
 
     /**
@@ -79,10 +75,7 @@ public class TSTreeCursor implements AutoCloseable {
     public TSNode currentNode() {
         ensureOpen();
         TSNode node = ts_tree_cursor_current_node(ptr);
-        TSNode startNode = this.node;
-        if (startNode != null) {
-            node.setTree(startNode.getTree());
-        }
+        node.setTree(this.node.getTree());
         return node;
     }
 
@@ -199,17 +192,8 @@ public class TSTreeCursor implements AutoCloseable {
         return ts_tree_cursor_goto_first_child_for_point(ptr, startPoint);
     }
 
-    protected void setNode(TSNode node) {
-        this.node = node;
-    }
-
     public TSTreeCursor copy() {
         ensureOpen();
-        TSTreeCursor cursor = new TSTreeCursor(ts_tree_cursor_copy(ptr));
-        TSNode currentNode = node;
-        if (currentNode != null) {
-            cursor.setNode(currentNode);
-        }
-        return cursor;
+        return new TSTreeCursor(ts_tree_cursor_copy(ptr), node);
     }
 }

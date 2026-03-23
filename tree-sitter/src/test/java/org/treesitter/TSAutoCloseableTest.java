@@ -55,8 +55,11 @@ class TSAutoCloseableTest {
             TestLanguage() {
                 super(0);
             }
+
             @Override
-            public TSLanguage copy() { return this; }
+            public TSLanguage copy() {
+                return this;
+            }
         }
         TSTree tree = new TSTree(0, new TestLanguage());
         tree.close();
@@ -69,8 +72,11 @@ class TSAutoCloseableTest {
             TestLanguage() {
                 super(0);
             }
+
             @Override
-            public TSLanguage copy() { return this; }
+            public TSLanguage copy() {
+                return this;
+            }
         }
         TSTree tree1 = new TSTree(0, new TestLanguage());
         TSTree tree2 = new TSTree(0, new TestLanguage());

@@ -1,12 +1,11 @@
 package org.treesitter;
 
-import org.jspecify.annotations.Nullable;
-
 public class TSQueryCapture {
-    private @Nullable TSNode node;
+    @SuppressWarnings("NullAway.Init")
+    private TSNode node;
     private int index;
 
-    public @Nullable TSNode getNode() {
+    public TSNode getNode() {
         return node;
     }
 

@@ -15,7 +15,8 @@ class CorpusTestTest {
 
     private CorpusTest loadTest(String filename) throws IOException {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filename)) {
-            return new CorpusTest(inputStream, filename);
+            assertNotNull(inputStream);
+            return new CorpusTest(inputStream);
         }
     }
 

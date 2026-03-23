@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
+
 class TSQueryCursorTest {
     public static final String JSON_SRC = "[1, null]";
     private TSTree tree;
@@ -19,7 +21,7 @@ class TSQueryCursorTest {
         parser = new TSParser();
         json = new TreeSitterJson();
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
         query = new TSQuery(json, "((document) @root)");
 
         cursor = new TSQueryCursor();

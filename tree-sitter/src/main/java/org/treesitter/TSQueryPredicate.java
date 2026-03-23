@@ -1,11 +1,11 @@
 package org.treesitter;
 
-import org.jspecify.annotations.Nullable;
-
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.*;
-import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -44,18 +44,11 @@ public abstract class TSQueryPredicate {
      * @param sourceBytes The source bytes (UTF-8).
      * @return true if the predicate is satisfied.
      */
-    public boolean test(TSQueryMatch match, byte @Nullable [] sourceBytes) {
+    public boolean test(TSQueryMatch match, byte[] sourceBytes) {
         return test(match, n -> {
-            if (n.isNull()) return "";
-            if (sourceBytes == null
-                    || n.getStartByte() < 0
-                    || n.getStartByte() > n.getEndByte()
-                    || n.getStartByte() >= sourceBytes.length) {
-                throw new IllegalStateException("Source bytes are required to evaluate text-based predicates");
-            }
             int start = n.getStartByte();
             int end = n.getEndByte();
-            int length = Math.min(end, sourceBytes.length) - start;
+            int length = Math.max(0, Math.min(end, sourceBytes.length) - start);
             return new String(sourceBytes, start, length, StandardCharsets.UTF_8);
         });
     }
@@ -69,16 +62,12 @@ public abstract class TSQueryPredicate {
     }
 
     protected List<TSNode> findNodes(TSQueryMatch match, int captureId) {
-        TSQueryCapture @Nullable [] captures = match.getCaptures();
-        if (captures == null) return new ArrayList<>();
+        TSQueryCapture[] captures = match.getCaptures();
         List<TSNode> nodes = new ArrayList<>();
         for (TSQueryCapture capture : captures) {
             // In tree-sitter, the capture index is the ID within the query.
             if (capture.getIndex() == captureId) {
-                TSNode node = capture.getNode();
-                if (node != null) {
-                    nodes.add(node);
-                }
+                nodes.add(capture.getNode());
             }
         }
         return nodes;
@@ -98,10 +87,10 @@ public abstract class TSQueryPredicate {
 
         public static final Set<String> NAMES = Set.of("eq?", "not-eq?", "any-eq?", "any-not-eq?");
 
-        public TSQueryPredicateEq(String name, int captureId, @Nullable String literalValue, int valueId, boolean isCapture) {
+        public TSQueryPredicateEq(String name, int captureId, String literalValue, int valueId, boolean isCapture) {
             super(name);
             this.captureId = captureId;
-            this.literalValue = literalValue == null ? "" : literalValue;
+            this.literalValue = literalValue;
             this.literalBytes = this.literalValue.getBytes(StandardCharsets.UTF_8);
             this.valueId = valueId;
             this.isPositive = !name.contains("not-");
@@ -115,8 +104,7 @@ public abstract class TSQueryPredicate {
         }
 
         @Override
-        public boolean test(TSQueryMatch match, byte @Nullable [] sourceBytes) {
-            if (sourceBytes == null) return super.test(match, sourceBytes);
+        public boolean test(TSQueryMatch match, byte[] sourceBytes) {
             return isCapture ? testCapture(match, sourceBytes) : testLiteral(match, sourceBytes);
         }
 
@@ -155,7 +143,7 @@ public abstract class TSQueryPredicate {
             if (nodes.isEmpty()) return !isPositive;
             Predicate<TSNode> predicate = node -> {
                 String text = textProvider.apply(node);
-                return (text != null && text.equals(literalValue)) == isPositive;
+                return text.equals(literalValue) == isPositive;
             };
             return isAny ? nodes.stream().anyMatch(predicate) : nodes.stream().allMatch(predicate);
         }
@@ -197,7 +185,7 @@ public abstract class TSQueryPredicate {
             if (nodes.isEmpty()) return !isPositive;
             Predicate<TSNode> predicate = n -> {
                 String text = textProvider.apply(n);
-                return text != null && pattern.matcher(text).find() == isPositive;
+                return pattern.matcher(text).find() == isPositive;
             };
             return isAny ? nodes.stream().anyMatch(predicate) : nodes.stream().allMatch(predicate);
         }
@@ -229,15 +217,14 @@ public abstract class TSQueryPredicate {
             if (nodes.isEmpty()) return !isPositive;
             Predicate<TSNode> predicate = node -> {
                 String text = textProvider.apply(node);
-                return (text != null && values.contains(text)) == isPositive;
+                return values.contains(text) == isPositive;
             };
             // #any-of? is typically treated as a filter where all captured nodes must satisfy it
             return nodes.stream().allMatch(predicate);
         }
 
         @Override
-        public boolean test(TSQueryMatch match, byte @Nullable [] sourceBytes) {
-            if (sourceBytes == null) return super.test(match, sourceBytes);
+        public boolean test(TSQueryMatch match, byte[] sourceBytes) {
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;
             Predicate<TSNode> predicate = node -> {

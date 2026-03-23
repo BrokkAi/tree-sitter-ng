@@ -532,7 +532,11 @@ public class TSParser implements AutoCloseable {
      * @return {@link TSTree} if success, <code>null</code> otherwise.
      */
     public @Nullable TSTree parseWithOptions(
-            byte[] buf, @Nullable TSTree oldTree, TSReader reader, TSInputEncoding encoding, TSParserProgress progress) {
+            byte[] buf,
+            @Nullable TSTree oldTree,
+            TSReader reader,
+            TSInputEncoding encoding,
+            TSParserProgress progress) {
         ensureOpen();
         if (language == null) {
             throw new IllegalStateException("Parser language must be set before parsing");

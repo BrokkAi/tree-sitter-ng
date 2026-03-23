@@ -1,7 +1,5 @@
 package org.treesitter;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.ref.Cleaner.Cleanable;
 
 public class TsLookAheadIterator implements AutoCloseable {

@@ -21,29 +21,24 @@ class TSQueryPredicateTest {
         parser = new TSParser();
         json = new TreeSitterJson();
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
-        if (tree != null) {
-            rootNode = tree.getRootNode();
-        }
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
+        rootNode = tree.getRootNode();
         cursor = new TSQueryCursor();
+        query = new TSQuery(json, "()"); // Dummy to avoid uninitialized warning
     }
 
     @Test
     void predicateFilteringEq() {
         // [1, null]
         // #eq? @val "1" matches the first element
-        query = new TSQuery(Objects.requireNonNull(json), "((number) @val (#eq? @val \"1\"))");
-        Objects.requireNonNull(cursor).exec(query, Objects.requireNonNull(rootNode), JSON_SRC);
+        query = new TSQuery(json, "((number) @val (#eq? @val \"1\"))");
+        cursor.exec(query, rootNode, JSON_SRC);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
-        TSQueryCapture[] captures = Objects.requireNonNull(match.getCaptures());
+        TSQueryCapture[] captures = match.getCaptures();
         assertEquals(1, captures.length);
-        TSNode node = Objects.requireNonNull(captures[0].getNode());
-        assertEquals(
-                "1",
-                JSON_SRC.substring(
-                        node.getStartByte(),
-                        node.getEndByte()));
+        TSNode node = captures[0].getNode();
+        assertEquals("1", JSON_SRC.substring(node.getStartByte(), node.getEndByte()));
 
         // #eq? @val "2" should not match anything in [1, null]
         query = new TSQuery(json, "((number) @val (#eq? @val \"2\"))");
@@ -55,18 +50,16 @@ class TSQueryPredicateTest {
     void predicateFilteringNotMatch() {
         // [1, null]
         // #not-match? @val "^n" matches 1 but excludes null
-        query = new TSQuery(Objects.requireNonNull(json), "((_) @val (#not-match? @val \"^n\"))");
-        Objects.requireNonNull(cursor).exec(query, Objects.requireNonNull(rootNode), JSON_SRC);
+        query = new TSQuery(json, "((_) @val (#not-match? @val \"^n\"))");
+        cursor.exec(query, rootNode, JSON_SRC);
         TSQueryMatch match = new TSQueryMatch();
 
         boolean foundOne = false;
         boolean foundNull = false;
         while (cursor.nextMatch(match)) {
-            TSQueryCapture[] captures = Objects.requireNonNull(match.getCaptures());
-            TSNode node = Objects.requireNonNull(captures[0].getNode());
-            String text = JSON_SRC.substring(
-                    node.getStartByte(),
-                    node.getEndByte());
+            TSQueryCapture[] captures = match.getCaptures();
+            TSNode node = captures[0].getNode();
+            String text = JSON_SRC.substring(node.getStartByte(), node.getEndByte());
             if (text.equals("1")) foundOne = true;
             if (text.equals("null")) foundNull = true;
         }
@@ -78,18 +71,14 @@ class TSQueryPredicateTest {
     void predicateEqWithSourceText() {
         // Test #eq? @foo "bar"
         String src = "[\"bar\", \"baz\"]";
-        tree = Objects.requireNonNull(parser).parseString(null, src);
-        query = new TSQuery(Objects.requireNonNull(json), "((string) @foo (#eq? @foo \"\\\"bar\\\"\"))");
-        Objects.requireNonNull(cursor).exec(query, Objects.requireNonNull(tree).getRootNode(), src);
+        tree = Objects.requireNonNull(parser.parseString(null, src));
+        query = new TSQuery(json, "((string) @foo (#eq? @foo \"\\\"bar\\\"\"))");
+        cursor.exec(query, tree.getRootNode(), src);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
-        TSQueryCapture[] captures = Objects.requireNonNull(match.getCaptures());
-        TSNode node = Objects.requireNonNull(captures[0].getNode());
-        assertEquals(
-                "\"bar\"",
-                src.substring(
-                        node.getStartByte(),
-                        node.getEndByte()));
+        TSQueryCapture[] captures = match.getCaptures();
+        TSNode node = captures[0].getNode();
+        assertEquals("\"bar\"", src.substring(node.getStartByte(), node.getEndByte()));
         assertFalse(cursor.nextMatch(match));
     }
 
@@ -97,18 +86,14 @@ class TSQueryPredicateTest {
     void predicateNotMatchWithSourceText() {
         // Test #not-match? @foo "^[A-Z]"
         String src = "[\"Alpha\", \"beta\"]";
-        tree = Objects.requireNonNull(parser).parseString(null, src);
-        query = new TSQuery(Objects.requireNonNull(json), "((string) @foo (#not-match? @foo \"^\\\"[A-Z]\"))");
-        Objects.requireNonNull(cursor).exec(query, Objects.requireNonNull(tree).getRootNode(), src);
+        tree = Objects.requireNonNull(parser.parseString(null, src));
+        query = new TSQuery(json, "((string) @foo (#not-match? @foo \"^\\\"[A-Z]\"))");
+        cursor.exec(query, tree.getRootNode(), src);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
-        TSQueryCapture[] captures = Objects.requireNonNull(match.getCaptures());
-        TSNode node = Objects.requireNonNull(captures[0].getNode());
-        assertEquals(
-                "\"beta\"",
-                src.substring(
-                        node.getStartByte(),
-                        node.getEndByte()));
+        TSQueryCapture[] captures = match.getCaptures();
+        TSNode node = captures[0].getNode();
+        assertEquals("\"beta\"", src.substring(node.getStartByte(), node.getEndByte()));
         assertFalse(cursor.nextMatch(match));
     }
 
@@ -117,7 +102,7 @@ class TSQueryPredicateTest {
         // Test #eq? and #not-eq? with multi-byte characters (Emoji and CJK)
         // [ "😊", "世界" ]
         String src = "[ \"\uD83D\uDE0A\", \"\u4E16\u754C\" ]";
-        tree = parser.parseString(null, src);
+        tree = Objects.requireNonNull(parser.parseString(null, src));
         TSNode root = tree.getRootNode();
         TSQueryMatch match = new TSQueryMatch();
 
@@ -134,13 +119,13 @@ class TSQueryPredicateTest {
         assertFalse(cursor.nextMatch(match), "Should only match once");
 
         // 3. Negative test using #not-eq?
-        query = new TSQuery(Objects.requireNonNull(json), "((string) @s (#not-eq? @s \"\\\"\uD83D\uDE0A\\\"\"))");
-        Objects.requireNonNull(cursor).exec(query, root, src);
+        query = new TSQuery(json, "((string) @s (#not-eq? @s \"\\\"\uD83D\uDE0A\\\"\"))");
+        cursor.exec(query, root, src);
         assertTrue(cursor.nextMatch(match), "Should match '世界' because it is not '😊'");
         // Verify it matched the second string, not the first
         byte[] srcBytes = src.getBytes(StandardCharsets.UTF_8);
-        TSQueryCapture[] captures = Objects.requireNonNull(match.getCaptures());
-        TSNode node = Objects.requireNonNull(captures[0].getNode());
+        TSQueryCapture[] captures = match.getCaptures();
+        TSNode node = captures[0].getNode();
         int start = node.getStartByte();
         int end = node.getEndByte();
         String matchedText = new String(srcBytes, start, end - start, StandardCharsets.UTF_8);
@@ -152,22 +137,5 @@ class TSQueryPredicateTest {
         cursor.exec(query, root, src);
         assertTrue(cursor.nextMatch(match), "Should match '世界' using partial regex");
         assertFalse(cursor.nextMatch(match));
-    }
-
-    @Test
-    void testMissingSourceBytesThrowsException() {
-        // [1, null]
-        // Use a simple query that matches something but doesn't have its own predicates
-        query = new TSQuery(Objects.requireNonNull(json), "((number) @val)");
-        Objects.requireNonNull(cursor).exec(query, Objects.requireNonNull(rootNode), JSON_SRC);
-        TSQueryMatch match = new TSQueryMatch();
-        assertTrue(cursor.nextMatch(match));
-
-        // Manually create a predicate to test the exception throwing behavior.
-        // Capture index 0 is '@val' from the query above.
-        TSQueryPredicate predicate = new TSQueryPredicate.TSQueryPredicateEq("eq?", 0, "1", -1, false);
-
-        // Attempting to test predicates with null sourceBytes should throw IllegalStateException
-        assertThrows(IllegalStateException.class, () -> predicate.test(match, (byte[]) null));
     }
 }

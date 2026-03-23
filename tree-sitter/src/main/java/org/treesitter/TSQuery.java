@@ -1,8 +1,21 @@
 package org.treesitter;
 
-import static org.treesitter.TSParser.*;
-
-import org.jspecify.annotations.Nullable;
+import static org.treesitter.TSParser.ts_query_capture_count;
+import static org.treesitter.TSParser.ts_query_capture_name_for_id;
+import static org.treesitter.TSParser.ts_query_capture_quantifier_for_id;
+import static org.treesitter.TSParser.ts_query_delete;
+import static org.treesitter.TSParser.ts_query_disable_capture;
+import static org.treesitter.TSParser.ts_query_disable_pattern;
+import static org.treesitter.TSParser.ts_query_end_byte_for_pattern;
+import static org.treesitter.TSParser.ts_query_is_pattern_guaranteed_at_step;
+import static org.treesitter.TSParser.ts_query_is_pattern_non_local;
+import static org.treesitter.TSParser.ts_query_is_pattern_rooted;
+import static org.treesitter.TSParser.ts_query_new;
+import static org.treesitter.TSParser.ts_query_pattern_count;
+import static org.treesitter.TSParser.ts_query_predicates_for_pattern;
+import static org.treesitter.TSParser.ts_query_start_byte_for_pattern;
+import static org.treesitter.TSParser.ts_query_string_count;
+import static org.treesitter.TSParser.ts_query_string_value_for_id;
 
 import java.lang.ref.Cleaner.Cleanable;
 import java.util.ArrayList;
@@ -151,10 +164,10 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The predicates for the pattern.
      */
-    public TSQueryPredicateStep @Nullable [] getPredicateForPattern(int patternIndex) {
+    public TSQueryPredicateStep[] getPredicateForPattern(int patternIndex) {
         ensureOpen();
         TSQueryPredicateStep[] steps = ts_query_predicates_for_pattern(ptr, patternIndex);
-        if (steps == null || steps.length == 0) return null;
+        if (steps == null) return new TSQueryPredicateStep[0];
         return steps;
     }
 
@@ -236,12 +249,8 @@ public class TSQuery implements AutoCloseable {
         int patternCount = getPatternCount();
         List<List<TSQueryPredicate>> result = new ArrayList<>(patternCount);
         for (int i = 0; i < patternCount; i++) {
-            TSQueryPredicateStep @Nullable [] steps = getPredicateForPattern(i);
+            TSQueryPredicateStep[] steps = getPredicateForPattern(i);
             List<TSQueryPredicate> patternPredicates = new ArrayList<>();
-            if (steps == null) {
-                result.add(patternPredicates);
-                continue;
-            }
             int stepIndex = 0;
             while (stepIndex < steps.length) {
                 // Find the number of arguments until Done sentinel

@@ -1,8 +1,8 @@
 package org.treesitter;
 
-import org.jspecify.annotations.Nullable;
-
 import static org.treesitter.TSParser.*;
+
+import org.jspecify.annotations.Nullable;
 
 public class TSNode {
     private int context0;
@@ -11,17 +11,23 @@ public class TSNode {
     private int context3;
     private long idPtr;
     private long treePtr;
-    private @Nullable TSTree tree;
+    @SuppressWarnings("NullAway.Init")
+    private TSTree tree;
 
+    @SuppressWarnings("NullAway.Init")
     protected long getTreePtr() {
         return treePtr;
     }
 
-    public @Nullable TSTree getTree() {
+    /**
+     * Get the tree that this node belongs to.
+     * @return The tree.
+     */
+    public TSTree getTree() {
         return tree;
     }
 
-    protected void setTree(@Nullable TSTree tree) {
+    protected void setTree(TSTree tree) {
         this.tree = tree;
     }
 
@@ -541,6 +547,11 @@ public class TSNode {
         if (this == obj) return true;
         if (!(obj instanceof TSNode)) return false;
         TSNode other = (TSNode) obj;
-        return idPtr == other.idPtr;
+        if (idPtr != other.idPtr) return false;
+        // If JNI hasn't set the tree yet for one of them, we compare treePtr
+        if (tree != null && other.tree != null) {
+            return tree.getPtr() == other.tree.getPtr();
+        }
+        return treePtr == other.treePtr;
     }
 }

@@ -29,7 +29,7 @@ public class TSTree implements AutoCloseable {
 
     TSTree(long ptr, TSLanguage language) {
         this.ptr = ptr;
-        this.language = java.util.Objects.requireNonNull(language, "Language must not be null");
+        this.language = language;
         this.cleanable = CleanerRunner.register(this, new TSTreeCleanAction(ptr));
     }
 
@@ -47,7 +47,7 @@ public class TSTree implements AutoCloseable {
 
     protected void setLanguage(TSLanguage language) {
         ensureOpen();
-        this.language = java.util.Objects.requireNonNull(language, "Language must not be null");
+        this.language = language;
     }
 
     protected long getPtr() {

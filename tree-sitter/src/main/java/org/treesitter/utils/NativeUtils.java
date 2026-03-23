@@ -1,11 +1,11 @@
 package org.treesitter.utils;
 
 import java.io.*;
-import java.util.Locale;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public abstract class NativeUtils {

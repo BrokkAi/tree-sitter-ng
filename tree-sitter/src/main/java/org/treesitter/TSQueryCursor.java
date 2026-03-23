@@ -3,12 +3,11 @@ package org.treesitter;
 import static org.treesitter.TSParser.*;
 import static org.treesitter.TSParser.ts_query_cursor_next_match;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.ref.Cleaner.Cleanable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public class TSQueryCursor implements AutoCloseable {
 
@@ -26,7 +25,7 @@ public class TSQueryCursor implements AutoCloseable {
 
     private @Nullable TSNode node;
     private @Nullable TSQuery query;
-    private byte @Nullable [] sourceBytes;
+    private byte[] sourceBytes = new byte[0];
 
     private static class TSQueryCursorCleanAction implements Runnable {
         private final long ptr;
@@ -111,7 +110,8 @@ public class TSQueryCursor implements AutoCloseable {
         executed = true;
         this.node = node;
         this.query = query;
-        this.sourceBytes = sourceText == null ? null : sourceText.toString().getBytes(StandardCharsets.UTF_8);
+        this.sourceBytes =
+                sourceText == null ? new byte[0] : sourceText.toString().getBytes(StandardCharsets.UTF_8);
         ts_query_cursor_exec(ptr, query.getPtr(), node);
     }
 
@@ -140,12 +140,14 @@ public class TSQueryCursor implements AutoCloseable {
      * @param sourceText The source text for predicates.
      * @param progress The progress callback.
      */
-    public void execWithOptions(TSQuery query, TSNode node, @Nullable CharSequence sourceText, TSQueryProgress progress) {
+    public void execWithOptions(
+            TSQuery query, TSNode node, @Nullable CharSequence sourceText, TSQueryProgress progress) {
         ensureOpen();
         executed = true;
         this.node = node;
         this.query = query;
-        this.sourceBytes = sourceText == null ? null : sourceText.toString().getBytes(StandardCharsets.UTF_8);
+        this.sourceBytes =
+                sourceText == null ? new byte[0] : sourceText.toString().getBytes(StandardCharsets.UTF_8);
         ts_query_cursor_exec_with_options(ptr, query.getPtr(), node, progress, progressPayloadPtr);
     }
 
@@ -320,12 +322,12 @@ public class TSQueryCursor implements AutoCloseable {
     }
 
     private void addTsTreeRef(TSQueryMatch match) {
-        if (match.getCaptures() != null && this.node != null) {
-            for (TSQueryCapture capture : match.getCaptures()) {
-                TSNode captureNode = capture.getNode();
-                if (captureNode != null) {
-                    captureNode.setTree(this.node.getTree());
-                }
+        TSQueryCapture[] matchCaptures = match.getCaptures();
+        TSNode cursorNode = this.node;
+        if (cursorNode != null) {
+            TSTree tree = cursorNode.getTree();
+            for (TSQueryCapture capture : matchCaptures) {
+                capture.getNode().setTree(tree);
             }
         }
     }
