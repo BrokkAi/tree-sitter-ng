@@ -138,4 +138,14 @@ class TSQueryPredicateTest {
         assertTrue(cursor.nextMatch(match), "Should match '世界' using partial regex");
         assertFalse(cursor.nextMatch(match));
     }
+
+    @Test
+    void testMissingSourceBytesThrowsException() {
+        // Construct a query with a text-dependent predicate (#eq?)
+        query = new TSQuery(json, "((number) @val (#eq? @val \"1\"))");
+
+        // Use cursor.exec(query, rootNode) without source text.
+        // This should throw IllegalStateException because the query has text predicates.
+        assertThrows(IllegalStateException.class, () -> cursor.exec(query, rootNode));
+    }
 }
