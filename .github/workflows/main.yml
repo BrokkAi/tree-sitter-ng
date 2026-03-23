@@ -43,6 +43,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'corretto'
+      - name: Cache tools directory
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: ${{ runner.os }}-tools-${{ hashFiles('gradle.properties') }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4.2.1
         with:
