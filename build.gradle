@@ -218,6 +218,10 @@ subprojects {
         sourceSets.main.resources {
             srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
         }
+
+        tasks.named('test') {
+            dependsOn buildNative
+        }
     } else if (project.name == 'tree-sitter') {
         // tree-sitter core also needs to build its native part
         def downloadSource = tasks.register('downloadSource', DownloadSourceTask)
@@ -229,6 +233,10 @@ subprojects {
 
         sourceSets.main.resources {
             srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+        }
+
+        tasks.named('test') {
+            dependsOn buildNative
         }
     }
 
