@@ -1,4 +1,3 @@
-
 package org.treesitter;
 
 import org.treesitter.utils.NativeUtils;
@@ -8,13 +7,14 @@ public class TreeSitterBash extends TSLanguage {
     static {
         NativeUtils.loadLib("lib/tree-sitter-bash");
     }
-    private native static long tree_sitter_bash();
+
+    private static native long tree_sitter_bash();
 
     public TreeSitterBash() {
         super(tree_sitter_bash());
     }
 
-    private TreeSitterBash(long ptr){
+    private TreeSitterBash(long ptr) {
         super(ptr);
     }
 

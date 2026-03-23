@@ -1,14 +1,12 @@
 package org.treesitter;
 
+import static org.treesitter.TSParser.*;
+import static org.treesitter.TSParser.ts_query_cursor_next_match;
+
 import java.lang.ref.Cleaner.Cleanable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-
-import static org.treesitter.TSParser.*;
-import static org.treesitter.TSParser.ts_query_cursor_next_match;
 
 public class TSQueryCursor implements AutoCloseable {
 
@@ -89,7 +87,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param query The query to run.
      * @param node The node to run the query on.
      */
-    public void exec(TSQuery query, TSNode node){
+    public void exec(TSQuery query, TSNode node) {
         exec(query, node, null);
     }
 
@@ -104,13 +102,12 @@ public class TSQueryCursor implements AutoCloseable {
      * @param node The node to run the query on.
      * @param sourceText The source text used to resolve predicates like {@code #eq?}.
      */
-    public void exec(TSQuery query, TSNode node, CharSequence sourceText){
+    public void exec(TSQuery query, TSNode node, CharSequence sourceText) {
         ensureOpen();
         executed = true;
         this.node = node;
         this.query = query;
-        this.sourceBytes = sourceText == null ? null :
-                sourceText.toString().getBytes(StandardCharsets.UTF_8);
+        this.sourceBytes = sourceText == null ? null : sourceText.toString().getBytes(StandardCharsets.UTF_8);
         ts_query_cursor_exec(ptr, query.getPtr(), node);
     }
 
@@ -122,7 +119,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param node The node to run the query on.
      * @param progress The progress callback.
      */
-    public void execWithOptions(TSQuery query, TSNode node, TSQueryProgress progress){
+    public void execWithOptions(TSQuery query, TSNode node, TSQueryProgress progress) {
         execWithOptions(query, node, null, progress);
     }
 
@@ -139,23 +136,22 @@ public class TSQueryCursor implements AutoCloseable {
      * @param sourceText The source text for predicates.
      * @param progress The progress callback.
      */
-    public void execWithOptions(TSQuery query, TSNode node, CharSequence sourceText, TSQueryProgress progress){
+    public void execWithOptions(TSQuery query, TSNode node, CharSequence sourceText, TSQueryProgress progress) {
         ensureOpen();
         executed = true;
         this.node = node;
         this.query = query;
-        this.sourceBytes = sourceText == null ? null :
-                sourceText.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        this.sourceBytes =
+                sourceText == null ? null : sourceText.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
         ts_query_cursor_exec_with_options(ptr, query.getPtr(), node, progress, progressPayloadPtr);
     }
 
-
-    public boolean didExceedMatchLimit(){
+    public boolean didExceedMatchLimit() {
         ensureOpen();
         return ts_query_cursor_did_exceed_match_limit(ptr);
     }
 
-    public int getMatchLimit(){
+    public int getMatchLimit() {
         ensureOpen();
         return ts_query_cursor_match_limit(ptr);
     }
@@ -173,7 +169,7 @@ public class TSQueryCursor implements AutoCloseable {
      *
      * @param limit The maximum number of in-progress matches allowed by this query cursor.
      */
-    public void setMatchLimit(int limit){
+    public void setMatchLimit(int limit) {
         ensureOpen();
         ts_query_cursor_set_match_limit(ptr, limit);
     }
@@ -195,7 +191,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param endByte    The index of the end byte in the range.
      * @return <code>false</code> if the start byte is greater than the end byte, otherwise it will return <code>true</code>.
      */
-    public boolean setByteRange(int startByte, int endByte){
+    public boolean setByteRange(int startByte, int endByte) {
         ensureOpen();
         return ts_query_cursor_set_byte_range(ptr, startByte, endByte);
     }
@@ -219,7 +215,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param endPoint    The end point of the range.
      * @return <code>false</code> if the start point is greater than the end point, otherwise it will return <code>true</code>.
      */
-    public boolean setPointRange(TSPoint startPoint, TSPoint endPoint){
+    public boolean setPointRange(TSPoint startPoint, TSPoint endPoint) {
         ensureOpen();
         return ts_query_cursor_set_point_range(ptr, startPoint, endPoint);
     }
@@ -237,7 +233,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param endByte The end byte of the containing range.
      * @return <code>false</code> if the start byte is greater than the end byte, otherwise it will return <code>true</code>.
      */
-    public boolean setContainingByteRange(int startByte, int endByte){
+    public boolean setContainingByteRange(int startByte, int endByte) {
         ensureOpen();
         return ts_query_cursor_set_containing_byte_range(ptr, startByte, endByte);
     }
@@ -255,7 +251,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param endPoint The end point of the containing range.
      * @return <code>false</code> if the start point is greater than the end point, otherwise it will return <code>true</code>.
      */
-    public boolean setContainingPointRange(TSPoint startPoint, TSPoint endPoint){
+    public boolean setContainingPointRange(TSPoint startPoint, TSPoint endPoint) {
         ensureOpen();
         return ts_query_cursor_set_containing_point_range(ptr, startPoint, endPoint);
     }
@@ -274,7 +270,7 @@ public class TSQueryCursor implements AutoCloseable {
      *
      * @throws TSException if the query has not been executed yet.
      */
-    public boolean nextMatch(TSQueryMatch match){
+    public boolean nextMatch(TSQueryMatch match) {
         ensureOpen();
         assertExecuted();
         while (ts_query_cursor_next_match(ptr, match)) {
@@ -287,8 +283,7 @@ public class TSQueryCursor implements AutoCloseable {
         return false;
     }
 
-
-    public void removeMatch(int matchId){
+    public void removeMatch(int matchId) {
         ensureOpen();
         ts_query_cursor_remove_match(ptr, matchId);
     }
@@ -308,7 +303,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @throws TSException if the query has not been executed yet.
      *
      */
-    public boolean nextCapture(TSQueryMatch match){
+    public boolean nextCapture(TSQueryMatch match) {
         ensureOpen();
         assertExecuted();
         while (ts_query_cursor_next_capture(ptr, match)) {
@@ -321,10 +316,10 @@ public class TSQueryCursor implements AutoCloseable {
         return false;
     }
 
-    private void addTsTreeRef(TSQueryMatch match){
-        if(match.getCaptures() != null){
+    private void addTsTreeRef(TSQueryMatch match) {
+        if (match.getCaptures() != null) {
             for (TSQueryCapture capture : match.getCaptures()) {
-                if(capture.getNode() != null){
+                if (capture.getNode() != null) {
                     capture.getNode().setTree(this.node.getTree());
                 }
             }
@@ -341,8 +336,8 @@ public class TSQueryCursor implements AutoCloseable {
         return patternPredicates.stream().allMatch(predicate -> predicate.test(match, sourceBytes));
     }
 
-    private void assertExecuted(){
-        if(!executed){
+    private void assertExecuted() {
+        if (!executed) {
             throw new TSException("Query not executed, call exec() first.");
         }
     }
@@ -353,7 +348,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @return An iterator over the matches.
      *
      */
-    public TSMatchIterator getMatches(){
+    public TSMatchIterator getMatches() {
         return new TSMatchIterator(this, false);
     }
 
@@ -363,15 +358,16 @@ public class TSQueryCursor implements AutoCloseable {
      * @return An iterator over the captures.
      *
      */
-    public TSMatchIterator getCaptures(){
+    public TSMatchIterator getCaptures() {
         return new TSMatchIterator(this, true);
     }
 
-    public static class TSMatchIterator implements Iterator<TSQueryMatch>{
+    public static class TSMatchIterator implements Iterator<TSQueryMatch> {
         private TSQueryMatch lastMatch = null;
         private TSQueryMatch hasNextTempMatch = null;
         private final TSQueryCursor cursor;
         private final boolean isCapture;
+
         public TSMatchIterator(TSQueryCursor cursor, boolean isCapture) {
             this.cursor = cursor;
             this.isCapture = isCapture;
@@ -379,14 +375,14 @@ public class TSQueryCursor implements AutoCloseable {
 
         @Override
         public boolean hasNext() {
-            if(hasNextTempMatch != null){
+            if (hasNextTempMatch != null) {
                 return true;
             }
             cursor.ensureOpen();
             cursor.assertExecuted();
             TSQueryMatch match = new TSQueryMatch();
             boolean hasNext = isCapture ? cursor.nextCapture(match) : cursor.nextMatch(match);
-            if(hasNext){
+            if (hasNext) {
                 hasNextTempMatch = match;
             }
             return hasNext;
@@ -394,7 +390,7 @@ public class TSQueryCursor implements AutoCloseable {
 
         @Override
         public TSQueryMatch next() {
-            if(hasNextTempMatch != null){
+            if (hasNextTempMatch != null) {
                 TSQueryMatch lastMatch = hasNextTempMatch;
                 hasNextTempMatch = null;
                 return lastMatch;
@@ -403,10 +399,10 @@ public class TSQueryCursor implements AutoCloseable {
             cursor.assertExecuted();
             TSQueryMatch match = new TSQueryMatch();
             boolean hasNext = isCapture ? cursor.nextCapture(match) : cursor.nextMatch(match);
-            if(hasNext){
+            if (hasNext) {
                 lastMatch = match;
                 return match;
-            }else {
+            } else {
                 throw new NoSuchElementException();
             }
         }
@@ -414,11 +410,10 @@ public class TSQueryCursor implements AutoCloseable {
         @Override
         public void remove() {
             cursor.ensureOpen();
-            if(lastMatch == null){
+            if (lastMatch == null) {
                 throw new IllegalStateException();
             }
             ts_query_cursor_remove_match(cursor.ptr, lastMatch.getId());
         }
     }
-
 }

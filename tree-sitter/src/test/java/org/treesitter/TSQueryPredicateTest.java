@@ -1,13 +1,9 @@
 package org.treesitter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.treesitter.utils.NativeUtils;
-
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class TSQueryPredicateTest {
     public static final String JSON_SRC = "[1, null]";
@@ -37,7 +33,11 @@ class TSQueryPredicateTest {
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
         assertEquals(1, match.getCaptures().length);
-        assertEquals("1", JSON_SRC.substring(match.getCaptures()[0].getNode().getStartByte(), match.getCaptures()[0].getNode().getEndByte()));
+        assertEquals(
+                "1",
+                JSON_SRC.substring(
+                        match.getCaptures()[0].getNode().getStartByte(),
+                        match.getCaptures()[0].getNode().getEndByte()));
 
         // #eq? @val "2" should not match anything in [1, null]
         query = new TSQuery(json, "((number) @val (#eq? @val \"2\"))");
@@ -55,8 +55,10 @@ class TSQueryPredicateTest {
 
         boolean foundOne = false;
         boolean foundNull = false;
-        while(cursor.nextMatch(match)) {
-            String text = JSON_SRC.substring(match.getCaptures()[0].getNode().getStartByte(), match.getCaptures()[0].getNode().getEndByte());
+        while (cursor.nextMatch(match)) {
+            String text = JSON_SRC.substring(
+                    match.getCaptures()[0].getNode().getStartByte(),
+                    match.getCaptures()[0].getNode().getEndByte());
             if (text.equals("1")) foundOne = true;
             if (text.equals("null")) foundNull = true;
         }
@@ -73,7 +75,11 @@ class TSQueryPredicateTest {
         cursor.exec(query, tree.getRootNode(), src);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
-        assertEquals("\"bar\"", src.substring(match.getCaptures()[0].getNode().getStartByte(), match.getCaptures()[0].getNode().getEndByte()));
+        assertEquals(
+                "\"bar\"",
+                src.substring(
+                        match.getCaptures()[0].getNode().getStartByte(),
+                        match.getCaptures()[0].getNode().getEndByte()));
         assertFalse(cursor.nextMatch(match));
     }
 
@@ -86,7 +92,11 @@ class TSQueryPredicateTest {
         cursor.exec(query, tree.getRootNode(), src);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
-        assertEquals("\"beta\"", src.substring(match.getCaptures()[0].getNode().getStartByte(), match.getCaptures()[0].getNode().getEndByte()));
+        assertEquals(
+                "\"beta\"",
+                src.substring(
+                        match.getCaptures()[0].getNode().getStartByte(),
+                        match.getCaptures()[0].getNode().getEndByte()));
         assertFalse(cursor.nextMatch(match));
     }
 

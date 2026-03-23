@@ -1,11 +1,10 @@
 package org.treesitter;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class TSQueryMetadataTest {
     public static final String JSON_SRC = "[1, 2]";
@@ -31,7 +30,7 @@ class TSQueryMetadataTest {
         TSQuery query = new TSQuery(json, "((number) @n (#set! role \"foo\"))");
         cursor.exec(query, rootNode);
         TSQueryMatch match = new TSQueryMatch();
-        
+
         int count = 0;
         while (cursor.nextMatch(match)) {
             count++;
@@ -87,13 +86,12 @@ class TSQueryMetadataTest {
 
     @Test
     void testMetadataIsolationBetweenMatches() {
-        // We have [1, 2]. 
+        // We have [1, 2].
         // Pattern 0 matches '1' and sets role=first
         // Pattern 1 matches '2' and sets nothing
-        String queryString = 
-            "((number) @n1 (#eq? @n1 \"1\") (#set! role \"first\")) " +
-            "((number) @n2 (#eq? @n2 \"2\"))";
-        
+        String queryString =
+                "((number) @n1 (#eq? @n1 \"1\") (#set! role \"first\")) " + "((number) @n2 (#eq? @n2 \"2\"))";
+
         TSQuery query = new TSQuery(json, queryString);
         cursor.exec(query, rootNode, JSON_SRC);
         TSQueryMatch match = new TSQueryMatch();
@@ -104,7 +102,7 @@ class TSQueryMetadataTest {
 
         // Second match (the number 2)
         assertTrue(cursor.nextMatch(match));
-        // The metadata should have been cleared in TSQueryCursor.nextMatch() 
+        // The metadata should have been cleared in TSQueryCursor.nextMatch()
         // before processing the second pattern.
         assertNull(match.getMetadata().get("role"), "Second match metadata should be cleared/empty");
     }

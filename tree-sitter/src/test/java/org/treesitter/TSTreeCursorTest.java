@@ -1,9 +1,9 @@
 package org.treesitter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class TSTreeCursorTest {
     public static final String JSON_SRC = "[1, null]";
@@ -26,6 +26,7 @@ class TSTreeCursorTest {
         numberNode = arrayNode.getNamedChild(0);
         rootCursor = new TSTreeCursor(rootNode);
     }
+
     @Test
     void reset() {
         rootCursor.reset(arrayNode);

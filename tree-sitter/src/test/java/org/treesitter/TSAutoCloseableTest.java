@@ -1,9 +1,9 @@
 package org.treesitter;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for AutoCloseable implementation in Tree-sitter Java bindings.
@@ -32,7 +32,6 @@ class TSAutoCloseableTest {
         parser.close();
         assertDoesNotThrow(parser::close);
     }
-
 
     @Test
     void testQueryCursorAutoClose() {
@@ -82,5 +81,4 @@ class TSAutoCloseableTest {
         language.close();
         assertThrows(IllegalStateException.class, language::symbolCount);
     }
-
 }

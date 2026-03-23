@@ -1,14 +1,13 @@
 package org.treesitter;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 class TSTreeTest {
     public static final String JSON_SRC = "[1, null]";
@@ -21,7 +20,6 @@ class TSTreeTest {
         parser.setLanguage(json);
         tree = parser.parseString(null, JSON_SRC);
     }
-
 
     @Test
     void copy() {
@@ -40,7 +38,6 @@ class TSTreeTest {
         TSNode rootNode = tree.getRootNodeWithOffset(0, new TSPoint(0, 0));
         assertEquals("document", rootNode.getType());
     }
-
 
     @Test
     void getLanguage() {
@@ -70,15 +67,15 @@ class TSTreeTest {
             @Override
             public int read(byte[] buf, int offset, TSPoint position) {
                 ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-                if(edited.get()){
-                    if(offset >= newJsonSrc.length()){
+                if (edited.get()) {
+                    if (offset >= newJsonSrc.length()) {
                         return 0;
                     }
 
                     byteBuffer.put(newJsonSrc.getBytes());
                     return newJsonSrc.length();
-                }else {
-                    if(offset >= JSON_SRC.length()){
+                } else {
+                    if (offset >= JSON_SRC.length()) {
                         return 0;
                     }
                     ByteBuffer charBuffer = ByteBuffer.wrap(buf);
@@ -92,8 +89,13 @@ class TSTreeTest {
         assertEquals(2, tree.getRootNode().getNamedChild(0).getNamedChildCount());
         int editStart = 0;
         int editEnd = 1;
-        tree.edit(new TSInputEdit(editStart, editStart, editEnd,
-                new TSPoint(0, editStart), new TSPoint(0, editStart), new TSPoint(0, editEnd)));
+        tree.edit(new TSInputEdit(
+                editStart,
+                editStart,
+                editEnd,
+                new TSPoint(0, editStart),
+                new TSPoint(0, editStart),
+                new TSPoint(0, editEnd)));
         edited.set(true);
         tree = parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8);
         assertEquals(1, tree.getRootNode().getChildCount());
@@ -110,15 +112,15 @@ class TSTreeTest {
             @Override
             public int read(byte[] buf, int offset, TSPoint position) {
                 ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-                if(edited.get()){
-                    if(offset >= newJsonSrc.length()){
+                if (edited.get()) {
+                    if (offset >= newJsonSrc.length()) {
                         return 0;
                     }
 
                     byteBuffer.put(newJsonSrc.getBytes());
                     return newJsonSrc.length();
-                }else {
-                    if(offset >= JSON_SRC.length()){
+                } else {
+                    if (offset >= JSON_SRC.length()) {
                         return 0;
                     }
                     ByteBuffer charBuffer = ByteBuffer.wrap(buf);
@@ -132,8 +134,13 @@ class TSTreeTest {
         assertEquals(2, tree.getRootNode().getNamedChild(0).getNamedChildCount());
         int editStart = 0;
         int editEnd = 1;
-        tree.edit(new TSInputEdit(editStart, editStart, editEnd,
-                new TSPoint(0, editStart), new TSPoint(0, editStart), new TSPoint(0, editEnd)));
+        tree.edit(new TSInputEdit(
+                editStart,
+                editStart,
+                editEnd,
+                new TSPoint(0, editStart),
+                new TSPoint(0, editStart),
+                new TSPoint(0, editEnd)));
         edited.set(true);
         TSTree newTree = parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8);
         TSRange[] ranges = TSTree.getChangedRanges(tree, newTree);

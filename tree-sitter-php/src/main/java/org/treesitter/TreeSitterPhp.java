@@ -1,4 +1,3 @@
-
 package org.treesitter;
 
 import org.treesitter.utils.NativeUtils;
@@ -8,10 +7,11 @@ public class TreeSitterPhp extends TSLanguage {
     static {
         NativeUtils.loadLib("lib/tree-sitter-php");
     }
-    private native static long tree_sitter_php();
+
+    private static native long tree_sitter_php();
 
     public TreeSitterPhp() {
-       super(tree_sitter_php());
+        super(tree_sitter_php());
     }
 
     private TreeSitterPhp(long ptr) {

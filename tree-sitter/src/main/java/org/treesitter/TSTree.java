@@ -1,11 +1,11 @@
 package org.treesitter;
 
+import static org.treesitter.TSParser.*;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
-
-import static org.treesitter.TSParser.*;
 
 public class TSTree implements AutoCloseable {
 
@@ -45,12 +45,12 @@ public class TSTree implements AutoCloseable {
         }
     }
 
-    protected void setLanguage(TSLanguage language){
+    protected void setLanguage(TSLanguage language) {
         ensureOpen();
         this.language = language;
     }
 
-    protected long getPtr(){
+    protected long getPtr() {
         ensureOpen();
         return ptr;
     }
@@ -63,7 +63,7 @@ public class TSTree implements AutoCloseable {
      *
      * @return A copy of the syntax tree.
      */
-    public TSTree copy(){
+    public TSTree copy() {
         ensureOpen();
         return new TSTree(ts_tree_copy(ptr), language);
     }
@@ -73,7 +73,7 @@ public class TSTree implements AutoCloseable {
      *
      * @return The root node.
      */
-    public TSNode getRootNode(){
+    public TSNode getRootNode() {
         ensureOpen();
         TSNode node = ts_tree_root_node(ptr);
         node.setTree(this);
@@ -88,7 +88,7 @@ public class TSTree implements AutoCloseable {
      * @param offsetPoint offset in (row, column)
      * @return The node
      */
-    public TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint){
+    public TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
         ensureOpen();
         TSNode node = ts_tree_root_node_with_offset(ptr, offsetBytes, offsetPoint);
         node.setTree(this);
@@ -99,7 +99,7 @@ public class TSTree implements AutoCloseable {
      * Get the language that was used to parse the syntax tree.
      * @return The language
      */
-    public TSLanguage getLanguage(){
+    public TSLanguage getLanguage() {
         ensureOpen();
         return language;
     }
@@ -111,7 +111,7 @@ public class TSTree implements AutoCloseable {
      *
      * @return The included ranges.
      */
-    public TSRange[] getIncludedRanges(){
+    public TSRange[] getIncludedRanges() {
         ensureOpen();
         return ts_tree_included_ranges(ptr);
     }
@@ -125,7 +125,7 @@ public class TSTree implements AutoCloseable {
      *
      * @param inputEdit The edit to apply
      */
-    public void edit(TSInputEdit inputEdit){
+    public void edit(TSInputEdit inputEdit) {
         ensureOpen();
         ts_tree_edit(ptr, inputEdit);
     }
@@ -152,7 +152,7 @@ public class TSTree implements AutoCloseable {
      * @return The changed ranges.
      *
      */
-    public static TSRange[] getChangedRanges(TSTree oldTree, TSTree newTree){
+    public static TSRange[] getChangedRanges(TSTree oldTree, TSTree newTree) {
         return ts_tree_get_changed_ranges(oldTree.getPtr(), newTree.getPtr());
     }
 
@@ -169,5 +169,4 @@ public class TSTree implements AutoCloseable {
         ts_tree_print_dot_graph(ptr, outputStream.getFD());
         outputStream.close();
     }
-
 }

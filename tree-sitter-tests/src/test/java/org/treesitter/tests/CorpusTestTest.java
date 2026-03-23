@@ -1,16 +1,13 @@
 package org.treesitter.tests;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.treesitter.TSLanguage;
-import org.treesitter.TreeSitterScala;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.treesitter.TSLanguage;
+import org.treesitter.TreeSitterScala;
 
 class CorpusTestTest {
 
@@ -34,5 +31,4 @@ class CorpusTestTest {
         TSLanguage lang = new TreeSitterScala();
         CorpusTest.runAllTestsInFolder("src/test/resources/test/corpus", lang, "scala");
     }
-
 }

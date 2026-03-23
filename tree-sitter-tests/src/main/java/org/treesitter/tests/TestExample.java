@@ -6,9 +6,7 @@ public class TestExample {
     private String output;
     private TestAttributes attributes;
 
-    public TestExample() {
-
-    }
+    public TestExample() {}
 
     public TestExample(String name, String input, String output, TestAttributes attributes) {
         this.name = name;
@@ -55,9 +53,9 @@ public class TestExample {
         return attributes;
     }
 
-    public boolean isExampleFor(String lang){
-        return attributes == null ||
-                attributes.getLanguages() == null ||
-                attributes.getLanguages().contains(lang);
+    public boolean isExampleFor(String lang) {
+        return attributes == null
+                || attributes.getLanguages() == null
+                || attributes.getLanguages().contains(lang);
     }
 }

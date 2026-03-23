@@ -33,7 +33,7 @@ public class TsLookAheadIterator implements AutoCloseable {
      */
     public TsLookAheadIterator(TSLanguage language, int state) {
         this.ptr = TSParser.ts_lookahead_iterator_new(language.getPtr(), state);
-        if(this.ptr == 0){
+        if (this.ptr == 0) {
             throw new TSException("State is invalid.");
         }
         this.lang = language;
@@ -53,7 +53,7 @@ public class TsLookAheadIterator implements AutoCloseable {
      *
      * @return <code>true</code> if the iterator was reset to the given state and <code>false</code> otherwise.
      */
-    public boolean resetState(int state){
+    public boolean resetState(int state) {
         ensureOpen();
         return TSParser.ts_lookahead_iterator_reset_state(ptr, state);
     }
@@ -66,7 +66,7 @@ public class TsLookAheadIterator implements AutoCloseable {
      *
      * @return <code>true</code> if the language was set successfully and <code>false</code> otherwise.
      */
-    public boolean reset(TSLanguage language, int state){
+    public boolean reset(TSLanguage language, int state) {
         ensureOpen();
         return TSParser.ts_lookahead_iterator_reset(ptr, language.getPtr(), state);
     }
@@ -76,7 +76,7 @@ public class TsLookAheadIterator implements AutoCloseable {
      *
      * @return The language of the lookahead iterator
      */
-    public TSLanguage getLanguage(){
+    public TSLanguage getLanguage() {
         ensureOpen();
         return new AnonymousLanguage(TSParser.ts_lookahead_iterator_language(ptr));
     }
@@ -86,7 +86,7 @@ public class TsLookAheadIterator implements AutoCloseable {
      *
      * @return <code>true</code> if there is a new symbol and <code>false</code> otherwise.
      */
-    public boolean next(){
+    public boolean next() {
         ensureOpen();
         return TSParser.ts_lookahead_iterator_next(ptr);
     }
@@ -96,7 +96,7 @@ public class TsLookAheadIterator implements AutoCloseable {
      *
      * @return Current symbol
      */
-    public int currentSymbol(){
+    public int currentSymbol() {
         ensureOpen();
         return TSParser.ts_lookahead_iterator_current_symbol(ptr);
     }
@@ -106,16 +106,16 @@ public class TsLookAheadIterator implements AutoCloseable {
      *
      * @return Current symbol name
      */
-    public String currentSymbolName(){
+    public String currentSymbolName() {
         ensureOpen();
         return TSParser.ts_lookahead_iterator_current_symbol_name(ptr);
     }
 
-    protected long getPtr(){
+    protected long getPtr() {
         return ptr;
     }
 
-    public static class TsLookAheadIteratorCleanAction implements Runnable{
+    public static class TsLookAheadIteratorCleanAction implements Runnable {
         private long ptr;
 
         public TsLookAheadIteratorCleanAction(long ptr) {

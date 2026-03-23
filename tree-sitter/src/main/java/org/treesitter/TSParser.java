@@ -1,12 +1,11 @@
 package org.treesitter;
 
-import org.treesitter.utils.NativeUtils;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
+import org.treesitter.utils.NativeUtils;
 
 public class TSParser implements AutoCloseable {
     /**
@@ -29,148 +28,295 @@ public class TSParser implements AutoCloseable {
     }
 
     private TSLanguage language;
-    public  static native long ts_parser_new();
+
+    public static native long ts_parser_new();
+
     public static native void ts_parser_delete(long tree_parser_ptr);
+
     private static native boolean ts_parser_set_language(long ts_parser_ptr, long ts_language_ptr);
+
     private static native long ts_parser_language(long ts_parser_ptr);
+
     private static native boolean ts_parser_set_included_ranges(long ts_parser_ptr, TSRange[] ranges);
+
     private static native TSRange[] ts_parser_included_ranges(long ts_parser_ptr);
-    private static native long ts_parser_parse_with_options(long ts_parser_ptr, long ts_tree_ptr, byte[] buf, TSReader reader, int tsInputEncoding, TSParserProgress progress);
-    private static native long ts_parser_parse(long ts_parser_ptr,  byte[] buf, long ts_tree_ptr, TSReader reader, int tsInputEncoding);
+
+    private static native long ts_parser_parse_with_options(
+            long ts_parser_ptr,
+            long ts_tree_ptr,
+            byte[] buf,
+            TSReader reader,
+            int tsInputEncoding,
+            TSParserProgress progress);
+
+    private static native long ts_parser_parse(
+            long ts_parser_ptr, byte[] buf, long ts_tree_ptr, TSReader reader, int tsInputEncoding);
+
     private static native long ts_parser_parse_string(long ts_parser_ptr, long ts_tree_ptr, String input);
-    private static native long ts_parser_parse_string_encoding(long ts_parser_ptr, long ts_tree_ptr, String input, int tsInputEncoding);
+
+    private static native long ts_parser_parse_string_encoding(
+            long ts_parser_ptr, long ts_tree_ptr, String input, int tsInputEncoding);
+
     private static native void ts_parser_reset(long ts_parser_ptr);
+
     private static native void ts_parser_set_logger(long ts_parser_ptr, TSLogger logger);
+
     private static native void free_logger(long ts_parser_ptr);
+
     private static native void ts_parser_print_dot_graphs(long ts_parser_ptr, FileDescriptor fileDescriptor);
+
     protected static native long ts_tree_copy(long tree_ptr);
+
     protected static native void ts_tree_delete(long tree_ptr);
+
     protected static native TSNode ts_tree_root_node(long tree_ptr);
+
     protected static native TSNode ts_tree_root_node_with_offset(long tree_ptr, int offsetBytes, TSPoint offsetPoint);
+
     protected static native long ts_tree_language(long tree_ptr);
+
     protected static native TSRange[] ts_tree_included_ranges(long tree_ptr);
+
     protected static native void ts_tree_edit(long tree_ptr, TSInputEdit edit);
+
     protected static native TSRange[] ts_tree_get_changed_ranges(long old_tree_ptr, long new_tree_ptr);
+
     protected static native String ts_node_type(TSNode node);
+
     protected static native int ts_node_symbol(TSNode node);
+
     protected static native String ts_node_grammar_type(TSNode node);
+
     protected static native int ts_node_grammar_symbol(TSNode node);
+
     protected static native int ts_node_start_byte(TSNode node);
+
     protected static native TSPoint ts_node_start_point(TSNode node);
+
     protected static native int ts_node_end_byte(TSNode node);
+
     protected static native TSPoint ts_node_end_point(TSNode node);
+
     protected static native String ts_node_string(TSNode node);
+
     protected static native boolean ts_node_is_null(TSNode node);
+
     protected static native boolean ts_node_is_named(TSNode node);
+
     protected static native boolean ts_node_is_missing(TSNode node);
+
     protected static native boolean ts_node_is_extra(TSNode node);
+
     protected static native boolean ts_node_has_changes(TSNode node);
+
     protected static native boolean ts_node_has_error(TSNode node);
+
     protected static native boolean ts_node_is_error(TSNode node);
+
     protected static native int ts_node_parse_state(TSNode node);
+
     protected static native int ts_node_next_parse_state(TSNode node);
+
     protected static native TSNode ts_node_parent(TSNode node);
+
     protected static native TSNode ts_node_child(TSNode node, int index);
+
     protected static native String ts_node_field_name_for_child(TSNode node, int index);
+
     protected static native int ts_node_child_count(TSNode node);
+
     protected static native TSNode ts_node_named_child(TSNode node, int index);
+
     protected static native int ts_node_named_child_count(TSNode node);
+
     protected static native TSNode ts_node_child_by_field_name(TSNode node, String field_name);
+
     protected static native TSNode ts_node_child_by_field_id(TSNode node, int ts_field_id);
+
     protected static native TSNode ts_node_next_sibling(TSNode node);
+
     protected static native TSNode ts_node_prev_sibling(TSNode node);
+
     protected static native TSNode ts_node_next_named_sibling(TSNode node);
+
     protected static native TSNode ts_node_prev_named_sibling(TSNode node);
+
     protected static native TSNode ts_node_first_child_for_byte(TSNode node, int start_byte);
+
     protected static native TSNode ts_node_first_named_child_for_byte(TSNode node, int start_byte);
+
     protected static native TSNode ts_node_descendant_for_byte_range(TSNode node, int start_byte, int end_byte);
-    protected static native TSNode ts_node_descendant_for_point_range(TSNode node, TSPoint start_point, TSPoint end_point);
+
+    protected static native TSNode ts_node_descendant_for_point_range(
+            TSNode node, TSPoint start_point, TSPoint end_point);
+
     protected static native TSNode ts_node_named_descendant_for_byte_range(TSNode node, int start_byte, int end_byte);
-    protected static native TSNode ts_node_named_descendant_for_point_range(TSNode node, TSPoint start_point, TSPoint end_point);
+
+    protected static native TSNode ts_node_named_descendant_for_point_range(
+            TSNode node, TSPoint start_point, TSPoint end_point);
+
     protected static native TSNode ts_node_edit(TSNode node, TSInputEdit edit);
+
     protected static native boolean ts_node_eq(TSNode a, TSNode b);
+
     protected static native void free_cursor(long ts_tree_cursor_ptr);
+
     protected static native long ts_tree_cursor_new(TSNode node);
+
     protected static native void ts_tree_cursor_delete(long cursor_ptr);
+
     protected static native void ts_tree_cursor_reset(long cursor_ptr, TSNode node);
+
     protected static native TSNode ts_tree_cursor_current_node(long cursor_ptr);
+
     protected static native String ts_tree_cursor_current_field_name(long cursor_ptr);
+
     protected static native int ts_tree_cursor_current_field_id(long cursor_ptr);
+
     protected static native boolean ts_tree_cursor_goto_parent(long cursor_ptr);
+
     protected static native boolean ts_tree_cursor_goto_next_sibling(long cursor_ptr);
+
     protected static native boolean ts_tree_cursor_goto_previous_sibling(long cursor_ptr);
+
     protected static native boolean ts_tree_cursor_goto_first_child(long cursor_ptr);
+
     protected static native int ts_tree_cursor_goto_first_child_for_byte(long cursor_ptr, int startByte);
+
     protected static native int ts_tree_cursor_goto_first_child_for_point(long cursor_ptr, TSPoint startPoint);
+
     protected static native long ts_tree_cursor_copy(long cursor_ptr);
+
     protected static native long ts_query_new(long ts_language_ptr, String source);
+
     protected static native void ts_query_delete(long ts_query_ptr);
+
     protected static native int ts_query_pattern_count(long ts_query_ptr);
+
     protected static native int ts_query_capture_count(long ts_query_ptr);
+
     protected static native int ts_query_string_count(long ts_query_ptr);
+
     protected static native int ts_query_start_byte_for_pattern(long ts_query_ptr, int pattern_index);
+
     protected static native int ts_query_end_byte_for_pattern(long ts_query_ptr, int pattern_index);
-    protected static native TSQueryPredicateStep[] ts_query_predicates_for_pattern(long ts_query_ptr, int pattern_index);
+
+    protected static native TSQueryPredicateStep[] ts_query_predicates_for_pattern(
+            long ts_query_ptr, int pattern_index);
+
     protected static native boolean ts_query_is_pattern_rooted(long ts_query_ptr, int pattern_index);
+
     protected static native boolean ts_query_is_pattern_non_local(long ts_query_ptr, int pattern_index);
+
     protected static native boolean ts_query_is_pattern_guaranteed_at_step(long ts_query_ptr, int byte_offset);
+
     protected static native String ts_query_capture_name_for_id(long ts_query_ptr, int index);
+
     protected static native int ts_query_capture_quantifier_for_id(long ts_query_ptr, int pattern_id, int index);
+
     protected static native String ts_query_string_value_for_id(long ts_query_ptr, int index);
+
     protected static native void ts_query_disable_capture(long ts_query_ptr, String name);
+
     protected static native void ts_query_disable_pattern(long ts_query_ptr, int patter_index);
+
     protected static native long ts_query_cursor_new();
+
     protected static native void ts_query_cursor_delete(long ts_query_cursor_ptr);
+
     protected static native long ts_query_cursor_options_new();
+
     protected static native void ts_query_cursor_options_delete(long ts_query_cursor_options_ptr);
+
     protected static native void ts_query_cursor_exec(long ts_query_cursor_ptr, long ts_query_ptr, TSNode node);
-    protected static native void ts_query_cursor_exec_with_options(long ts_query_cursor_ptr, long ts_query_ptr, TSNode node, TSQueryProgress progress, long progressPayloadPtr);
+
+    protected static native void ts_query_cursor_exec_with_options(
+            long ts_query_cursor_ptr,
+            long ts_query_ptr,
+            TSNode node,
+            TSQueryProgress progress,
+            long progressPayloadPtr);
+
     protected static native boolean ts_query_cursor_did_exceed_match_limit(long ts_query_cursor_ptr);
+
     protected static native int ts_query_cursor_match_limit(long ts_query_cursor_ptr);
+
     protected static native void ts_query_cursor_set_match_limit(long ts_query_cursor_ptr, int limit);
-    protected static native boolean ts_query_cursor_set_byte_range(long ts_query_cursor_ptr, int start_byte, int end_byte);
-    protected static native boolean ts_query_cursor_set_point_range(long ts_query_cursor_ptr, TSPoint start_point, TSPoint end_point);
-    protected static native boolean ts_query_cursor_set_containing_byte_range(long ts_query_cursor_ptr, int startByte, int endByte);
-    protected static native boolean ts_query_cursor_set_containing_point_range(long ts_query_cursor_ptr, TSPoint startPoint, TSPoint endPoint);
+
+    protected static native boolean ts_query_cursor_set_byte_range(
+            long ts_query_cursor_ptr, int start_byte, int end_byte);
+
+    protected static native boolean ts_query_cursor_set_point_range(
+            long ts_query_cursor_ptr, TSPoint start_point, TSPoint end_point);
+
+    protected static native boolean ts_query_cursor_set_containing_byte_range(
+            long ts_query_cursor_ptr, int startByte, int endByte);
+
+    protected static native boolean ts_query_cursor_set_containing_point_range(
+            long ts_query_cursor_ptr, TSPoint startPoint, TSPoint endPoint);
+
     protected static native boolean ts_query_cursor_next_match(long ts_query_cursor_ptr, TSQueryMatch match);
+
     protected static native void ts_query_cursor_remove_match(long ts_query_cursor_ptr, int match_id);
+
     protected static native boolean ts_query_cursor_next_capture(long ts_query_cursor_ptr, TSQueryMatch match);
+
     protected static native void ts_tree_print_dot_graph(long ts_tree_ptr, FileDescriptor fileDescriptor);
 
     protected static native long ts_language_copy(long ts_language_ptr);
+
     protected static native void ts_language_delete(long ts_language_ptr);
+
     protected static native int ts_language_state_count(long ts_language_ptr);
+
     protected static native int ts_language_next_state(long ts_language_ptr, int ts_state_id, int ts_symbol);
 
     protected static native int ts_language_field_count(long ts_language_ptr);
+
     protected static native String ts_language_field_name_for_id(long ts_language_ptr, int ts_field_id);
+
     protected static native int ts_language_field_id_for_name(long ts_language_ptr, String field_name);
+
     protected static native int ts_language_symbol_type(long ts_language_ptr, int ts_symbol);
+
     protected static native int ts_language_symbol_count(long ts_language_ptr);
+
     protected static native String ts_language_symbol_name(long ts_language_ptr, int ts_symbol);
+
     protected static native int ts_language_symbol_for_name(long ts_language_ptr, String name, boolean is_named);
+
     protected static native int ts_language_abi_version(long ts_language_ptr);
+
     protected static native TSLanguageMetadata ts_language_metadata(long ts_language_ptr);
+
     protected static native int[] ts_language_supertypes(long ts_language_ptr);
+
     protected static native int[] ts_language_subtypes(long ts_language_ptr, int supertype);
+
     protected static native String ts_language_name(long ts_language_ptr);
 
     protected static native long ts_lookahead_iterator_new(long ts_language_ptr, int ts_state_id);
+
     protected static native void ts_lookahead_iterator_delete(long ts_lookahead_iterator_ptr);
+
     protected static native boolean ts_lookahead_iterator_reset_state(long ts_lookahead_iterator_ptr, int ts_state_id);
-    protected static native boolean ts_lookahead_iterator_reset(long ts_lookahead_iterator_ptr, long ts_lang_ptr, int ts_state_id);
+
+    protected static native boolean ts_lookahead_iterator_reset(
+            long ts_lookahead_iterator_ptr, long ts_lang_ptr, int ts_state_id);
+
     protected static native long ts_lookahead_iterator_language(long ts_lookahead_iterator_ptr);
+
     protected static native boolean ts_lookahead_iterator_next(long ts_lookahead_iterator_ptr);
+
     protected static native int ts_lookahead_iterator_current_symbol(long ts_lookahead_iterator_ptr);
+
     protected static native String ts_lookahead_iterator_current_symbol_name(long ts_lookahead_iterator_ptr);
 
-
     protected static native TSNode ts_node_child_with_descendant(TSNode node, TSNode descendant);
+
     protected static native String ts_node_field_name_for_named_child(TSNode node, long namedChildIndex);
+
     protected static native long ts_load_lang(String path, String lang);
-
-
-
 
     private final long ptr;
     private final Cleanable cleanable;
@@ -182,7 +328,7 @@ public class TSParser implements AutoCloseable {
         }
     }
 
-    private static class TSParserCleanAction implements Runnable{
+    private static class TSParserCleanAction implements Runnable {
         private final long ptr;
 
         public TSParserCleanAction(long ptr) {
@@ -195,7 +341,6 @@ public class TSParser implements AutoCloseable {
             ts_parser_delete(ptr);
         }
     }
-
 
     private TSLogger logger;
     /**
@@ -248,7 +393,7 @@ public class TSParser implements AutoCloseable {
     public boolean setLanguage(TSLanguage language) {
         ensureOpen();
         boolean ret = ts_parser_set_language(ptr, language.getPtr());
-        if(ret){
+        if (ret) {
             this.language = language;
         }
         return ret;
@@ -283,7 +428,7 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSTree}
      */
-    public TSTree parseStringEncoding(TSTree oldTree, String input, TSInputEncoding encoding){
+    public TSTree parseStringEncoding(TSTree oldTree, String input, TSInputEncoding encoding) {
         ensureOpen();
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse_string_encoding(ptr, oldTreePtr, input, encoding.ordinal());
@@ -348,11 +493,11 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSTree} if success, <code>null</code> otherwise.
      */
-    public TSTree parse(byte[] buf, TSTree oldTree, TSReader reader, TSInputEncoding encoding){
+    public TSTree parse(byte[] buf, TSTree oldTree, TSReader reader, TSInputEncoding encoding) {
         ensureOpen();
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse(ptr, buf, oldTreePtr, reader, encoding.ordinal());
-        if(treePtr == 0){
+        if (treePtr == 0) {
             return null;
         }
         return new TSTree(treePtr, language);
@@ -369,11 +514,12 @@ public class TSParser implements AutoCloseable {
      * @param progress Progress callback.
      * @return {@link TSTree} if success, <code>null</code> otherwise.
      */
-    public TSTree parseWithOptions(byte[] buf, TSTree oldTree, TSReader reader, TSInputEncoding encoding, TSParserProgress progress){
+    public TSTree parseWithOptions(
+            byte[] buf, TSTree oldTree, TSReader reader, TSInputEncoding encoding, TSParserProgress progress) {
         ensureOpen();
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse_with_options(ptr, oldTreePtr, buf, reader, encoding.ordinal(), progress);
-        if(treePtr == 0){
+        if (treePtr == 0) {
             return null;
         }
         return new TSTree(treePtr, language);
@@ -384,7 +530,7 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSLanguage}
      */
-    public TSLanguage getLanguage(){
+    public TSLanguage getLanguage() {
         return language;
     }
     /**
@@ -436,7 +582,7 @@ public class TSParser implements AutoCloseable {
      * and instead intend to use this parser to parse some other document, you must
      * call {@link #reset()} first.
      */
-    public void reset(){
+    public void reset() {
         ensureOpen();
         ts_parser_reset(ptr);
     }
@@ -454,7 +600,7 @@ public class TSParser implements AutoCloseable {
      */
     public void printDotGraphs(File file) throws IOException {
         ensureOpen();
-        if(file == null) {
+        if (file == null) {
             ts_parser_print_dot_graphs(ptr, null);
             return;
         }

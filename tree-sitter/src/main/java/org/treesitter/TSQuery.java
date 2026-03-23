@@ -1,11 +1,10 @@
 package org.treesitter;
 
-import java.lang.ref.Cleaner.Cleanable;
+import static org.treesitter.TSParser.*;
 
+import java.lang.ref.Cleaner.Cleanable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.treesitter.TSParser.*;
 
 public class TSQuery implements AutoCloseable {
     private final long ptr;
@@ -59,7 +58,7 @@ public class TSQuery implements AutoCloseable {
      *
      * @throws TSQueryException If the query is invalid
      */
-    public TSQuery(TSLanguage language, String query){
+    public TSQuery(TSLanguage language, String query) {
         this(ts_query_new(language.getPtr(), query));
         if (ptr == 0) {
             throw new TSQueryException("Syntax error in query: " + query);
@@ -76,7 +75,7 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The number of patterns.
      */
-    public int getPatternCount(){
+    public int getPatternCount() {
         ensureOpen();
         return ts_query_pattern_count(ptr);
     }
@@ -86,7 +85,7 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The number of captures.
      */
-    public int getCaptureCount(){
+    public int getCaptureCount() {
         ensureOpen();
         return ts_query_capture_count(ptr);
     }
@@ -96,11 +95,10 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The number of strings.
      */
-    public int getStringCount(){
+    public int getStringCount() {
         ensureOpen();
         return ts_query_string_count(ptr);
     }
-
 
     /**
      * Get the byte offset where the given pattern starts in the query's source.<br>
@@ -200,7 +198,6 @@ public class TSQuery implements AutoCloseable {
         return ts_query_is_pattern_guaranteed_at_step(ptr, byteOffset);
     }
 
-
     /**
      * Get the name and length of one of the query's captures, or one of the
      * query's string literals. Each capture and string is associated with a
@@ -213,7 +210,7 @@ public class TSQuery implements AutoCloseable {
     public String getCaptureNameForId(int captureId) {
         ensureOpen();
         int captureCount = getCaptureCount();
-        if(captureId >= captureCount){
+        if (captureId >= captureCount) {
             throw new TSException("Invalid capture id: " + captureId);
         }
         return ts_query_capture_name_for_id(ptr, captureId);
@@ -247,8 +244,9 @@ public class TSQuery implements AutoCloseable {
             while (stepIndex < steps.length) {
                 // Find the number of arguments until Done sentinel
                 int nargs = 0;
-                while (stepIndex + nargs < steps.length &&
-                        steps[stepIndex + nargs].getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeDone) {
+                while (stepIndex + nargs < steps.length
+                        && steps[stepIndex + nargs].getType()
+                                != TSQueryPredicateStepType.TSQueryPredicateStepTypeDone) {
                     nargs++;
                 }
 
@@ -319,7 +317,8 @@ public class TSQuery implements AutoCloseable {
 
     private TSQueryPredicate handleAnyOf(String name, TSQueryPredicateStep[] steps, int start, int nargs) {
         if (nargs < 3) {
-            throw new TSQueryException(String.format("Predicate #%s expects at least 2 arguments, got %d", name, nargs - 1));
+            throw new TSQueryException(
+                    String.format("Predicate #%s expects at least 2 arguments, got %d", name, nargs - 1));
         }
         TSQueryPredicateStep arg1 = steps[start + 1];
         if (arg1.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeCapture) {
@@ -389,13 +388,19 @@ public class TSQuery implements AutoCloseable {
     public TSQuantifier getCaptureQuantifierForId(int patternId, int captureId) {
         ensureOpen();
         int quantifier = ts_query_capture_quantifier_for_id(ptr, patternId, captureId);
-        switch (quantifier){
-            case 0: return TSQuantifier.TSQuantifierZero;
-            case 1: return TSQuantifier.TSQuantifierZeroOrOne;
-            case 2: return TSQuantifier.TSQuantifierZeroOrMore;
-            case 3: return TSQuantifier.TSQuantifierOne;
-            case 4: return TSQuantifier.TSQuantifierOneOrMore;
-            default: throw new TSException("Can't handle quantifier type: %d" + quantifier);
+        switch (quantifier) {
+            case 0:
+                return TSQuantifier.TSQuantifierZero;
+            case 1:
+                return TSQuantifier.TSQuantifierZeroOrOne;
+            case 2:
+                return TSQuantifier.TSQuantifierZeroOrMore;
+            case 3:
+                return TSQuantifier.TSQuantifierOne;
+            case 4:
+                return TSQuantifier.TSQuantifierOneOrMore;
+            default:
+                throw new TSException("Can't handle quantifier type: %d" + quantifier);
         }
     }
 

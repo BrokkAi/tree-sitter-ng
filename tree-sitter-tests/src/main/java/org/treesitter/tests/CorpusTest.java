@@ -1,6 +1,7 @@
 package org.treesitter.tests;
 
-import org.treesitter.*;
+import static org.treesitter.tests.SExpressionUtils.stripFieldNames;
+import static org.treesitter.tests.SExpressionUtils.stripSExpressionWhitespace;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -9,23 +10,15 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.treesitter.tests.SExpressionUtils.stripFieldNames;
-import static org.treesitter.tests.SExpressionUtils.stripSExpressionWhitespace;
-
+import org.treesitter.*;
 
 public class CorpusTest {
     private List<TestExample> examples;
     private final String filename;
 
-    private static final Pattern HEADER_REGEX = Pattern.compile(
-        "^(={3,})([^=\\n]*)\\n([\\s\\S]*?)\\n(={3,})([^=\\n]*)$",
-        Pattern.MULTILINE
-    );
-    private static final Pattern DIVIDER_REGEX = Pattern.compile(
-        "^(-{3,})([^-\\n]*)$",
-        Pattern.MULTILINE
-    );
+    private static final Pattern HEADER_REGEX =
+            Pattern.compile("^(={3,})([^=\\n]*)\\n([\\s\\S]*?)\\n(={3,})([^=\\n]*)$", Pattern.MULTILINE);
+    private static final Pattern DIVIDER_REGEX = Pattern.compile("^(-{3,})([^-\\n]*)$", Pattern.MULTILINE);
     private static final Pattern LANG_PTN = Pattern.compile(":language\\(([^)]+)\\)");
     private static final Pattern PLATFORM_PTN = Pattern.compile(":platform\\(([^)]+)\\)");
 
@@ -69,7 +62,7 @@ public class CorpusTest {
             if (!firstSuffix.equals(suffix1) || !firstSuffix.equals(suffix2)) {
                 continue;
             }
-            headerPositions.add(new int[]{headerMatcher.start(), headerMatcher.end()});
+            headerPositions.add(new int[] {headerMatcher.start(), headerMatcher.end()});
             String nameAndAttrs = headerMatcher.group(3).trim();
             String[] lines = nameAndAttrs.split("\\n");
             String name = lines.length > 0 ? lines[0].trim() : "";
@@ -85,9 +78,7 @@ public class CorpusTest {
 
         for (int i = 0; i < headerPositions.size(); i++) {
             int bodyStart = headerPositions.get(i)[1];
-            int bodyEnd = (i + 1 < headerPositions.size())
-                ? headerPositions.get(i + 1)[0]
-                : content.length();
+            int bodyEnd = (i + 1 < headerPositions.size()) ? headerPositions.get(i + 1)[0] : content.length();
 
             TestAttributes attrs = testAttributesList.get(i);
             if (attrs.isSkip()) {
@@ -174,25 +165,25 @@ public class CorpusTest {
     public void runTest(TSLanguage language, String langName) {
         TSParser parser = new TSParser();
         parser.setLanguage(language);
-        examples.stream()
-            .filter(example -> example.isExampleFor(langName))
-            .forEach(example -> {
-                parser.reset();
-                TSTree tree = parser.parseString(null, example.getInput());
-                TSNode node = tree.getRootNode();
-                String expect = stripFieldNames(stripSExpressionWhitespace(example.getOutput()));
-                String actual = stripFieldNames(stripSExpressionWhitespace(node.toString()));
-                if (!expect.equals(actual)) {
-                    throw new TreeSitterTestException(example.getName() + " test error: " + "\n" + expect + "\nNot equal to:\n" + actual + "\nWith input:\n" + example.getInput());
-                }
-            });
+        examples.stream().filter(example -> example.isExampleFor(langName)).forEach(example -> {
+            parser.reset();
+            TSTree tree = parser.parseString(null, example.getInput());
+            TSNode node = tree.getRootNode();
+            String expect = stripFieldNames(stripSExpressionWhitespace(example.getOutput()));
+            String actual = stripFieldNames(stripSExpressionWhitespace(node.toString()));
+            if (!expect.equals(actual)) {
+                throw new TreeSitterTestException(example.getName() + " test error: " + "\n" + expect
+                        + "\nNot equal to:\n" + actual + "\nWith input:\n" + example.getInput());
+            }
+        });
     }
 
     public static void runAllTestsInFolder(String folder, TSLanguage language, String langName) throws IOException {
         runAllTestsInFolderRecursive(new File(folder), language, langName);
     }
 
-    private static void runAllTestsInFolderRecursive(File folderPath, TSLanguage language, String langName) throws IOException {
+    private static void runAllTestsInFolderRecursive(File folderPath, TSLanguage language, String langName)
+            throws IOException {
         if (!folderPath.exists() || !folderPath.isDirectory()) {
             throw new TreeSitterTestException(folderPath.getPath() + " does not exist or not a folder.");
         }
@@ -215,17 +206,20 @@ public class CorpusTest {
             Properties properties = new Properties();
             properties.load(input);
             String libVersion = (String) properties.get("libVersion");
-            String corpusFolder = "build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion + "/test/corpus";
+            String corpusFolder =
+                    "build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion + "/test/corpus";
             CorpusTest.runAllTestsInFolder(corpusFolder, language, langName);
         }
     }
 
-    public static void runAllTestsInDefaultFolderSecondaryLang(TSLanguage language, String langName, String secondaryLang) throws IOException {
+    public static void runAllTestsInDefaultFolderSecondaryLang(
+            TSLanguage language, String langName, String secondaryLang) throws IOException {
         try (FileInputStream input = new FileInputStream("gradle.properties")) {
             Properties properties = new Properties();
             properties.load(input);
             String libVersion = (String) properties.get("libVersion");
-            String corpusFolder = "build/tree-sitter-" + secondaryLang + "/tree-sitter-" + langName + "-" + libVersion + "/test/corpus";
+            String corpusFolder = "build/tree-sitter-" + secondaryLang + "/tree-sitter-" + langName + "-" + libVersion
+                    + "/test/corpus";
             CorpusTest.runAllTestsInFolder(corpusFolder, language, secondaryLang);
         }
     }

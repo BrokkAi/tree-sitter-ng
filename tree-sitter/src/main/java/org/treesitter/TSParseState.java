@@ -11,6 +11,4 @@ public class TSParseState {
     public int getCurrentByteOffset() {
         return currentByteOffset;
     }
-
-
 }

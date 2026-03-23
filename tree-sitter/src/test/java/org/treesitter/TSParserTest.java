@@ -1,47 +1,45 @@
 package org.treesitter;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 class TSParserTest {
 
     public static final String JSON_SRC = "[1, null]";
     private static TSLanguage json = new TreeSitterJson();
     private static TSParser parser = new TSParser();
+
     @BeforeAll
-    static void beforeAll(){
+    static void beforeAll() {
         parser.setLanguage(json);
     }
 
     @Test
-    public void parseString(){
+    public void parseString() {
         TSTree tree = parser.parseString(null, JSON_SRC);
         assertNotNull(tree);
     }
 
     @Test
-    public void parseEncoding(){
+    public void parseEncoding() {
         parser.reset();
         TSTree tree = parser.parseStringEncoding(null, JSON_SRC, TSInputEncoding.TSInputEncodingUTF8);
         assertNotNull(tree);
     }
 
     @Test
-    public void  parse(){
+    public void parse() {
         parser.reset();
         byte[] buffer = new byte[1024];
         String input = JSON_SRC;
         TSReader reader = (buf, offset, position) -> {
-            if(offset >= input.length()){
+            if (offset >= input.length()) {
                 return 0;
             }
             ByteBuffer charBuffer = ByteBuffer.wrap(buf);
@@ -58,34 +56,34 @@ class TSParserTest {
     }
 
     @Test
-    public void  parseWithOptions(){
+    public void parseWithOptions() {
         parser.reset();
         byte[] buffer = new byte[1024];
-        String input = "{\n" +
-                "  \"id\": 12345,\n" +
-                "  \"name\": \"Alice\",\n" +
-                "  \"email\": \"alice@example.com\",\n" +
-                "  \"age\": 30,\n" +
-                "  \"isActive\": true,\n" +
-                "  \"roles\": [\"admin\", \"editor\"],\n" +
-                "  \"profile\": {\n" +
-                "    \"bio\": \"Loves programming and cats.\",\n" +
-                "    \"location\": \"San Francisco\",\n" +
-                "    \"website\": \"https://alice.dev\"\n" +
-                "  }\n" +
-                "}";
+        String input = "{\n" + "  \"id\": 12345,\n"
+                + "  \"name\": \"Alice\",\n"
+                + "  \"email\": \"alice@example.com\",\n"
+                + "  \"age\": 30,\n"
+                + "  \"isActive\": true,\n"
+                + "  \"roles\": [\"admin\", \"editor\"],\n"
+                + "  \"profile\": {\n"
+                + "    \"bio\": \"Loves programming and cats.\",\n"
+                + "    \"location\": \"San Francisco\",\n"
+                + "    \"website\": \"https://alice.dev\"\n"
+                + "  }\n"
+                + "}";
         TSReader reader = (buf, offset, position) -> {
-            if(offset >= input.length()){
+            if (offset >= input.length()) {
                 return 0;
             }
             ByteBuffer charBuffer = ByteBuffer.wrap(buf);
             charBuffer.put(input.getBytes());
             return input.length();
         };
-        TSTree tree = parser.parseWithOptions(buffer, null, reader, TSInputEncoding.TSInputEncodingUTF8, (parserState) -> {
-            assertTrue(parserState.getCurrentByteOffset() > 0);
-            return parserState.hasError();
-        });
+        TSTree tree =
+                parser.parseWithOptions(buffer, null, reader, TSInputEncoding.TSInputEncodingUTF8, (parserState) -> {
+                    assertTrue(parserState.getCurrentByteOffset() > 0);
+                    return parserState.hasError();
+                });
         TSNode rootNode = tree.getRootNode();
         TSNode arrayNode = rootNode.getNamedChild(0);
         TSNode numberNode = arrayNode.getNamedChild(0);
@@ -95,15 +93,11 @@ class TSParserTest {
     }
 
     @Test
-    public void parseRange(){
+    public void parseRange() {
         TSParser parser = new TSParser();
         TSLanguage json = new TreeSitterJson();
         parser.setLanguage(json);
-        assertTrue(parser.setIncludedRanges(new TSRange[]{new TSRange(
-                new TSPoint(0, 0),
-                new TSPoint(0, 9),
-                0, 9
-        )}));
+        assertTrue(parser.setIncludedRanges(new TSRange[] {new TSRange(new TSPoint(0, 0), new TSPoint(0, 9), 0, 9)}));
         TSRange[] ranges = parser.getIncludedRanges();
         assertEquals(1, ranges.length);
         assertEquals(0, ranges[0].getStartByte());
@@ -144,13 +138,12 @@ class TSParserTest {
     }
 
     @Test
-    void getLanguage(){
+    void getLanguage() {
         TSParser parser = new TSParser();
         TSLanguage json = new TreeSitterJson();
         parser.setLanguage(json);
         assertEquals(parser.getLanguage().getPtr(), json.getPtr());
     }
-
 
     @Test
     void printDotGraphs() throws IOException {
@@ -164,7 +157,6 @@ class TSParserTest {
         parser.printDotGraphs(null);
         parser.reset();
         parser.parseString(null, JSON_SRC);
-
     }
 
     @Test
@@ -193,7 +185,7 @@ class TSParserTest {
     }
 
     @Test
-    void nodeText(){
+    void nodeText() {
         // 🌏 emoji
         String emoji = "\uD83C\uDF10";
         parser.reset();

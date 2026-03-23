@@ -1,9 +1,9 @@
 package org.treesitter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 import org.treesitter.utils.NativeUtils;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class TSLanguageTest {
     private final TSLanguage json = new TreeSitterJson();
@@ -15,7 +15,7 @@ class TSLanguageTest {
 
     @Test
     void fieldNameForId() {
-        assertEquals("key",json.fieldNameForId(1));
+        assertEquals("key", json.fieldNameForId(1));
     }
 
     @Test
@@ -44,50 +44,49 @@ class TSLanguageTest {
     }
 
     @Test
-    void copy(){
+    void copy() {
         assertNotNull(json.copy());
     }
 
     @Test
-    void stateCount(){
+    void stateCount() {
         assertEquals(32, json.stateCount());
     }
 
     @Test
-    void nextState(){
+    void nextState() {
         assertEquals(0, json.nextState(0, 15));
     }
 
     @Test
-    void abiVersion(){
-        assertTrue( json.abiVersion() > 0);
+    void abiVersion() {
+        assertTrue(json.abiVersion() > 0);
     }
 
     @Test
-    void metadata(){
+    void metadata() {
         assertNull(json.metadata());
     }
 
     @Test
-    void supertypes(){
+    void supertypes() {
         assertArrayEquals(new int[] {}, json.supertypes());
     }
 
     @Test
-    void subtype(){
+    void subtype() {
         assertArrayEquals(new int[] {}, json.subtypes(0));
     }
 
     @Test
-    void name(){
+    void name() {
         assertNull(json.name());
     }
 
     @Test
-    void load(){
+    void load() {
         String langPath = NativeUtils.libFile("lib/" + "tree-sitter-json").toString();
         TSLanguage lang = TSLanguage.load(langPath, "tree_sitter_json");
         assertNull(lang.name());
     }
-
 }

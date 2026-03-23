@@ -1,8 +1,4 @@
-
 package org.treesitter;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class TreeSitterCssTest {
     private TSParser parser;
@@ -29,13 +27,11 @@ class TreeSitterCssTest {
             properties.load(input);
             String examplesPath = "src/test/resources/examples";
             Path dir = Paths.get(examplesPath);
-            Files.walk(dir)
-                    .filter(path -> path.toString().endsWith(ext))
-                    .forEach(this::parse);
+            Files.walk(dir).filter(path -> path.toString().endsWith(ext)).forEach(this::parse);
         }
     }
 
-    private void parse(Path file){
+    private void parse(Path file) {
         try {
             String source = new String(Files.readAllBytes(file));
             parser.reset();

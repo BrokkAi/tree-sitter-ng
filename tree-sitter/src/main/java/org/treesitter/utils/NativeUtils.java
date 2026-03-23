@@ -1,7 +1,5 @@
 package org.treesitter.utils;
 
-import org.treesitter.TSParser;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,37 +9,38 @@ import java.util.Set;
 
 public abstract class NativeUtils {
     private static final Set<String> loadedLibs = new HashSet<>();
-    private static String getFullLibName(String libName){
+
+    private static String getFullLibName(String libName) {
         String osName = System.getProperty("os.name").toLowerCase();
         String archName = System.getProperty("os.arch").toLowerCase();
         String ext;
         String os;
         String arch;
-        if(osName.contains("windows")){
+        if (osName.contains("windows")) {
             ext = "dll";
             os = "windows";
-        }else if(osName.contains("linux")){
+        } else if (osName.contains("linux")) {
             ext = "so";
             os = "linux-gnu";
-        }else if(osName.contains("mac")){
+        } else if (osName.contains("mac")) {
             ext = "dylib";
             os = "macos";
-        }else{
+        } else {
             throw new RuntimeException(String.format("Does not support OS: %s", osName));
         }
-        if(archName.contains("amd64") || archName.contains("x86_64")){
+        if (archName.contains("amd64") || archName.contains("x86_64")) {
             arch = "x86_64";
-        }else if(archName.contains("aarch64")){
+        } else if (archName.contains("aarch64")) {
             arch = "aarch64";
-        }else{
+        } else {
             throw new RuntimeException(String.format("Does not support arch: %s", archName));
         }
         String[] parts = libName.split("/");
         StringBuilder stringBuilder = new StringBuilder();
-        for(int i = 0; i < parts.length; i++){
-            if(i == parts.length - 1){
+        for (int i = 0; i < parts.length; i++) {
+            if (i == parts.length - 1) {
                 stringBuilder.append(String.format("%s-%s-%s.%s", arch, os, parts[i], ext));
-            }else{
+            } else {
                 stringBuilder.append(parts[i]);
                 stringBuilder.append("/");
             }
@@ -69,7 +68,7 @@ public abstract class NativeUtils {
      * @param libName Canonical name of the library. e.g. 'lib/foo', 'bar'
      * @return The path of the native lib.
      */
-    public synchronized static Path libFile(String libName) {
+    public static synchronized Path libFile(String libName) {
         String fullLibName = getFullLibName(libName);
 
         // Check for user-defined library path
@@ -82,8 +81,7 @@ public abstract class NativeUtils {
         }
 
         String prefix = fullLibName.replace("/", "_").replace("\\", "_");
-        String suffix = fullLibName.contains(".") ?
-                fullLibName.substring(fullLibName.lastIndexOf(".")) : ".tmp";
+        String suffix = fullLibName.contains(".") ? fullLibName.substring(fullLibName.lastIndexOf(".")) : ".tmp";
 
         try (InputStream inputStream = NativeUtils.class.getClassLoader().getResourceAsStream(fullLibName)) {
             if (inputStream == null) {
@@ -111,7 +109,7 @@ public abstract class NativeUtils {
      * </ol>
      * @param libName Canonical name of the library. e.g. 'lib/foo', 'bar'
      */
-    public synchronized static void loadLib(String libName) {
+    public static synchronized void loadLib(String libName) {
         if (loadedLibs.contains(libName)) {
             return;
         }

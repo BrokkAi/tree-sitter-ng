@@ -1,4 +1,3 @@
-
 package org.treesitter;
 
 import org.treesitter.utils.NativeUtils;
@@ -8,13 +7,14 @@ public class TreeSitterAgda extends TSLanguage {
     static {
         NativeUtils.loadLib("lib/tree-sitter-agda");
     }
-    private native static long tree_sitter_agda();
+
+    private static native long tree_sitter_agda();
 
     public TreeSitterAgda() {
         super(tree_sitter_agda());
     }
 
-    private TreeSitterAgda(long ptr){
+    private TreeSitterAgda(long ptr) {
         super(ptr);
     }
 
