@@ -245,6 +245,22 @@ public class TSQuery implements AutoCloseable {
         return predicates.get(patternIndex);
     }
 
+    /**
+     * Check if the query contains any text-dependent predicates.
+     *
+     * @return True if any pattern in the query contains a predicate that requires text.
+     */
+    public boolean hasTextPredicates() {
+        for (List<TSQueryPredicate> patternPredicates : predicates) {
+            for (TSQueryPredicate predicate : patternPredicates) {
+                if (predicate.requiresText()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private List<List<TSQueryPredicate>> parsePredicates() {
         int patternCount = getPatternCount();
         List<List<TSQueryPredicate>> result = new ArrayList<>(patternCount);
