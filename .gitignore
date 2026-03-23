@@ -44,6 +44,9 @@ bin/
 /playground
 **/.claude
 
+# Native build outputs
+**/src/main/resources/lib/
+
 ### BROKK'S CONFIGURATION ###
 **/.brokk/**
 !AGENTS.md
