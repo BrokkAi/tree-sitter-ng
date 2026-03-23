@@ -5,6 +5,7 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
+import org.jspecify.annotations.Nullable;
 import org.treesitter.utils.NativeUtils;
 
 public class TSParser implements AutoCloseable {
@@ -27,7 +28,7 @@ public class TSParser implements AutoCloseable {
         NativeUtils.loadLib("lib/tree-sitter");
     }
 
-    private TSLanguage language;
+    private @Nullable TSLanguage language;
 
     public static native long ts_parser_new();
 
@@ -59,7 +60,7 @@ public class TSParser implements AutoCloseable {
 
     private static native void ts_parser_reset(long ts_parser_ptr);
 
-    private static native void ts_parser_set_logger(long ts_parser_ptr, TSLogger logger);
+    private static native void ts_parser_set_logger(long ts_parser_ptr, @Nullable TSLogger logger);
 
     private static native void free_logger(long ts_parser_ptr);
 
@@ -121,7 +122,7 @@ public class TSParser implements AutoCloseable {
 
     protected static native TSNode ts_node_child(TSNode node, int index);
 
-    protected static native String ts_node_field_name_for_child(TSNode node, int index);
+    protected static native @Nullable String ts_node_field_name_for_child(TSNode node, int index);
 
     protected static native int ts_node_child_count(TSNode node);
 
@@ -169,7 +170,7 @@ public class TSParser implements AutoCloseable {
 
     protected static native TSNode ts_tree_cursor_current_node(long cursor_ptr);
 
-    protected static native String ts_tree_cursor_current_field_name(long cursor_ptr);
+    protected static native @Nullable String ts_tree_cursor_current_field_name(long cursor_ptr);
 
     protected static native int ts_tree_cursor_current_field_id(long cursor_ptr);
 
@@ -314,7 +315,7 @@ public class TSParser implements AutoCloseable {
 
     protected static native TSNode ts_node_child_with_descendant(TSNode node, TSNode descendant);
 
-    protected static native String ts_node_field_name_for_named_child(TSNode node, long namedChildIndex);
+    protected static native @Nullable String ts_node_field_name_for_named_child(TSNode node, long namedChildIndex);
 
     protected static native long ts_load_lang(String path, String lang);
 
@@ -342,11 +343,13 @@ public class TSParser implements AutoCloseable {
         }
     }
 
-    private TSLogger logger;
+    private @Nullable TSLogger logger;
     /**
      * Create a new parser.
      */
     public TSParser() {
+        this.language = null;
+        this.logger = null;
         this.ptr = ts_parser_new();
         this.cleanable = CleanerRunner.register(this, new TSParserCleanAction(this.ptr));
     }
@@ -361,7 +364,7 @@ public class TSParser implements AutoCloseable {
      *
      * @return The logger that the parser is using.
      */
-    public TSLogger getLogger() {
+    public @Nullable TSLogger getLogger() {
         return logger;
     }
     /**
@@ -370,14 +373,13 @@ public class TSParser implements AutoCloseable {
      * @param logger The logger that the parser should use.
      *
      */
-    public void setLogger(TSLogger logger) {
+    public void setLogger(@Nullable TSLogger logger) {
         ensureOpen();
         this.logger = logger;
         ts_parser_set_logger(ptr, logger);
     }
 
     /**
-     **
      * Set the language that the parser should use for parsing.
      * Returns a boolean indicating whether the language was successfully
      * assigned. True means assignment succeeded. False means there was a version
@@ -409,10 +411,16 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSTree}
      */
-    public TSTree parseString(TSTree oldTree, String input) {
+    public @Nullable TSTree parseString(@Nullable TSTree oldTree, String input) {
         ensureOpen();
+        if (language == null) {
+            throw new IllegalStateException("Parser language must be set before parsing");
+        }
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse_string(ptr, oldTreePtr, input);
+        if (treePtr == 0) {
+            return null;
+        }
         return new TSTree(treePtr, language);
     }
 
@@ -428,10 +436,16 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSTree}
      */
-    public TSTree parseStringEncoding(TSTree oldTree, String input, TSInputEncoding encoding) {
+    public @Nullable TSTree parseStringEncoding(@Nullable TSTree oldTree, String input, TSInputEncoding encoding) {
         ensureOpen();
+        if (language == null) {
+            throw new IllegalStateException("Parser language must be set before parsing");
+        }
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse_string_encoding(ptr, oldTreePtr, input, encoding.ordinal());
+        if (treePtr == 0) {
+            return null;
+        }
         return new TSTree(treePtr, language);
     }
 
@@ -493,8 +507,11 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSTree} if success, <code>null</code> otherwise.
      */
-    public TSTree parse(byte[] buf, TSTree oldTree, TSReader reader, TSInputEncoding encoding) {
+    public @Nullable TSTree parse(byte[] buf, @Nullable TSTree oldTree, TSReader reader, TSInputEncoding encoding) {
         ensureOpen();
+        if (language == null) {
+            throw new IllegalStateException("Parser language must be set before parsing");
+        }
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse(ptr, buf, oldTreePtr, reader, encoding.ordinal());
         if (treePtr == 0) {
@@ -514,9 +531,12 @@ public class TSParser implements AutoCloseable {
      * @param progress Progress callback.
      * @return {@link TSTree} if success, <code>null</code> otherwise.
      */
-    public TSTree parseWithOptions(
-            byte[] buf, TSTree oldTree, TSReader reader, TSInputEncoding encoding, TSParserProgress progress) {
+    public @Nullable TSTree parseWithOptions(
+            byte[] buf, @Nullable TSTree oldTree, TSReader reader, TSInputEncoding encoding, TSParserProgress progress) {
         ensureOpen();
+        if (language == null) {
+            throw new IllegalStateException("Parser language must be set before parsing");
+        }
         long oldTreePtr = oldTree == null ? 0 : oldTree.getPtr();
         long treePtr = ts_parser_parse_with_options(ptr, oldTreePtr, buf, reader, encoding.ordinal(), progress);
         if (treePtr == 0) {
@@ -530,7 +550,7 @@ public class TSParser implements AutoCloseable {
      *
      * @return {@link TSLanguage}
      */
-    public TSLanguage getLanguage() {
+    public @Nullable TSLanguage getLanguage() {
         return language;
     }
     /**
@@ -598,10 +618,9 @@ public class TSParser implements AutoCloseable {
      *
      * @throws IOException if the file cannot be written to.
      */
-    public void printDotGraphs(File file) throws IOException {
+    public void printDotGraphs(@Nullable File file) throws IOException {
         ensureOpen();
         if (file == null) {
-            ts_parser_print_dot_graphs(ptr, null);
             return;
         }
         FileOutputStream outputStream = new FileOutputStream(file);

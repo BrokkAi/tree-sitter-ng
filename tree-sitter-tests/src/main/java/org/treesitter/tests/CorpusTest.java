@@ -10,11 +10,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.treesitter.*;
 
 public class CorpusTest {
     private List<TestExample> examples;
-    private final String filename;
 
     private static final Pattern HEADER_REGEX =
             Pattern.compile("^(={3,})([^=\\n]*)\\n([\\s\\S]*?)\\n(={3,})([^=\\n]*)$", Pattern.MULTILINE);
@@ -22,8 +23,7 @@ public class CorpusTest {
     private static final Pattern LANG_PTN = Pattern.compile(":language\\(([^)]+)\\)");
     private static final Pattern PLATFORM_PTN = Pattern.compile(":platform\\(([^)]+)\\)");
 
-    public CorpusTest(InputStream inputStream, String filename) throws IOException {
-        this.filename = filename;
+    public CorpusTest(InputStream inputStream) throws IOException {
         parseTest(inputStream);
     }
 
@@ -32,7 +32,6 @@ public class CorpusTest {
     }
 
     public CorpusTest(File file) throws IOException {
-        this.filename = file.getName();
         try (InputStream inputStream = new FileInputStream(file)) {
             parseTest(inputStream);
         }
@@ -64,11 +63,11 @@ public class CorpusTest {
             }
             headerPositions.add(new int[] {headerMatcher.start(), headerMatcher.end()});
             String nameAndAttrs = headerMatcher.group(3).trim();
-            String[] lines = nameAndAttrs.split("\\n");
-            String name = lines.length > 0 ? lines[0].trim() : "";
+            List<String> lines = nameAndAttrs.lines().collect(Collectors.toList());
+            String name = !lines.isEmpty() ? lines.get(0).trim() : "";
             TestAttributes attrs = new TestAttributes();
-            for (int i = 1; i < lines.length; i++) {
-                String attrLine = lines[i].trim();
+            for (int i = 1; i < lines.size(); i++) {
+                String attrLine = lines.get(i).trim();
                 if (attrLine.isEmpty()) continue;
                 parseAttributeLine(attrLine, attrs);
             }
@@ -163,19 +162,21 @@ public class CorpusTest {
     }
 
     public void runTest(TSLanguage language, String langName) {
-        TSParser parser = new TSParser();
-        parser.setLanguage(language);
-        examples.stream().filter(example -> example.isExampleFor(langName)).forEach(example -> {
-            parser.reset();
-            TSTree tree = parser.parseString(null, example.getInput());
-            TSNode node = tree.getRootNode();
-            String expect = stripFieldNames(stripSExpressionWhitespace(example.getOutput()));
-            String actual = stripFieldNames(stripSExpressionWhitespace(node.toString()));
-            if (!expect.equals(actual)) {
-                throw new TreeSitterTestException(example.getName() + " test error: " + "\n" + expect
-                        + "\nNot equal to:\n" + actual + "\nWith input:\n" + example.getInput());
-            }
-        });
+        try (TSParser parser = new TSParser()) {
+            parser.setLanguage(language);
+            examples.stream().filter(example -> example.isExampleFor(langName)).forEach(example -> {
+                parser.reset();
+                TSTree tree = parser.parseString(null, example.getInput());
+                assert tree != null;
+                TSNode node = tree.getRootNode();
+                String expect = stripFieldNames(stripSExpressionWhitespace(example.getOutput()));
+                String actual = stripFieldNames(stripSExpressionWhitespace(node.toString()));
+                if (!expect.equals(actual)) {
+                    throw new TreeSitterTestException(example.getName() + " test error: " + "\n" + expect
+                            + "\nNot equal to:\n" + actual + "\nWith input:\n" + example.getInput());
+                }
+            });
+        }
     }
 
     public static void runAllTestsInFolder(String folder, TSLanguage language, String langName) throws IOException {

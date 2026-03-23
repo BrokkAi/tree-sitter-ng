@@ -1,5 +1,7 @@
 package org.treesitter;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,14 +9,14 @@ public class TSQueryMatch {
     private int id;
     private int patternIndex;
     private int captureIndex;
-    private TSQueryCapture[] captures;
+    private TSQueryCapture @Nullable [] captures = null;
     /**
      * Metadata associated with the match, typically populated by {@code #set!} predicates.
      * <p>
      * <b>Note:</b> {@code TSQueryMatch} objects are mutable and reused by {@link TSQueryCursor}.
      * If you need to persist metadata across iterations, you must create a copy of the map.
      */
-    private Map<String, String> metadata = null;
+    private @Nullable Map<String, String> metadata = null;
 
     public int getId() {
         return id;
@@ -28,7 +30,7 @@ public class TSQueryMatch {
         return captureIndex;
     }
 
-    public TSQueryCapture[] getCaptures() {
+    public TSQueryCapture @Nullable [] getCaptures() {
         return captures;
     }
 

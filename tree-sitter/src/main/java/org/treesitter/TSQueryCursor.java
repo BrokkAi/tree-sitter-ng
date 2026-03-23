@@ -3,6 +3,8 @@ package org.treesitter;
 import static org.treesitter.TSParser.*;
 import static org.treesitter.TSParser.ts_query_cursor_next_match;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.ref.Cleaner.Cleanable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -22,9 +24,9 @@ public class TSQueryCursor implements AutoCloseable {
         }
     }
 
-    private TSNode node;
-    private TSQuery query;
-    private byte[] sourceBytes;
+    private @Nullable TSNode node;
+    private @Nullable TSQuery query;
+    private byte @Nullable [] sourceBytes;
 
     private static class TSQueryCursorCleanAction implements Runnable {
         private final long ptr;
@@ -46,6 +48,8 @@ public class TSQueryCursor implements AutoCloseable {
         this.ptr = ptr;
         this.progressPayloadPtr = progressPayloadPtr;
         this.cleanable = CleanerRunner.register(this, new TSQueryCursorCleanAction(ptr, progressPayloadPtr));
+        this.node = null;
+        this.query = null;
     }
 
     @Override
@@ -102,7 +106,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param node The node to run the query on.
      * @param sourceText The source text used to resolve predicates like {@code #eq?}.
      */
-    public void exec(TSQuery query, TSNode node, CharSequence sourceText) {
+    public void exec(TSQuery query, TSNode node, @Nullable CharSequence sourceText) {
         ensureOpen();
         executed = true;
         this.node = node;
@@ -136,7 +140,7 @@ public class TSQueryCursor implements AutoCloseable {
      * @param sourceText The source text for predicates.
      * @param progress The progress callback.
      */
-    public void execWithOptions(TSQuery query, TSNode node, CharSequence sourceText, TSQueryProgress progress) {
+    public void execWithOptions(TSQuery query, TSNode node, @Nullable CharSequence sourceText, TSQueryProgress progress) {
         ensureOpen();
         executed = true;
         this.node = node;
@@ -316,19 +320,21 @@ public class TSQueryCursor implements AutoCloseable {
     }
 
     private void addTsTreeRef(TSQueryMatch match) {
-        if (match.getCaptures() != null) {
+        if (match.getCaptures() != null && this.node != null) {
             for (TSQueryCapture capture : match.getCaptures()) {
-                if (capture.getNode() != null) {
-                    capture.getNode().setTree(this.node.getTree());
+                TSNode captureNode = capture.getNode();
+                if (captureNode != null) {
+                    captureNode.setTree(this.node.getTree());
                 }
             }
         }
     }
 
     private boolean satisfiesPredicates(TSQueryMatch match) {
-        if (query == null) return true;
-        List<TSQueryPredicate> patternPredicates = query.getPredicatesForPattern(match.getPatternIndex());
-        if (patternPredicates == null || patternPredicates.isEmpty()) {
+        TSQuery q = query;
+        if (q == null) return true;
+        List<TSQueryPredicate> patternPredicates = q.getPredicatesForPattern(match.getPatternIndex());
+        if (patternPredicates.isEmpty()) {
             return true;
         }
 
@@ -362,8 +368,8 @@ public class TSQueryCursor implements AutoCloseable {
     }
 
     public static class TSMatchIterator implements Iterator<TSQueryMatch> {
-        private TSQueryMatch lastMatch = null;
-        private TSQueryMatch hasNextTempMatch = null;
+        private @Nullable TSQueryMatch lastMatch = null;
+        private @Nullable TSQueryMatch hasNextTempMatch = null;
         private final TSQueryCursor cursor;
         private final boolean isCapture;
 

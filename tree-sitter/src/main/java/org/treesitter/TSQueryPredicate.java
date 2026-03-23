@@ -1,6 +1,9 @@
 package org.treesitter;
 
+import org.jspecify.annotations.Nullable;
+
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Function;
@@ -41,9 +44,9 @@ public abstract class TSQueryPredicate {
      * @param sourceBytes The source bytes (UTF-8).
      * @return true if the predicate is satisfied.
      */
-    public boolean test(TSQueryMatch match, byte[] sourceBytes) {
+    public boolean test(TSQueryMatch match, byte @Nullable [] sourceBytes) {
         return test(match, n -> {
-            if (n == null || n.isNull()) return "";
+            if (n.isNull()) return "";
             if (sourceBytes == null
                     || n.getStartByte() < 0
                     || n.getStartByte() > n.getEndByte()
@@ -66,16 +69,18 @@ public abstract class TSQueryPredicate {
     }
 
     protected List<TSNode> findNodes(TSQueryMatch match, int captureId) {
-        TSQueryCapture[] captures = match.getCaptures();
-        if (captures == null) return Collections.emptyList();
+        TSQueryCapture @Nullable [] captures = match.getCaptures();
+        if (captures == null) return new ArrayList<>();
         List<TSNode> nodes = new ArrayList<>();
         for (TSQueryCapture capture : captures) {
             // In tree-sitter, the capture index is the ID within the query.
             if (capture.getIndex() == captureId) {
-                nodes.add(capture.getNode());
+                TSNode node = capture.getNode();
+                if (node != null) {
+                    nodes.add(node);
+                }
             }
         }
-        nodes.removeIf(Objects::isNull);
         return nodes;
     }
 
@@ -93,11 +98,11 @@ public abstract class TSQueryPredicate {
 
         public static final Set<String> NAMES = Set.of("eq?", "not-eq?", "any-eq?", "any-not-eq?");
 
-        public TSQueryPredicateEq(String name, int captureId, String literalValue, int valueId, boolean isCapture) {
+        public TSQueryPredicateEq(String name, int captureId, @Nullable String literalValue, int valueId, boolean isCapture) {
             super(name);
             this.captureId = captureId;
-            this.literalValue = literalValue;
-            this.literalBytes = literalValue == null ? null : literalValue.getBytes(StandardCharsets.UTF_8);
+            this.literalValue = literalValue == null ? "" : literalValue;
+            this.literalBytes = this.literalValue.getBytes(StandardCharsets.UTF_8);
             this.valueId = valueId;
             this.isPositive = !name.contains("not-");
             this.isAny = name.startsWith("any-");
@@ -110,7 +115,7 @@ public abstract class TSQueryPredicate {
         }
 
         @Override
-        public boolean test(TSQueryMatch match, byte[] sourceBytes) {
+        public boolean test(TSQueryMatch match, byte @Nullable [] sourceBytes) {
             if (sourceBytes == null) return super.test(match, sourceBytes);
             return isCapture ? testCapture(match, sourceBytes) : testLiteral(match, sourceBytes);
         }
@@ -150,7 +155,7 @@ public abstract class TSQueryPredicate {
             if (nodes.isEmpty()) return !isPositive;
             Predicate<TSNode> predicate = node -> {
                 String text = textProvider.apply(node);
-                return Objects.equals(text, literalValue) == isPositive;
+                return (text != null && text.equals(literalValue)) == isPositive;
             };
             return isAny ? nodes.stream().anyMatch(predicate) : nodes.stream().allMatch(predicate);
         }
@@ -231,7 +236,7 @@ public abstract class TSQueryPredicate {
         }
 
         @Override
-        public boolean test(TSQueryMatch match, byte[] sourceBytes) {
+        public boolean test(TSQueryMatch match, byte @Nullable [] sourceBytes) {
             if (sourceBytes == null) return super.test(match, sourceBytes);
             List<TSNode> nodes = findNodes(match, captureId);
             if (nodes.isEmpty()) return !isPositive;

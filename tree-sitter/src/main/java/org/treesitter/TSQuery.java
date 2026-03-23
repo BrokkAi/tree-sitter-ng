@@ -2,14 +2,15 @@ package org.treesitter;
 
 import static org.treesitter.TSParser.*;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.ref.Cleaner.Cleanable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TSQuery implements AutoCloseable {
     private final long ptr;
-    private TSLanguage lang;
-    private List<List<TSQueryPredicate>> predicates;
+    private List<List<TSQueryPredicate>> predicates = new ArrayList<>();
     private final Cleanable cleanable;
     private boolean closed = false;
 
@@ -63,7 +64,6 @@ public class TSQuery implements AutoCloseable {
         if (ptr == 0) {
             throw new TSQueryException("Syntax error in query: " + query);
         }
-        this.lang = language;
         this.predicates = parsePredicates();
     }
 
@@ -151,9 +151,11 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The predicates for the pattern.
      */
-    public TSQueryPredicateStep[] getPredicateForPattern(int patternIndex) {
+    public TSQueryPredicateStep @Nullable [] getPredicateForPattern(int patternIndex) {
         ensureOpen();
-        return ts_query_predicates_for_pattern(ptr, patternIndex);
+        TSQueryPredicateStep[] steps = ts_query_predicates_for_pattern(ptr, patternIndex);
+        if (steps == null || steps.length == 0) return null;
+        return steps;
     }
 
     /**
@@ -234,7 +236,7 @@ public class TSQuery implements AutoCloseable {
         int patternCount = getPatternCount();
         List<List<TSQueryPredicate>> result = new ArrayList<>(patternCount);
         for (int i = 0; i < patternCount; i++) {
-            TSQueryPredicateStep[] steps = getPredicateForPattern(i);
+            TSQueryPredicateStep @Nullable [] steps = getPredicateForPattern(i);
             List<TSQueryPredicate> patternPredicates = new ArrayList<>();
             if (steps == null) {
                 result.add(patternPredicates);
@@ -291,7 +293,7 @@ public class TSQuery implements AutoCloseable {
         TSQueryPredicateStep arg2 = steps[start + 2];
         int arg2ValueId = arg2.getValueId();
         boolean isCapture = arg2.getType() == TSQueryPredicateStepType.TSQueryPredicateStepTypeCapture;
-        String literalValue = isCapture ? null : getStringValueForId(arg2ValueId);
+        String literalValue = isCapture ? "" : getStringValueForId(arg2ValueId);
 
         return new TSQueryPredicate.TSQueryPredicateEq(name, captureId, literalValue, arg2ValueId, isCapture);
     }

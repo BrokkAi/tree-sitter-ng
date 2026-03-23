@@ -1,10 +1,12 @@
 package org.treesitter;
 
+import org.jspecify.annotations.Nullable;
+
 public class TSQueryPredicateStep {
-    private TSQueryPredicateStepType type;
+    private @Nullable TSQueryPredicateStepType type;
     private int valueId;
 
-    public TSQueryPredicateStepType getType() {
+    public @Nullable TSQueryPredicateStepType getType() {
         return type;
     }
 

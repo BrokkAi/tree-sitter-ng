@@ -51,15 +51,29 @@ class TSAutoCloseableTest {
 
     @Test
     void testTreeUseAfterClose() {
-        TSTree tree = new TSTree(0, null);
+        class TestLanguage extends TSLanguage {
+            TestLanguage() {
+                super(0);
+            }
+            @Override
+            public TSLanguage copy() { return this; }
+        }
+        TSTree tree = new TSTree(0, new TestLanguage());
         tree.close();
         assertThrows(IllegalStateException.class, tree::getRootNode);
     }
 
     @Test
     void testTreeGetChangedRangesAfterClose() {
-        TSTree tree1 = new TSTree(0, null);
-        TSTree tree2 = new TSTree(0, null);
+        class TestLanguage extends TSLanguage {
+            TestLanguage() {
+                super(0);
+            }
+            @Override
+            public TSLanguage copy() { return this; }
+        }
+        TSTree tree1 = new TSTree(0, new TestLanguage());
+        TSTree tree2 = new TSTree(0, new TestLanguage());
         tree1.close();
         assertThrows(IllegalStateException.class, () -> TSTree.getChangedRanges(tree1, tree2));
         assertThrows(IllegalStateException.class, () -> TSTree.getChangedRanges(tree2, tree1));

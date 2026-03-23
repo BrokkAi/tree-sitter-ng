@@ -1,5 +1,7 @@
 package org.treesitter;
 
+import org.jspecify.annotations.Nullable;
+
 import static org.treesitter.TSParser.*;
 
 public class TSNode {
@@ -9,17 +11,17 @@ public class TSNode {
     private int context3;
     private long idPtr;
     private long treePtr;
-    private TSTree tree;
+    private @Nullable TSTree tree;
 
     protected long getTreePtr() {
         return treePtr;
     }
 
-    public TSTree getTree() {
+    public @Nullable TSTree getTree() {
         return tree;
     }
 
-    protected void setTree(TSTree tree) {
+    protected void setTree(@Nullable TSTree tree) {
         this.tree = tree;
     }
 
@@ -272,7 +274,7 @@ public class TSNode {
      *
      * @return The field name for the node's child at the given index.
      */
-    public String getFieldNameForChild(int index) {
+    public @Nullable String getFieldNameForChild(int index) {
         asserNotNull();
         return ts_node_field_name_for_child(this, index);
     }
@@ -284,7 +286,7 @@ public class TSNode {
      * @param namedChildIndex Index of the child
      * @return The field name for the node's named child at the given index.
      */
-    public String getFieldNameForNamedChild(int namedChildIndex) {
+    public @Nullable String getFieldNameForNamedChild(int namedChildIndex) {
         asserNotNull();
         return TSParser.ts_node_field_name_for_named_child(this, namedChildIndex);
     }
@@ -535,9 +537,10 @@ public class TSNode {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof TSNode other)) return false;
+        if (!(obj instanceof TSNode)) return false;
+        TSNode other = (TSNode) obj;
         return idPtr == other.idPtr;
     }
 }

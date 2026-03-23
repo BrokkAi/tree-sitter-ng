@@ -1,6 +1,7 @@
 package org.treesitter.utils;
 
 import java.io.*;
+import java.util.Locale;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -11,8 +12,8 @@ public abstract class NativeUtils {
     private static final Set<String> loadedLibs = new HashSet<>();
 
     private static String getFullLibName(String libName) {
-        String osName = System.getProperty("os.name").toLowerCase();
-        String archName = System.getProperty("os.arch").toLowerCase();
+        String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+        String archName = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
         String ext;
         String os;
         String arch;
@@ -35,17 +36,17 @@ public abstract class NativeUtils {
         } else {
             throw new RuntimeException(String.format("Does not support arch: %s", archName));
         }
-        String[] parts = libName.split("/");
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < parts.length; i++) {
-            if (i == parts.length - 1) {
-                stringBuilder.append(String.format("%s-%s-%s.%s", arch, os, parts[i], ext));
-            } else {
-                stringBuilder.append(parts[i]);
-                stringBuilder.append("/");
-            }
+
+        Path path = Path.of(libName);
+        String fileName = path.getFileName().toString();
+        String fullFileName = String.format("%s-%s-%s.%s", arch, os, fileName, ext);
+
+        Path parent = path.getParent();
+        if (parent == null) {
+            return fullFileName;
         }
-        return stringBuilder.toString();
+        // Native libraries in JARs always use '/' as separator
+        return parent.resolve(fullFileName).toString().replace(File.separatorChar, '/');
     }
 
     /**

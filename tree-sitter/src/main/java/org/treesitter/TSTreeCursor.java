@@ -79,7 +79,10 @@ public class TSTreeCursor implements AutoCloseable {
     public TSNode currentNode() {
         ensureOpen();
         TSNode node = ts_tree_cursor_current_node(ptr);
-        node.setTree(this.node.getTree());
+        TSNode startNode = this.node;
+        if (startNode != null) {
+            node.setTree(startNode.getTree());
+        }
         return node;
     }
 
@@ -91,7 +94,7 @@ public class TSTreeCursor implements AutoCloseable {
      *
      * @return The field name of the current node.
      */
-    public String currentFieldName() {
+    public @Nullable String currentFieldName() {
         ensureOpen();
         return ts_tree_cursor_current_field_name(ptr);
     }
@@ -203,7 +206,10 @@ public class TSTreeCursor implements AutoCloseable {
     public TSTreeCursor copy() {
         ensureOpen();
         TSTreeCursor cursor = new TSTreeCursor(ts_tree_cursor_copy(ptr));
-        cursor.setNode(node);
+        TSNode currentNode = node;
+        if (currentNode != null) {
+            cursor.setNode(currentNode);
+        }
         return cursor;
     }
 }

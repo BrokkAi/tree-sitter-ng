@@ -1,10 +1,11 @@
 package org.treesitter;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.ref.Cleaner.Cleanable;
 
 public class TsLookAheadIterator implements AutoCloseable {
-    private long ptr;
-    private TSLanguage lang;
+    private final long ptr;
     private final Cleanable cleanable;
     private boolean closed = false;
 
@@ -36,7 +37,6 @@ public class TsLookAheadIterator implements AutoCloseable {
         if (this.ptr == 0) {
             throw new TSException("State is invalid.");
         }
-        this.lang = language;
         this.cleanable = CleanerRunner.register(this, new TsLookAheadIteratorCleanAction(ptr));
     }
 
