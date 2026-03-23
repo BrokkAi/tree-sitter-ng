@@ -54,11 +54,6 @@ subprojects {
         group = "verification"
         description = "Run errorprone checks"
         dependsOn("compileJava", "compileTestJava")
-        doFirst {
-            tasks.withType(JavaCompile).configureEach {
-                outputs.upToDateWhen { false }
-            }
-        }
     }
 
     tasks.register("fix") {

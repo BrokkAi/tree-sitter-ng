@@ -2,6 +2,7 @@ package org.treesitter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +20,7 @@ class TSNodeTest {
         parser = new TSParser();
         json = new TreeSitterJson();
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
         rootNode = tree.getRootNode();
         arrayNode = rootNode.getNamedChild(0);
         numberNode = arrayNode.getNamedChild(0);
@@ -120,6 +121,7 @@ class TSNodeTest {
     @Test
     void getParent() {
         assertTrue(rootNode.getParent().isNull());
+        assertNotNull(tree);
         assertNotNull(rootNode.getParent().getTree());
     }
 
@@ -156,7 +158,7 @@ class TSNodeTest {
     @Test
     void getChildByFieldName() {
         parser.reset();
-        tree = parser.parseString(null, "{\"foo\": 42}");
+        tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
         assertEquals(
                 "string",
                 tree.getRootNode()
@@ -169,7 +171,7 @@ class TSNodeTest {
     @Test
     void getChildByFieldId() {
         parser.reset();
-        tree = parser.parseString(null, "{\"foo\": 42}");
+        tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
         assertEquals(
                 "string",
                 tree.getRootNode()

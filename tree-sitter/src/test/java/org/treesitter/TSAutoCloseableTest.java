@@ -49,55 +49,67 @@ class TSAutoCloseableTest {
         assertDoesNotThrow(cursor::close);
     }
 
+    private static class TestLanguage extends TSLanguage {
+        TestLanguage() {
+            super(0);
+        }
+
+        @Override
+        public TSLanguage copy() {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "";
+        }
+
+        @Override
+        public int symbolCount() {
+            return 0;
+        }
+    }
+
     @Test
     void testTreeUseAfterClose() {
-        class TestLanguage extends TSLanguage {
-            TestLanguage() {
-                super(0);
-            }
-
-            @Override
-            public TSLanguage copy() {
-                return this;
-            }
-        }
-        TSTree tree = new TSTree(0, new TestLanguage());
+        TSLanguage lang = new TestLanguage();
+        TSTree tree = new TSTree(0, lang);
         tree.close();
         assertThrows(IllegalStateException.class, tree::getRootNode);
     }
 
     @Test
     void testTreeGetChangedRangesAfterClose() {
-        class TestLanguage extends TSLanguage {
-            TestLanguage() {
-                super(0);
-            }
-
-            @Override
-            public TSLanguage copy() {
-                return this;
-            }
-        }
-        TSTree tree1 = new TSTree(0, new TestLanguage());
-        TSTree tree2 = new TSTree(0, new TestLanguage());
+        TSLanguage lang = new TestLanguage();
+        TSTree tree1 = new TSTree(0, lang);
+        TSTree tree2 = new TSTree(0, lang);
         tree1.close();
         assertThrows(IllegalStateException.class, () -> TSTree.getChangedRanges(tree1, tree2));
         assertThrows(IllegalStateException.class, () -> TSTree.getChangedRanges(tree2, tree1));
     }
 
     @Test
-    void testLanguageUseAfterClose() {
-        class TestLanguage extends TSLanguage {
-            TestLanguage() {
-                super(0);
-            }
+    @SuppressWarnings("NullAway")
+    void testTreeGetChangedRangesNull() {
+        TSLanguage lang = new TestLanguage();
+        TSTree tree1 = new TSTree(0, lang);
+        assertThrows(NullPointerException.class, () -> TSTree.getChangedRanges(tree1, null));
+    }
 
-            @Override
-            public TSLanguage copy() {
-                return null;
-            }
+    private static class TestLanguageFailCopy extends TSLanguage {
+        TestLanguageFailCopy() {
+            super(0);
         }
-        TSLanguage language = new TestLanguage();
+
+        @Override
+        public TSLanguage copy() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @Test
+    void testLanguageUseAfterClose() {
+        TSLanguage language = new TestLanguageFailCopy();
         language.close();
         assertThrows(IllegalStateException.class, language::symbolCount);
     }

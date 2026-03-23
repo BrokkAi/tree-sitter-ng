@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.treesitter.tests.CorpusTest;
 
@@ -21,6 +23,7 @@ class TreeSitterRustTest {
         String source =
                 "#[derive(Is)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
@@ -32,6 +35,7 @@ class TreeSitterRustTest {
                 + "  )\n"
                 + ") @macro.derive";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);
@@ -69,6 +73,7 @@ class TreeSitterRustTest {
                 "#[derive(Other)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
 
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
@@ -80,6 +85,7 @@ class TreeSitterRustTest {
                 + "  )\n"
                 + ") @macro.derive";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);
@@ -97,6 +103,7 @@ class TreeSitterRustTest {
                 "#[foo(Other)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
 
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
@@ -108,6 +115,7 @@ class TreeSitterRustTest {
                 + "  )\n"
                 + ") @macro.derive";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);
@@ -125,6 +133,7 @@ class TreeSitterRustTest {
                 "#[is_macro::Is]\n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
 
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
@@ -136,6 +145,7 @@ class TreeSitterRustTest {
                 + "  )\n"
                 + ") @macro.attribute";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);

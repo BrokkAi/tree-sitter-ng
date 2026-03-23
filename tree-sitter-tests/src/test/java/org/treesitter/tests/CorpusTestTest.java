@@ -11,8 +11,6 @@ import org.treesitter.TreeSitterScala;
 
 class CorpusTestTest {
 
-    private static List<TestExample> examples;
-
     private CorpusTest loadTest(String filename) throws IOException {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(filename)) {
             assertNotNull(inputStream);

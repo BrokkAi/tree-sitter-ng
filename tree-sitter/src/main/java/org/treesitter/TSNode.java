@@ -11,6 +11,7 @@ public class TSNode {
     private int context3;
     private long idPtr;
     private long treePtr;
+
     @SuppressWarnings("NullAway.Init")
     private TSTree tree;
 

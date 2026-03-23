@@ -2,35 +2,31 @@ package org.treesitter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TSTreeCursorTest {
     public static final String JSON_SRC = "[1, null]";
     private TSTree tree;
-    private TSLanguage json;
     private TSParser parser;
-    private TSNode rootNode;
-    private TSNode arrayNode;
-    private TSNode numberNode;
     private TSTreeCursor rootCursor;
 
     @BeforeEach
     void beforeEach() {
         parser = new TSParser();
-        json = new TreeSitterJson();
+        TSLanguage json = new TreeSitterJson();
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
-        rootNode = tree.getRootNode();
-        arrayNode = rootNode.getNamedChild(0);
-        numberNode = arrayNode.getNamedChild(0);
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
+        TSNode rootNode = tree.getRootNode();
         rootCursor = new TSTreeCursor(rootNode);
     }
 
     @Test
     void reset() {
+        rootCursor.gotoFirstChild();
         rootCursor.reset();
-        assertEquals("array", rootCursor.currentNode().getType());
+        assertEquals("document", rootCursor.currentNode().getType());
     }
 
     @Test

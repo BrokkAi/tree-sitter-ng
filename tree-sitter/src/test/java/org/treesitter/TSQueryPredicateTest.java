@@ -24,7 +24,7 @@ class TSQueryPredicateTest {
         tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
         rootNode = tree.getRootNode();
         cursor = new TSQueryCursor();
-        query = new TSQuery(json, "()"); // Dummy to avoid uninitialized warning
+        query = new TSQuery(json, "(document)");
     }
 
     @Test
