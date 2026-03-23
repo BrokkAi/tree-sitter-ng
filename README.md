@@ -52,33 +52,34 @@ To add a new language parser to this project, we provide a code generation task 
    ```
 
 # Built-in Parsers
-| Name                            | Grammar Version | Source                                                                                           |
-|---------------------------------|-----------------|--------------------------------------------------------------------------------------------------|
-| `tree-sitter-agda`              | `1.3.3`         | [official](https://github.com/tree-sitter/tree-sitter-agda/archive/refs/tags/v1.3.3.zip)         |
-| `tree-sitter-bash`              | `0.25.1`        | [official](https://github.com/tree-sitter/tree-sitter-bash/archive/refs/tags/v0.25.1.zip)        |
-| `tree-sitter-c`                 | `0.24.1`        | [official](https://github.com/tree-sitter/tree-sitter-c/archive/refs/tags/v0.24.1.zip)           |
-| `tree-sitter-c-sharp`           | `0.23.1`        | [official](https://github.com/tree-sitter/tree-sitter-c-sharp/archive/refs/tags/v0.23.1.zip)     |
-| `tree-sitter-cpp`               | `0.23.4`        | [official](https://github.com/tree-sitter/tree-sitter-cpp/archive/refs/tags/v0.23.4.zip)         |
-| `tree-sitter-css`               | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-css/archive/refs/tags/v0.25.0.zip)         |
+| Name                            | Grammar Version | Source                                                                                                 |
+|---------------------------------|-----------------|--------------------------------------------------------------------------------------------------------|
+| `tree-sitter-agda`              | `1.3.3`         | [official](https://github.com/tree-sitter/tree-sitter-agda/archive/refs/tags/v1.3.3.zip)               |
+| `tree-sitter-angular`           | `0.8.3`         | [community](https://github.com/dlvandenberg/tree-sitter-angular/archive/refs/tags/v0.8.3.zip)          |
+| `tree-sitter-bash`              | `0.25.1`        | [official](https://github.com/tree-sitter/tree-sitter-bash/archive/refs/tags/v0.25.1.zip)              |
+| `tree-sitter-c`                 | `0.24.1`        | [official](https://github.com/tree-sitter/tree-sitter-c/archive/refs/tags/v0.24.1.zip)                 |
+| `tree-sitter-c-sharp`           | `0.23.1`        | [official](https://github.com/tree-sitter/tree-sitter-c-sharp/archive/refs/tags/v0.23.1.zip)           |
+| `tree-sitter-cpp`               | `0.23.4`        | [official](https://github.com/tree-sitter/tree-sitter-cpp/archive/refs/tags/v0.23.4.zip)               |
+| `tree-sitter-css`               | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-css/archive/refs/tags/v0.25.0.zip)               |
 | `tree-sitter-embedded-template` | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-embedded-template/archive/refs/tags/v0.25.0.zip) |
-| `tree-sitter-go`                | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-go/archive/refs/tags/v0.25.0.zip)          |
-| `tree-sitter-haskell`           | `0.23.1`        | [official](https://github.com/tree-sitter/tree-sitter-haskell/archive/refs/tags/v0.23.1.zip)     |
-| `tree-sitter-html`              | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-html/archive/refs/tags/v0.23.2.zip)        |
-| `tree-sitter-java`              | `0.23.5`        | [official](https://github.com/tree-sitter/tree-sitter-java/archive/refs/tags/v0.23.5.zip)        |
-| `tree-sitter-javascript`        | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-javascript/archive/refs/tags/v0.25.0.zip)  |
-| `tree-sitter-json`              | `0.24.8`        | [official](https://github.com/tree-sitter/tree-sitter-json/archive/refs/tags/v0.24.8.zip)        |
-| `tree-sitter-julia`             | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-julia/archive/refs/tags/v0.25.0.zip)       |
-| `tree-sitter-kotlin`            | `0.3.8`         | [community](https://github.com/fwcd/tree-sitter-kotlin/archive/refs/tags/0.3.8.zip)              |
-| `tree-sitter-ocaml`             | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-ocaml/archive/refs/tags/v0.23.2.zip)       |
-| `tree-sitter-php`               | `0.24.2`        | [official](https://github.com/tree-sitter/tree-sitter-php/archive/refs/tags/v0.24.2.zip)         |
-| `tree-sitter-python`            | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-python/archive/refs/tags/v0.25.0.zip)      |
-| `tree-sitter-regex`             | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-regex/archive/refs/tags/v0.25.0.zip)       |
-| `tree-sitter-ruby`              | `0.23.1`        | [official](https://github.com/tree-sitter/tree-sitter-ruby/archive/refs/tags/v0.23.1.zip)        |
-| `tree-sitter-rust`              | `0.24.0`        | [official](https://github.com/tree-sitter/tree-sitter-rust/archive/refs/tags/v0.24.0.zip)        |
-| `tree-sitter-scala`             | `0.24.0`        | [official](https://github.com/tree-sitter/tree-sitter-scala/archive/refs/tags/v0.24.0.zip)       |
-| `tree-sitter-tsx`               | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-typescript/archive/refs/tags/v0.23.2.zip)  |
-| `tree-sitter-typescript`        | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-typescript/archive/refs/tags/v0.23.2.zip)  |
-| `tree-sitter-verilog`           | `1.0.3`         | [official](https://github.com/tree-sitter/tree-sitter-verilog/archive/refs/tags/v1.0.3.zip)     |
+| `tree-sitter-go`                | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-go/archive/refs/tags/v0.25.0.zip)                |
+| `tree-sitter-haskell`           | `0.23.1`        | [official](https://github.com/tree-sitter/tree-sitter-haskell/archive/refs/tags/v0.23.1.zip)           |
+| `tree-sitter-html`              | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-html/archive/refs/tags/v0.23.2.zip)              |
+| `tree-sitter-java`              | `0.23.5`        | [official](https://github.com/tree-sitter/tree-sitter-java/archive/refs/tags/v0.23.5.zip)              |
+| `tree-sitter-javascript`        | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-javascript/archive/refs/tags/v0.25.0.zip)        |
+| `tree-sitter-json`              | `0.24.8`        | [official](https://github.com/tree-sitter/tree-sitter-json/archive/refs/tags/v0.24.8.zip)              |
+| `tree-sitter-julia`             | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-julia/archive/refs/tags/v0.25.0.zip)             |
+| `tree-sitter-kotlin`            | `0.3.8`         | [community](https://github.com/fwcd/tree-sitter-kotlin/archive/refs/tags/0.3.8.zip)                    |
+| `tree-sitter-ocaml`             | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-ocaml/archive/refs/tags/v0.23.2.zip)             |
+| `tree-sitter-php`               | `0.24.2`        | [official](https://github.com/tree-sitter/tree-sitter-php/archive/refs/tags/v0.24.2.zip)               |
+| `tree-sitter-python`            | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-python/archive/refs/tags/v0.25.0.zip)            |
+| `tree-sitter-regex`             | `0.25.0`        | [official](https://github.com/tree-sitter/tree-sitter-regex/archive/refs/tags/v0.25.0.zip)             |
+| `tree-sitter-ruby`              | `0.23.1`        | [official](https://github.com/tree-sitter/tree-sitter-ruby/archive/refs/tags/v0.23.1.zip)              |
+| `tree-sitter-rust`              | `0.24.0`        | [official](https://github.com/tree-sitter/tree-sitter-rust/archive/refs/tags/v0.24.0.zip)              |
+| `tree-sitter-scala`             | `0.24.0`        | [official](https://github.com/tree-sitter/tree-sitter-scala/archive/refs/tags/v0.24.0.zip)             |
+| `tree-sitter-tsx`               | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-typescript/archive/refs/tags/v0.23.2.zip)        |
+| `tree-sitter-typescript`        | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-typescript/archive/refs/tags/v0.23.2.zip)        |
+| `tree-sitter-verilog`           | `1.0.3`         | [official](https://github.com/tree-sitter/tree-sitter-verilog/archive/refs/tags/v1.0.3.zip)            |
 
 # API Tour
 ```java

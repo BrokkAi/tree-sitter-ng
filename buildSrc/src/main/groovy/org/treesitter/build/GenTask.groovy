@@ -31,6 +31,11 @@ package org.treesitter;
 
 import org.treesitter.utils.NativeUtils;
 
+/**
+ * Tree-sitter language binding for {@code $libShortName}.
+ * <p>
+ * This class provides the native language definition for use with {@link TSParser}.
+ */
 public class $className extends TSLanguage {
 
     static {
@@ -38,10 +43,18 @@ public class $className extends TSLanguage {
     }
     private native static long tree_sitter_$idName();
 
+    /**
+     * Create a new instance of the {@code $libShortName} language.
+     */
     public $className() {
         super(tree_sitter_$idName());
     }
 
+    /**
+     * Create a new instance from an existing native pointer.
+     *
+     * @param ptr the native pointer to the language
+     */
     private $className(long ptr) {
         super(ptr);
     }

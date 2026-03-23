@@ -1,0 +1,4 @@
+
+tasks.named('downloadSource') {
+    url = "https://github.com/dlvandenberg/tree-sitter-angular/archive/refs/tags/v0.8.3.zip"
+}
