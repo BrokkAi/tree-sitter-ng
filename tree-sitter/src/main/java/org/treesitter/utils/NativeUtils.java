@@ -49,19 +49,6 @@ public abstract class NativeUtils {
     }
 
     /**
-     * Load native lib from class path by name convention. <br>
-     *
-     * This action is process safe and thread safe.
-     *
-     * <p>Name convention: <code>arch-os-name.ext</code>
-     * <p><code>arch</code>
-     * <ol>
-     *     <li>x64: <code>x86_64</code></li>
-     *     <li>arm64: <code>aarch64</code></li>
-     * </ol>
-     * @param libName Canonical name of the library. e.g. 'lib/foo', 'bar'
-     */
-    /**
      * Get the path of the native lib. If the lib is in the classpath, it will be
      * extracted to a temporary directory.
      *

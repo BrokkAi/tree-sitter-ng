@@ -62,8 +62,28 @@ subprojects {
         dependsOn(tasks.withType(JavaCompile))
     }
 
+    tasks.register("verifyPackageInfo") {
+        group = "verification"
+        description = "Ensures every package with Java files has a package-info.java"
+        doLast {
+            def sourceSets = project.extensions.getByType(SourceSetContainer)
+            sourceSets.main.java.srcDirs.each { srcDir ->
+                if (!srcDir.exists()) return
+                srcDir.eachDirRecurse { dir ->
+                    def javaFiles = dir.listFiles({ file -> file.name.endsWith(".java") && file.name != "package-info.java" } as FileFilter)
+                    if (javaFiles && !new File(dir, "package-info.java").exists()) {
+                        def pkg = srcDir.relativePath(dir).replace(File.separator, ".")
+                        throw new GradleException("Missing package-info.java in package: ${pkg} (at ${dir.absolutePath}). " +
+                                "Please create it and add @org.jspecify.annotations.NullMarked.")
+                    }
+                }
+            }
+        }
+    }
+
     tasks.named("check") {
         dependsOn("tidy")
+        dependsOn("verifyPackageInfo")
         dependsOn("analyze")
     }
 
@@ -72,6 +92,7 @@ subprojects {
     }
 
     dependencies {
+        compileOnly libs.jspecify
         errorprone(libs.errorprone.core)
         errorprone(libs.nullaway)
 

@@ -3,6 +3,7 @@ commons-compress = "1.27.1"
 download = "5.6.0"
 errorprone = "2.24.1"
 errorpronePlugin = "4.1.0"
+jspecify = "1.0.0"
 junit = "5.11.4"
 nexus-staging-version = "0.30.0"
 nullaway = "0.12.0"
@@ -10,6 +11,7 @@ palantirJavaFormat = "2.73.0"
 xz = "1.10"
 
 [libraries]
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }

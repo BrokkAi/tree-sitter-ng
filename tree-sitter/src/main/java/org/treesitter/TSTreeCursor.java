@@ -1,12 +1,14 @@
 package org.treesitter;
 
+import org.jspecify.annotations.Nullable;
+
 import static org.treesitter.TSParser.*;
 
 import java.lang.ref.Cleaner.Cleanable;
 
 public class TSTreeCursor implements AutoCloseable {
     private final long ptr;
-    private TSNode node;
+    private @Nullable TSNode node;
     private final Cleanable cleanable;
     private boolean closed = false;
 

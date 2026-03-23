@@ -537,10 +537,7 @@ public class TSNode {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        TSNode other = (TSNode) obj;
-        if (idPtr != other.idPtr) return false;
-        return true;
+        if (!(obj instanceof TSNode other)) return false;
+        return idPtr == other.idPtr;
     }
 }
