@@ -8,7 +8,13 @@ public class TSInputEdit {
     private final TSPoint oldEndPoint;
     private final TSPoint newEndPoint;
 
-    public TSInputEdit(int startByte, int oldEndByte, int newEndByte, TSPoint startPoint, TSPoint oldEndPoint, TSPoint newEndPoint) {
+    public TSInputEdit(
+            int startByte,
+            int oldEndByte,
+            int newEndByte,
+            TSPoint startPoint,
+            TSPoint oldEndPoint,
+            TSPoint newEndPoint) {
         this.startByte = startByte;
         this.oldEndByte = oldEndByte;
         this.newEndByte = newEndByte;

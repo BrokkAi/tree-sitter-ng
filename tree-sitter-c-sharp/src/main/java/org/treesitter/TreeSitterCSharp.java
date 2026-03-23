@@ -1,4 +1,3 @@
-
 package org.treesitter;
 
 import org.treesitter.utils.NativeUtils;
@@ -9,7 +8,7 @@ public class TreeSitterCSharp extends TSLanguage {
         NativeUtils.loadLib("lib/tree-sitter-c-sharp");
     }
 
-    private native static long tree_sitter_c_sharp();
+    private static native long tree_sitter_c_sharp();
 
     public TreeSitterCSharp() {
         super(tree_sitter_c_sharp());

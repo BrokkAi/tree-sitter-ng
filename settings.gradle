@@ -1,3 +1,11 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+
 rootProject.name = 'tree-sitter-ng'
 include 'tree-sitter'
 include 'tree-sitter-agda'

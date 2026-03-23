@@ -1,9 +1,10 @@
 package org.treesitter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class TSNodeTest {
     public static final String JSON_SRC = "[1, null]";
@@ -19,7 +20,7 @@ class TSNodeTest {
         parser = new TSParser();
         json = new TreeSitterJson();
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
         rootNode = tree.getRootNode();
         arrayNode = rootNode.getNamedChild(0);
         numberNode = arrayNode.getNamedChild(0);
@@ -61,37 +62,37 @@ class TSNodeTest {
     }
 
     @Test
-    void isMissing(){
+    void isMissing() {
         assertFalse(rootNode.isMissing());
     }
 
     @Test
-    void isExtra(){
+    void isExtra() {
         assertFalse(rootNode.isExtra());
     }
 
     @Test
-    void hasChanges(){
+    void hasChanges() {
         assertFalse(rootNode.hasChanges());
     }
 
     @Test
-    void hasError(){
+    void hasError() {
         assertFalse(rootNode.hasError());
     }
 
     @Test
-    void isError(){
+    void isError() {
         assertFalse(rootNode.isError());
     }
 
     @Test
-    void getParserState(){
+    void getParserState() {
         assertEquals(rootNode.getParserState(), 0);
     }
 
     @Test
-    void nextParserState(){
+    void nextParserState() {
         assertEquals(rootNode.getNextParserState(), 0);
     }
 
@@ -120,6 +121,7 @@ class TSNodeTest {
     @Test
     void getParent() {
         assertTrue(rootNode.getParent().isNull());
+        assertNotNull(tree);
         assertNotNull(rootNode.getParent().getTree());
     }
 
@@ -129,10 +131,9 @@ class TSNodeTest {
     }
 
     @Test
-    void getFieldNameForChild(){
+    void getFieldNameForChild() {
         assertNull(rootNode.getFieldNameForChild(0));
     }
-
 
     @Test
     void getNextNamedSibling() {
@@ -157,21 +158,27 @@ class TSNodeTest {
     @Test
     void getChildByFieldName() {
         parser.reset();
-        tree = parser.parseString(null, "{\"foo\": 42}");
-        assertEquals("string", tree.getRootNode().getNamedChild(0)
-                    .getNamedChild(0)
-                    .getChildByFieldName("key")
-                    .getType());
+        tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
+        assertEquals(
+                "string",
+                tree.getRootNode()
+                        .getNamedChild(0)
+                        .getNamedChild(0)
+                        .getChildByFieldName("key")
+                        .getType());
     }
 
     @Test
     void getChildByFieldId() {
         parser.reset();
-        tree = parser.parseString(null, "{\"foo\": 42}");
-        assertEquals("string", tree.getRootNode().getNamedChild(0)
-                .getNamedChild(0)
-                .getChildByFieldId(1)
-                .getType());
+        tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
+        assertEquals(
+                "string",
+                tree.getRootNode()
+                        .getNamedChild(0)
+                        .getNamedChild(0)
+                        .getChildByFieldId(1)
+                        .getType());
     }
 
     @Test
@@ -191,9 +198,11 @@ class TSNodeTest {
 
     @Test
     void getDescendantForPointRange() {
-        assertEquals("[", arrayNode.getDescendantForPointRange(
-                new TSPoint(0, 0), new TSPoint(0, 1)).getType()
-        );
+        assertEquals(
+                "[",
+                arrayNode
+                        .getDescendantForPointRange(new TSPoint(0, 0), new TSPoint(0, 1))
+                        .getType());
     }
 
     @Test
@@ -203,17 +212,24 @@ class TSNodeTest {
 
     @Test
     void getNamedDescendantForPointRange() {
-        assertEquals("number", arrayNode.getNamedDescendantForPointRange(
-                new TSPoint(0, 1), new TSPoint(0, 2)).getType()
-        );
+        assertEquals(
+                "number",
+                arrayNode
+                        .getNamedDescendantForPointRange(new TSPoint(0, 1), new TSPoint(0, 2))
+                        .getType());
     }
 
     @Test
     void edit() {
         int editStart = 0;
         int editEnd = 1;
-        rootNode.edit(new TSInputEdit(editStart, editStart, editEnd,
-                new TSPoint(0, editStart), new TSPoint(0, editStart), new TSPoint(0, editEnd)));
+        rootNode.edit(new TSInputEdit(
+                editStart,
+                editStart,
+                editEnd,
+                new TSPoint(0, editStart),
+                new TSPoint(0, editStart),
+                new TSPoint(0, editEnd)));
     }
 
     @Test
@@ -222,13 +238,12 @@ class TSNodeTest {
     }
 
     @Test
-    void getGrammarType(){
+    void getGrammarType() {
         assertEquals("document", rootNode.getGrammarType());
     }
 
-
     @Test
-    void getGrammarSymbol(){
+    void getGrammarSymbol() {
         assertEquals(15, rootNode.getGrammarSymbol());
     }
 
@@ -241,7 +256,8 @@ class TSNodeTest {
     void getChildWithDescendant() {
         TSNode child = rootNode.getChild(0);
         TSNode descendant = rootNode.getChild(0).getChild(0);
-        assertEquals(child.toString(), rootNode.getChildWithDescendant(descendant).toString());
+        assertEquals(
+                child.toString(), rootNode.getChildWithDescendant(descendant).toString());
         assertNotNull(rootNode.getChildWithDescendant(descendant));
     }
 

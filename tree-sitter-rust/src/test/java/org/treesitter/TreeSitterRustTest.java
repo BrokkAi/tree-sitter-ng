@@ -1,13 +1,13 @@
 package org.treesitter;
 
-import org.junit.jupiter.api.Test;
-import org.treesitter.tests.CorpusTest;
-
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.treesitter.tests.CorpusTest;
 
 class TreeSitterRustTest {
     @Test
@@ -19,25 +19,22 @@ class TreeSitterRustTest {
     void testIntegrationQuery() {
         TSParser parser = new TSParser();
         parser.setLanguage(new TreeSitterRust());
-        String source = "#[derive(Is)] \n" +
-                "pub enum Status {\n" +
-                "  Running,\n" +
-                "  Stopped,\n" +
-                "  Initial,\n" +
-                "}";
+        String source =
+                "#[derive(Is)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
-        String queryString = "(attribute_item\n" +
-                "  (attribute\n" +
-                "    (identifier) @_derive\n" +
-                "    (#eq? @_derive \"derive\")\n" +
-                "    (token_tree\n" +
-                "      (identifier) @macro.derive.name\n" +
-                "    )\n" +
-                "  )\n" +
-                ") @macro.derive";
+        String queryString = "(attribute_item\n" + "  (attribute\n"
+                + "    (identifier) @_derive\n"
+                + "    (#eq? @_derive \"derive\")\n"
+                + "    (token_tree\n"
+                + "      (identifier) @macro.derive.name\n"
+                + "    )\n"
+                + "  )\n"
+                + ") @macro.derive";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);
@@ -54,8 +51,9 @@ class TreeSitterRustTest {
 
             if ("macro.derive".equals(captureName)) {
                 foundMacroDerive = true;
-                assertTrue(matchedText.contains("#[derive(Is)]"),
-                    "Matched text should contain the attribute. Found: " + matchedText);
+                assertTrue(
+                        matchedText.contains("#[derive(Is)]"),
+                        "Matched text should contain the attribute. Found: " + matchedText);
             } else if ("macro.derive.name".equals(captureName)) {
                 foundDeriveName = true;
                 assertEquals("Is", matchedText, "macro.derive.name should match 'Is'");
@@ -70,26 +68,23 @@ class TreeSitterRustTest {
         TSParser parser = new TSParser();
         parser.setLanguage(new TreeSitterRust());
 
-        String source = "#[derive(Other)] \n" +
-                "pub enum Status {\n" +
-                "  Running,\n" +
-                "  Stopped,\n" +
-                "  Initial,\n" +
-                "}";
+        String source =
+                "#[derive(Other)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
 
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
-        String queryString = "(attribute_item\n" +
-                "  (attribute\n" +
-                "    (identifier) @_derive\n" +
-                "    (#not-eq? @_derive \"derive\")\n" +
-                "    (token_tree\n" +
-                "      (identifier) @macro.derive.name\n" +
-                "    )\n" +
-                "  )\n" +
-                ") @macro.derive";
+        String queryString = "(attribute_item\n" + "  (attribute\n"
+                + "    (identifier) @_derive\n"
+                + "    (#not-eq? @_derive \"derive\")\n"
+                + "    (token_tree\n"
+                + "      (identifier) @macro.derive.name\n"
+                + "    )\n"
+                + "  )\n"
+                + ") @macro.derive";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);
@@ -103,26 +98,23 @@ class TreeSitterRustTest {
         TSParser parser = new TSParser();
         parser.setLanguage(new TreeSitterRust());
 
-        String source = "#[foo(Other)] \n" +
-                "pub enum Status {\n" +
-                "  Running,\n" +
-                "  Stopped,\n" +
-                "  Initial,\n" +
-                "}";
+        String source =
+                "#[foo(Other)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
 
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
-        String queryString = "(attribute_item\n" +
-                "  (attribute\n" +
-                "    (identifier) @_derive\n" +
-                "    (#eq? @_derive \"derive\")\n" +
-                "    (token_tree\n" +
-                "      (identifier) @macro.derive.name\n" +
-                "    )\n" +
-                "  )\n" +
-                ") @macro.derive";
+        String queryString = "(attribute_item\n" + "  (attribute\n"
+                + "    (identifier) @_derive\n"
+                + "    (#eq? @_derive \"derive\")\n"
+                + "    (token_tree\n"
+                + "      (identifier) @macro.derive.name\n"
+                + "    )\n"
+                + "  )\n"
+                + ") @macro.derive";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);
@@ -131,32 +123,28 @@ class TreeSitterRustTest {
         assertFalse(cursor.nextMatch(match), "Query should not match because #eq? predicate fails");
     }
 
-
     @Test
     void testIntegrationQueryNotEqShouldMatch() {
         TSParser parser = new TSParser();
         parser.setLanguage(new TreeSitterRust());
 
-        String source = "#[is_macro::Is]\n" +
-                "pub enum Status {\n" +
-                "  Running,\n" +
-                "  Stopped,\n" +
-                "  Initial,\n" +
-                "}";
+        String source =
+                "#[is_macro::Is]\n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
 
         TSTree tree = parser.parseString(null, source);
+        Assertions.assertNotNull(tree);
         TSNode rootNode = tree.getRootNode();
 
-        String queryString = "(attribute_item\n" +
-                "  (attribute\n" +
-                "    [\n" +
-                "      ((identifier) @macro.attribute.name\n" +
-                "        (#not-eq? @macro.attribute.name \"derive\"))\n" +
-                "      (scoped_identifier) @macro.attribute.name\n" +
-                "    ]\n" +
-                "  )\n" +
-                ") @macro.attribute";
+        String queryString = "(attribute_item\n" + "  (attribute\n"
+                + "    [\n"
+                + "      ((identifier) @macro.attribute.name\n"
+                + "        (#not-eq? @macro.attribute.name \"derive\"))\n"
+                + "      (scoped_identifier) @macro.attribute.name\n"
+                + "    ]\n"
+                + "  )\n"
+                + ") @macro.attribute";
 
+        Assertions.assertNotNull(parser.getLanguage());
         TSQuery query = new TSQuery(parser.getLanguage(), queryString);
         TSQueryCursor cursor = new TSQueryCursor();
         cursor.exec(query, rootNode, source);

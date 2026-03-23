@@ -2,19 +2,20 @@ package org.treesitter;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 public class TSQueryMatch {
     private int id;
     private int patternIndex;
     private int captureIndex;
-    private TSQueryCapture[] captures;
+    private TSQueryCapture[] captures = new TSQueryCapture[0];
     /**
      * Metadata associated with the match, typically populated by {@code #set!} predicates.
      * <p>
      * <b>Note:</b> {@code TSQueryMatch} objects are mutable and reused by {@link TSQueryCursor}.
      * If you need to persist metadata across iterations, you must create a copy of the map.
      */
-    private Map<String, String> metadata = null;
+    private @Nullable Map<String, String> metadata;
 
     public int getId() {
         return id;

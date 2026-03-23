@@ -7,7 +7,8 @@ public class TreeSitterC extends TSLanguage {
     static {
         NativeUtils.loadLib("lib/tree-sitter-c");
     }
-    private native static long tree_sitter_c();
+
+    private static native long tree_sitter_c();
 
     public TreeSitterC() {
         super(tree_sitter_c());

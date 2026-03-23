@@ -1,22 +1,22 @@
 package org.treesitter;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class TsLookAheadIteratorTest {
     private TSLanguage json;
     private TsLookAheadIterator iter;
 
     @BeforeEach
-    void setup(){
+    void setup() {
         json = new TreeSitterJson();
         iter = new TsLookAheadIterator(json, 0);
     }
 
     @Test
-    void constructor(){
+    void constructor() {
         assertNotNull(new TsLookAheadIterator(json, 0));
         assertThrows(TSException.class, () -> {
             new TsLookAheadIterator(json, 999);

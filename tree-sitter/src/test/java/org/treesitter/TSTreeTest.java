@@ -1,27 +1,27 @@
 package org.treesitter;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 class TSTreeTest {
     public static final String JSON_SRC = "[1, null]";
     private static TSTree tree;
-    private static TSLanguage json = new TreeSitterJson();
-    private static TSParser parser = new TSParser();
+    private static final TSLanguage json = new TreeSitterJson();
+    private static final TSParser parser = new TSParser();
 
     @BeforeAll
     static void beforeAll() {
         parser.setLanguage(json);
-        tree = parser.parseString(null, JSON_SRC);
+        tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
     }
-
 
     @Test
     void copy() {
@@ -40,7 +40,6 @@ class TSTreeTest {
         TSNode rootNode = tree.getRootNodeWithOffset(0, new TSPoint(0, 0));
         assertEquals("document", rootNode.getType());
     }
-
 
     @Test
     void getLanguage() {
@@ -62,46 +61,49 @@ class TSTreeTest {
 
     @Test
     void edit() {
+        assertNotNull(tree);
         final AtomicBoolean edited = new AtomicBoolean(false);
         parser.reset();
         byte[] buf = new byte[1024];
         String newJsonSrc = "[1, null, 4]";
-        TSReader reader = new TSReader() {
-            @Override
-            public int read(byte[] buf, int offset, TSPoint position) {
-                ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-                if(edited.get()){
-                    if(offset >= newJsonSrc.length()){
-                        return 0;
-                    }
-
-                    byteBuffer.put(newJsonSrc.getBytes());
-                    return newJsonSrc.length();
-                }else {
-                    if(offset >= JSON_SRC.length()){
-                        return 0;
-                    }
-                    ByteBuffer charBuffer = ByteBuffer.wrap(buf);
-                    charBuffer.put(JSON_SRC.getBytes());
-                    return JSON_SRC.length();
+        TSReader reader = (buf1, offset, position) -> {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(buf1);
+            if (edited.get()) {
+                if (offset >= newJsonSrc.length()) {
+                    return 0;
                 }
+
+                byteBuffer.put(newJsonSrc.getBytes(StandardCharsets.UTF_8));
+                return newJsonSrc.length();
+            } else {
+                if (offset >= JSON_SRC.length()) {
+                    return 0;
+                }
+                byteBuffer.put(JSON_SRC.getBytes(StandardCharsets.UTF_8));
+                return JSON_SRC.length();
             }
         };
-        tree = parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8);
+        tree = Objects.requireNonNull(parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8));
         assertEquals(1, tree.getRootNode().getChildCount());
         assertEquals(2, tree.getRootNode().getNamedChild(0).getNamedChildCount());
         int editStart = 0;
         int editEnd = 1;
-        tree.edit(new TSInputEdit(editStart, editStart, editEnd,
-                new TSPoint(0, editStart), new TSPoint(0, editStart), new TSPoint(0, editEnd)));
+        tree.edit(new TSInputEdit(
+                editStart,
+                editStart,
+                editEnd,
+                new TSPoint(0, editStart),
+                new TSPoint(0, editStart),
+                new TSPoint(0, editEnd)));
         edited.set(true);
-        tree = parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8);
+        tree = Objects.requireNonNull(parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8));
         assertEquals(1, tree.getRootNode().getChildCount());
         assertEquals(3, tree.getRootNode().getNamedChild(0).getNamedChildCount());
     }
 
     @Test
     void getChangedRanges() {
+        assertNotNull(tree);
         final AtomicBoolean edited = new AtomicBoolean(false);
         parser.reset();
         byte[] buf = new byte[1024];
@@ -110,32 +112,37 @@ class TSTreeTest {
             @Override
             public int read(byte[] buf, int offset, TSPoint position) {
                 ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-                if(edited.get()){
-                    if(offset >= newJsonSrc.length()){
+                if (edited.get()) {
+                    if (offset >= newJsonSrc.length()) {
                         return 0;
                     }
 
-                    byteBuffer.put(newJsonSrc.getBytes());
+                    byteBuffer.put(newJsonSrc.getBytes(StandardCharsets.UTF_8));
                     return newJsonSrc.length();
-                }else {
-                    if(offset >= JSON_SRC.length()){
+                } else {
+                    if (offset >= JSON_SRC.length()) {
                         return 0;
                     }
-                    ByteBuffer charBuffer = ByteBuffer.wrap(buf);
-                    charBuffer.put(JSON_SRC.getBytes());
+                    ByteBuffer byteBuffer1 = ByteBuffer.wrap(buf);
+                    byteBuffer1.put(JSON_SRC.getBytes(StandardCharsets.UTF_8));
                     return JSON_SRC.length();
                 }
             }
         };
-        tree = parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8);
+        tree = Objects.requireNonNull(parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8));
         assertEquals(1, tree.getRootNode().getChildCount());
         assertEquals(2, tree.getRootNode().getNamedChild(0).getNamedChildCount());
         int editStart = 0;
         int editEnd = 1;
-        tree.edit(new TSInputEdit(editStart, editStart, editEnd,
-                new TSPoint(0, editStart), new TSPoint(0, editStart), new TSPoint(0, editEnd)));
+        tree.edit(new TSInputEdit(
+                editStart,
+                editStart,
+                editEnd,
+                new TSPoint(0, editStart),
+                new TSPoint(0, editStart),
+                new TSPoint(0, editEnd)));
         edited.set(true);
-        TSTree newTree = parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8);
+        TSTree newTree = Objects.requireNonNull(parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8));
         TSRange[] ranges = TSTree.getChangedRanges(tree, newTree);
         assertTrue(ranges.length > 0);
         assertEquals(12, ranges[0].getEndByte());
@@ -143,6 +150,7 @@ class TSTreeTest {
 
     @Test
     void printDotGraphs() throws IOException {
+        assertNotNull(tree);
         File dotFile = File.createTempFile("tree", ".dot");
         tree.printDotGraphs(dotFile);
         assertTrue(dotFile.length() > 0);
