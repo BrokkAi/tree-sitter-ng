@@ -72,7 +72,7 @@ class DownloadZigTask extends DefaultTask{
 
     @Internal
     Directory getZigDir(){
-        return project.rootProject.layout.buildDirectory.dir("zig").get()
+        return project.rootProject.layout.projectDirectory.dir("tools/zig")
     }
 
     @Input

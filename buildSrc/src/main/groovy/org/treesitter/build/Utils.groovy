@@ -45,14 +45,14 @@ abstract class Utils {
     }
 
     /**
-     * Download directory for project. Default to $buildDir/$libName
+     * Download directory for project. Default to tools/parsers/$libName
      *
      * @param project
      * @param libName
      * @return
      */
     static Directory libDownloadDir(Project project, String libName){
-        return project.layout.buildDirectory.dir(libName).get()
+        return project.rootProject.layout.projectDirectory.dir("tools/parsers/" + libName)
     }
 
     /**

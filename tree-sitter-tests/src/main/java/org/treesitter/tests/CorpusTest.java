@@ -260,6 +260,16 @@ public class CorpusTest {
 
         // Try different possible locations for the corpus relative to the project root
         String[] possibleFolders = {
+            "tools/parsers/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/test/corpus",
+            "tools/parsers/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/src/corpus",
+            "tools/parsers/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion + "/test/corpus",
+            "tools/parsers/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion + "/src/corpus",
+            "tools/parsers/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/test/corpus",
+            "tools/parsers/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/src/corpus",
             "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion
                     + "/test/corpus",
             "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-" + langName + "/test/corpus",
@@ -299,43 +309,115 @@ public class CorpusTest {
     public static void runAllTestsInDefaultFolderSecondaryLang(
             TSLanguage language, String langName, String secondaryLang) throws IOException {
         File currentDir = new File(".").getAbsoluteFile();
-        File propFile = null;
+        File rootDir = null;
         File searchDir = currentDir;
         while (searchDir != null) {
-            File potential = new File(searchDir, "gradle.properties");
-            if (potential.exists()) {
-                propFile = potential;
+            if (new File(searchDir, "settings.gradle").exists()) {
+                rootDir = searchDir;
                 break;
             }
             searchDir = searchDir.getParentFile();
         }
 
-        if (propFile == null) {
-            throw new TreeSitterTestException("Could not find gradle.properties");
+        if (rootDir == null) {
+            // Fallback to gradle.properties if settings.gradle is not found
+            searchDir = currentDir;
+            while (searchDir != null) {
+                if (new File(searchDir, "gradle.properties").exists()) {
+                    rootDir = searchDir;
+                    break;
+                }
+                searchDir = searchDir.getParentFile();
+            }
         }
 
-        System.out.println("Loading properties from: " + propFile.getAbsolutePath());
-        Properties properties = new Properties();
-        try (FileInputStream input = new FileInputStream(propFile)) {
-            properties.load(input);
+        if (rootDir == null) {
+            throw new TreeSitterTestException("Could not find project root in " + currentDir + " or any parent.");
         }
 
-        String libVersion = properties.getProperty("libVersion");
-        if (libVersion == null) libVersion = properties.getProperty("upstreamVersion");
-        if (libVersion == null) libVersion = "0.1.0";
+        System.out.println("Project root identified at: " + rootDir.getAbsolutePath());
 
-        File rootDir = propFile.getParentFile();
-        String corpusFolder =
-                "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "-" + libVersion + "/test/corpus";
-        File folder = new File(rootDir, corpusFolder);
-        if (!folder.exists()) {
-            // fall back to simple build path
-            folder = new File(
-                    rootDir,
-                    "build/tree-sitter-" + secondaryLang + "/tree-sitter-" + langName + "-" + libVersion
-                            + "/test/corpus");
+        String libVersion = null;
+        File langPropFile = new File(rootDir, "tree-sitter-" + secondaryLang + "/gradle.properties");
+        if (langPropFile.exists()) {
+            System.out.println("Loading language properties from: " + langPropFile.getAbsolutePath());
+            Properties properties = new Properties();
+            try (FileInputStream input = new FileInputStream(langPropFile)) {
+                properties.load(input);
+                libVersion = properties.getProperty("upstreamVersion");
+            }
         }
-        System.out.println("Checking corpus path (secondary): " + folder.getAbsolutePath());
-        CorpusTest.runAllTestsInFolder(folder.getPath(), language, secondaryLang);
+
+        if (libVersion == null) {
+            File rootPropFile = new File(rootDir, "gradle.properties");
+            if (rootPropFile.exists()) {
+                Properties properties = new Properties();
+                try (FileInputStream input = new FileInputStream(rootPropFile)) {
+                    properties.load(input);
+                    libVersion = properties.getProperty("upstreamVersion");
+                    if (libVersion == null) libVersion = properties.getProperty("libVersion");
+                }
+            }
+        }
+
+        if (libVersion == null) libVersion = "0.1.0"; // Fallback
+        System.out.println("Using libVersion: " + libVersion + " for secondary language: " + secondaryLang);
+
+        String[] possibleFolders = {
+            "tools/parsers/tree-sitter-" + secondaryLang + "/tree-sitter-typescript-" + libVersion + "/" + secondaryLang
+                    + "/test/corpus",
+            "tools/parsers/tree-sitter-" + secondaryLang + "/tree-sitter-typescript-" + libVersion + "/" + secondaryLang
+                    + "/src/corpus",
+            "tools/parsers/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/" + secondaryLang
+                    + "/test/corpus",
+            "tools/parsers/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/" + secondaryLang
+                    + "/src/corpus",
+            // Fallbacks without secondaryLang subfolder
+            "tools/parsers/tree-sitter-" + secondaryLang + "/tree-sitter-typescript-" + libVersion + "/test/corpus",
+            "tools/parsers/tree-sitter-" + secondaryLang + "/tree-sitter-typescript-" + libVersion + "/src/corpus",
+            "tools/parsers/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/test/corpus",
+            "tools/parsers/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/src/corpus",
+            "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "-" + libVersion + "/" + secondaryLang
+                    + "/test/corpus",
+            "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "-" + libVersion + "/test/corpus",
+            "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion
+                    + "/" + secondaryLang + "/test/corpus",
+            "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion
+                    + "/" + secondaryLang + "/src/corpus",
+            "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion
+                    + "/test/corpus",
+            "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion
+                    + "/src/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion
+                    + "/" + secondaryLang + "/test/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion
+                    + "/" + secondaryLang + "/src/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion + "/"
+                    + secondaryLang + "/test/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion + "/"
+                    + secondaryLang + "/src/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion
+                    + "/test/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-typescript-" + libVersion
+                    + "/src/corpus",
+            "build/tree-sitter-" + secondaryLang + "/tree-sitter-" + langName + "-" + libVersion + "/test/corpus"
+        };
+
+        for (String relativePath : possibleFolders) {
+            File folder = new File(rootDir, relativePath);
+            System.out.println("Checking corpus path: " + folder.getAbsolutePath());
+            if (folder.exists() && folder.isDirectory()) {
+                System.out.println("Found corpus at: " + folder.getAbsolutePath());
+                CorpusTest.runAllTestsInFolder(folder.getPath(), language, secondaryLang);
+                return;
+            }
+        }
+
+        StringBuilder sb = new StringBuilder("Could not find corpus folder for secondary language ")
+                .append(secondaryLang)
+                .append(". Searched:\n");
+        for (String p : possibleFolders)
+            sb.append("  - ").append(new File(rootDir, p).getAbsolutePath()).append("\n");
+        throw new TreeSitterTestException(sb.toString());
     }
 }
