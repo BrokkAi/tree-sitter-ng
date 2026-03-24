@@ -41,6 +41,13 @@ class Main {
 
 The project distinguishes between the **Java library version** (`libVersion`) and the **upstream grammar version** (`upstreamVersion`).
 
+## Lockstep Versioning
+
+We use a **lockstep versioning** strategy for releases. This means that every module in the repository shares the exact same `libVersion` (e.g., `0.1.0`). 
+When a new release is cut, all modules are published with this new version number, regardless of whether their specific parser or upstream grammar changed. 
+
+This provides a simple and predictable experience: you only ever need to specify one version number for all `ai.brokk:tree-sitter-*` dependencies in your build file, and they are guaranteed to be perfectly compatible with each other.
+
 When building or publishing a new release of the Java bindings, specify the `libVersion`:
 ```bash
 # Build with version
