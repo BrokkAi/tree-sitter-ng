@@ -51,9 +51,9 @@ class TSParserTest {
         };
         TSTree tree = Objects.requireNonNull(parser.parse(buffer, null, reader, TSInputEncoding.TSInputEncodingUTF8));
         assertNotNull(tree);
-        TSNode rootNode = tree.getRootNode();
-        TSNode arrayNode = rootNode.getNamedChild(0);
-        TSNode numberNode = arrayNode.getNamedChild(0);
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
+        TSNode arrayNode = Objects.requireNonNull(rootNode.getNamedChild(0));
+        TSNode numberNode = Objects.requireNonNull(arrayNode.getNamedChild(0));
         assertEquals("document", rootNode.getType());
         assertEquals("array", arrayNode.getType());
         assertEquals("number", numberNode.getType());
@@ -90,9 +90,9 @@ class TSParserTest {
                     return parserState.hasError();
                 }));
         assertNotNull(tree);
-        TSNode rootNode = tree.getRootNode();
-        TSNode arrayNode = rootNode.getNamedChild(0);
-        TSNode numberNode = arrayNode.getNamedChild(0);
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
+        TSNode arrayNode = Objects.requireNonNull(rootNode.getNamedChild(0));
+        TSNode numberNode = Objects.requireNonNull(arrayNode.getNamedChild(0));
         assertEquals("document", rootNode.getType());
         assertEquals("object", arrayNode.getType());
         assertEquals("pair", numberNode.getType());
@@ -176,7 +176,7 @@ class TSParserTest {
         String emoji = "\uD83C\uDF0E";
         parser.reset();
         TSTree tree = Objects.requireNonNull(parser.parseString(null, emoji));
-        TSNode node = tree.getRootNode();
+        TSNode node = Objects.requireNonNull(tree.getRootNode());
         byte[] bytes = emoji.getBytes(StandardCharsets.UTF_8);
         assertEquals(4, bytes.length);
         assertEquals(node.getEndByte(), bytes.length);
@@ -188,7 +188,7 @@ class TSParserTest {
         String emoji = "\uD83C\uDF10";
         parser.reset();
         TSTree tree = Objects.requireNonNull(parser.parseString(null, emoji));
-        TSNode node = tree.getRootNode();
+        TSNode node = Objects.requireNonNull(tree.getRootNode());
         byte[] bytes = emoji.getBytes(StandardCharsets.UTF_8);
         assertEquals(4, bytes.length);
         assertEquals(node.getEndByte(), bytes.length);
@@ -200,7 +200,7 @@ class TSParserTest {
         String emoji = "\uD83C\uDF10";
         parser.reset();
         TSTree tree = Objects.requireNonNull(parser.parseString(null, emoji));
-        TSNode node = tree.getRootNode();
+        TSNode node = Objects.requireNonNull(tree.getRootNode());
         byte[] bytes = emoji.getBytes(StandardCharsets.UTF_8);
         int startByte = node.getStartByte();
         int endByte = node.getEndByte();
@@ -217,9 +217,9 @@ class TSParserTest {
         TSLanguage lang = new TreeSitterJson();
         parser.setLanguage(lang);
         TSTree tree = Objects.requireNonNull(parser.parseString(null, "c"));
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
         TSTreeCursor cursor = new TSTreeCursor(rootNode);
-        TSNode currentNode = cursor.currentNode();
+        TSNode currentNode = Objects.requireNonNull(cursor.currentNode());
         assertNotNull(currentNode.getType());
         assertNotNull(currentNode.getTree());
     }

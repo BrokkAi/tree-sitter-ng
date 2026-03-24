@@ -10,6 +10,8 @@ class TSTreeCursorTest {
     public static final String JSON_SRC = "[1, null]";
     private TSTree tree;
     private TSParser parser;
+
+    @SuppressWarnings("NullAway.Init")
     private TSTreeCursor rootCursor;
 
     @BeforeEach
@@ -18,7 +20,7 @@ class TSTreeCursorTest {
         TSLanguage json = new TreeSitterJson();
         parser.setLanguage(json);
         tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
         rootCursor = new TSTreeCursor(rootNode);
     }
 
@@ -26,12 +28,16 @@ class TSTreeCursorTest {
     void reset() {
         rootCursor.gotoFirstChild();
         rootCursor.reset();
-        assertEquals("document", rootCursor.currentNode().getType());
+        TSNode node = rootCursor.currentNode();
+        assertNotNull(node);
+        assertEquals("document", node.getType());
     }
 
     @Test
     void currentNode() {
-        assertEquals("document", rootCursor.currentNode().getType());
+        TSNode node = rootCursor.currentNode();
+        assertNotNull(node);
+        assertEquals("document", node.getType());
     }
 
     @Test
@@ -62,25 +68,33 @@ class TSTreeCursorTest {
     @Test
     void gotoFirstChild() {
         assertTrue(rootCursor.gotoFirstChild());
-        assertEquals("array", rootCursor.currentNode().getType());
+        TSNode node = rootCursor.currentNode();
+        assertNotNull(node);
+        assertEquals("array", node.getType());
     }
 
     @Test
     void gotoFirstChildForByte() {
         assertEquals(0, rootCursor.gotoFirstChildForByte(0));
-        assertEquals("array", rootCursor.currentNode().getType());
+        TSNode node = rootCursor.currentNode();
+        assertNotNull(node);
+        assertEquals("array", node.getType());
     }
 
     @Test
     void gotoFirstChildForPoint() {
         assertEquals(0, rootCursor.gotoFirstChildForPoint(new TSPoint(0, 0)));
-        assertEquals("array", rootCursor.currentNode().getType());
+        TSNode node = rootCursor.currentNode();
+        assertNotNull(node);
+        assertEquals("array", node.getType());
     }
 
     @Test
     void copy() {
         rootCursor.gotoFirstChild();
         TSTreeCursor copy = rootCursor.copy();
-        assertEquals("array", copy.currentNode().getType());
+        TSNode node = copy.currentNode();
+        assertNotNull(node);
+        assertEquals("array", node.getType());
     }
 }

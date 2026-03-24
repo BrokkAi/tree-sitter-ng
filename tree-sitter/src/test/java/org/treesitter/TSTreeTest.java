@@ -31,13 +31,13 @@ class TSTreeTest {
 
     @Test
     void getRootNode() {
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
         assertEquals("document", rootNode.getType());
     }
 
     @Test
     void getRootNodeWithOffset() {
-        TSNode rootNode = tree.getRootNodeWithOffset(0, new TSPoint(0, 0));
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNodeWithOffset(0, new TSPoint(0, 0)));
         assertEquals("document", rootNode.getType());
     }
 
@@ -84,8 +84,9 @@ class TSTreeTest {
             }
         };
         tree = Objects.requireNonNull(parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8));
-        assertEquals(1, tree.getRootNode().getChildCount());
-        assertEquals(2, tree.getRootNode().getNamedChild(0).getNamedChildCount());
+        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        assertEquals(1, root.getChildCount());
+        assertEquals(2, Objects.requireNonNull(root.getNamedChild(0)).getNamedChildCount());
         int editStart = 0;
         int editEnd = 1;
         tree.edit(new TSInputEdit(
@@ -97,8 +98,9 @@ class TSTreeTest {
                 new TSPoint(0, editEnd)));
         edited.set(true);
         tree = Objects.requireNonNull(parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8));
-        assertEquals(1, tree.getRootNode().getChildCount());
-        assertEquals(3, tree.getRootNode().getNamedChild(0).getNamedChildCount());
+        TSNode root2 = Objects.requireNonNull(tree.getRootNode());
+        assertEquals(1, root2.getChildCount());
+        assertEquals(3, Objects.requireNonNull(root2.getNamedChild(0)).getNamedChildCount());
     }
 
     @Test
@@ -130,8 +132,9 @@ class TSTreeTest {
             }
         };
         tree = Objects.requireNonNull(parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8));
-        assertEquals(1, tree.getRootNode().getChildCount());
-        assertEquals(2, tree.getRootNode().getNamedChild(0).getNamedChildCount());
+        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        assertEquals(1, root.getChildCount());
+        assertEquals(2, Objects.requireNonNull(root.getNamedChild(0)).getNamedChildCount());
         int editStart = 0;
         int editEnd = 1;
         tree.edit(new TSInputEdit(

@@ -13,6 +13,8 @@ class TSQueryCursorTest {
     private TSParser parser;
     private TSQuery query;
     private TSQueryCursor cursor;
+
+    @SuppressWarnings("NullAway.Init")
     private TSNode rootNode;
 
     @BeforeEach
@@ -24,7 +26,7 @@ class TSQueryCursorTest {
         query = new TSQuery(json, "((document) @root)");
 
         cursor = new TSQueryCursor();
-        rootNode = tree.getRootNode();
+        rootNode = Objects.requireNonNull(tree.getRootNode());
     }
 
     @Test
@@ -170,7 +172,7 @@ class TSQueryCursorTest {
                 + "}";
         tree = Objects.requireNonNull(parser.parseString(null, jsonContent));
         query = new TSQuery(json, "(string)");
-        cursor.execWithOptions(query, tree.getRootNode(), (state) -> {
+        cursor.execWithOptions(query, Objects.requireNonNull(tree.getRootNode()), (state) -> {
             assertTrue(state.getCurrentByteOffset() > 0);
             return false;
         });
@@ -234,7 +236,9 @@ class TSQueryCursorTest {
         assertEquals(0, match.getPatternIndex());
         assertEquals(1, match.getCaptures().length);
         assertEquals(0, match.getCaptureIndex());
-        assertTrue(TSNode.eq(rootNode, match.getCaptures()[0].getNode()));
+        TSNode node = Objects.requireNonNull(match.getCaptures()[0].getNode());
+        assertNotNull(node);
+        assertTrue(TSNode.eq(rootNode, node));
     }
 
     @Test
@@ -258,7 +262,9 @@ class TSQueryCursorTest {
             assertEquals(0, match.getPatternIndex());
             assertEquals(1, match.getCaptures().length);
             assertEquals(0, match.getCaptureIndex());
-            assertTrue(TSNode.eq(rootNode, match.getCaptures()[0].getNode()));
+            TSNode node = Objects.requireNonNull(match.getCaptures()[0].getNode());
+            assertNotNull(node);
+            assertTrue(TSNode.eq(rootNode, node));
         }
     }
 

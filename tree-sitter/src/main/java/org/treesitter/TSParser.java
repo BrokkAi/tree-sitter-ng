@@ -70,9 +70,10 @@ public class TSParser implements AutoCloseable {
 
     protected static native void ts_tree_delete(long tree_ptr);
 
-    protected static native TSNode ts_tree_root_node(long tree_ptr);
+    protected static native @Nullable TSNode ts_tree_root_node(long tree_ptr);
 
-    protected static native TSNode ts_tree_root_node_with_offset(long tree_ptr, int offsetBytes, TSPoint offsetPoint);
+    protected static native @Nullable TSNode ts_tree_root_node_with_offset(
+            long tree_ptr, int offsetBytes, TSPoint offsetPoint);
 
     protected static native long ts_tree_language(long tree_ptr);
 
@@ -100,8 +101,6 @@ public class TSParser implements AutoCloseable {
 
     protected static native String ts_node_string(TSNode node);
 
-    protected static native boolean ts_node_is_null(TSNode node);
-
     protected static native boolean ts_node_is_named(TSNode node);
 
     protected static native boolean ts_node_is_missing(TSNode node);
@@ -118,42 +117,44 @@ public class TSParser implements AutoCloseable {
 
     protected static native int ts_node_next_parse_state(TSNode node);
 
-    protected static native TSNode ts_node_parent(TSNode node);
+    protected static native @Nullable TSNode ts_node_parent(TSNode node);
 
-    protected static native TSNode ts_node_child(TSNode node, int index);
+    protected static native @Nullable TSNode ts_node_child(TSNode node, int index);
 
     protected static native @Nullable String ts_node_field_name_for_child(TSNode node, int index);
 
     protected static native int ts_node_child_count(TSNode node);
 
-    protected static native TSNode ts_node_named_child(TSNode node, int index);
+    protected static native @Nullable TSNode ts_node_named_child(TSNode node, int index);
 
     protected static native int ts_node_named_child_count(TSNode node);
 
-    protected static native TSNode ts_node_child_by_field_name(TSNode node, String field_name);
+    protected static native @Nullable TSNode ts_node_child_by_field_name(TSNode node, String field_name);
 
-    protected static native TSNode ts_node_child_by_field_id(TSNode node, int ts_field_id);
+    protected static native @Nullable TSNode ts_node_child_by_field_id(TSNode node, int ts_field_id);
 
-    protected static native TSNode ts_node_next_sibling(TSNode node);
+    protected static native @Nullable TSNode ts_node_next_sibling(TSNode node);
 
-    protected static native TSNode ts_node_prev_sibling(TSNode node);
+    protected static native @Nullable TSNode ts_node_prev_sibling(TSNode node);
 
-    protected static native TSNode ts_node_next_named_sibling(TSNode node);
+    protected static native @Nullable TSNode ts_node_next_named_sibling(TSNode node);
 
-    protected static native TSNode ts_node_prev_named_sibling(TSNode node);
+    protected static native @Nullable TSNode ts_node_prev_named_sibling(TSNode node);
 
-    protected static native TSNode ts_node_first_child_for_byte(TSNode node, int start_byte);
+    protected static native @Nullable TSNode ts_node_first_child_for_byte(TSNode node, int start_byte);
 
-    protected static native TSNode ts_node_first_named_child_for_byte(TSNode node, int start_byte);
+    protected static native @Nullable TSNode ts_node_first_named_child_for_byte(TSNode node, int start_byte);
 
-    protected static native TSNode ts_node_descendant_for_byte_range(TSNode node, int start_byte, int end_byte);
+    protected static native @Nullable TSNode ts_node_descendant_for_byte_range(
+            TSNode node, int start_byte, int end_byte);
 
-    protected static native TSNode ts_node_descendant_for_point_range(
+    protected static native @Nullable TSNode ts_node_descendant_for_point_range(
             TSNode node, TSPoint start_point, TSPoint end_point);
 
-    protected static native TSNode ts_node_named_descendant_for_byte_range(TSNode node, int start_byte, int end_byte);
+    protected static native @Nullable TSNode ts_node_named_descendant_for_byte_range(
+            TSNode node, int start_byte, int end_byte);
 
-    protected static native TSNode ts_node_named_descendant_for_point_range(
+    protected static native @Nullable TSNode ts_node_named_descendant_for_point_range(
             TSNode node, TSPoint start_point, TSPoint end_point);
 
     protected static native TSNode ts_node_edit(TSNode node, TSInputEdit edit);
@@ -168,7 +169,7 @@ public class TSParser implements AutoCloseable {
 
     protected static native void ts_tree_cursor_reset(long cursor_ptr, TSNode node);
 
-    protected static native TSNode ts_tree_cursor_current_node(long cursor_ptr);
+    protected static native @Nullable TSNode ts_tree_cursor_current_node(long cursor_ptr);
 
     protected static native @Nullable String ts_tree_cursor_current_field_name(long cursor_ptr);
 
@@ -313,7 +314,7 @@ public class TSParser implements AutoCloseable {
 
     protected static native String ts_lookahead_iterator_current_symbol_name(long ts_lookahead_iterator_ptr);
 
-    protected static native TSNode ts_node_child_with_descendant(TSNode node, TSNode descendant);
+    protected static native @Nullable TSNode ts_node_child_with_descendant(TSNode node, TSNode descendant);
 
     protected static native @Nullable String ts_node_field_name_for_named_child(TSNode node, long namedChildIndex);
 
