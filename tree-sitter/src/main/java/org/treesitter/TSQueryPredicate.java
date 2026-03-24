@@ -76,7 +76,10 @@ public abstract class TSQueryPredicate {
         for (TSQueryCapture capture : captures) {
             // In tree-sitter, the capture index is the ID within the query.
             if (capture.getIndex() == captureId) {
-                nodes.add(capture.getNode());
+                TSNode node = capture.getNode();
+                if (node != null) {
+                    nodes.add(node);
+                }
             }
         }
         return nodes;

@@ -46,6 +46,9 @@ jfieldID ts_jni_get_field_id(JNIEnv *env, jclass clz, const char *field_name, co
 }
 
 jobject ts_node_to_obj(JNIEnv *env, TSNode ts_node){
+    if (ts_node_is_null(ts_node)) {
+        return NULL;
+    }
     jclass ts_node_class = ts_jni_find_class(env, TS_NODE_CLASS_NAME);
     jobject ts_node_object = (*env)->AllocObject(env, ts_node_class);
     (*env)->SetIntField(env, ts_node_object, ts_jni_get_field_id(env, ts_node_class, "context0", "I"), ts_node.context[0]);
@@ -182,11 +185,11 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TSParser_ts_1parser_1new
 /*
  * Class:     org_treesitter_TSParser
  * Method:    ts_parser_set_language
- * Signature: (JJ)J
+ * Signature: (JJ)Z
  */
-JNIEXPORT void JNICALL Java_org_treesitter_TSParser_ts_1parser_1set_1language
+JNIEXPORT jboolean JNICALL Java_org_treesitter_TSParser_ts_1parser_1set_1language
   (JNIEnv *env, jclass clz, jlong parser, jlong lang_ptr){
-    ts_parser_set_language((TSParser *) parser, (TSLanguage *) lang_ptr);
+    return (jboolean) ts_parser_set_language((TSParser *) parser, (TSLanguage *) lang_ptr);
 }
 
 #include <stdio.h>
@@ -1042,17 +1045,6 @@ JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1node_1field_1name_1fo
         return NULL;
     }
     return (*env)->NewStringUTF(env, str);
-}
-
-/*
- * Class:     org_treesitter_TSParser
- * Method:    ts_node_is_null
- * Signature: (Lorg/treesitter/TSNode;)Z
- */
-JNIEXPORT jboolean JNICALL Java_org_treesitter_TSParser_ts_1node_1is_1null
-  (JNIEnv *env, jclass clz, jobject ts_node_object){
-    TSNode ts_node = ts_node_from_obj(env, ts_node_object);
-    return (jboolean) ts_node_is_null(ts_node);
 }
 
 /*

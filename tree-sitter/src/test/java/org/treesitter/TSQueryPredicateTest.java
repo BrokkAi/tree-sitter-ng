@@ -14,6 +14,8 @@ class TSQueryPredicateTest {
     private TSParser parser;
     private TSQuery query;
     private TSQueryCursor cursor;
+
+    @SuppressWarnings("NullAway.Init")
     private TSNode rootNode;
 
     @BeforeEach
@@ -22,7 +24,7 @@ class TSQueryPredicateTest {
         json = new TreeSitterJson();
         parser.setLanguage(json);
         tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
-        rootNode = tree.getRootNode();
+        rootNode = Objects.requireNonNull(tree.getRootNode());
         cursor = new TSQueryCursor();
         query = new TSQuery(json, "(document)");
     }
@@ -37,7 +39,7 @@ class TSQueryPredicateTest {
         assertTrue(cursor.nextMatch(match));
         TSQueryCapture[] captures = match.getCaptures();
         assertEquals(1, captures.length);
-        TSNode node = captures[0].getNode();
+        TSNode node = Objects.requireNonNull(captures[0].getNode());
         assertEquals("1", JSON_SRC.substring(node.getStartByte(), node.getEndByte()));
 
         // #eq? @val "2" should not match anything in [1, null]
@@ -58,7 +60,7 @@ class TSQueryPredicateTest {
         boolean foundNull = false;
         while (cursor.nextMatch(match)) {
             TSQueryCapture[] captures = match.getCaptures();
-            TSNode node = captures[0].getNode();
+            TSNode node = Objects.requireNonNull(captures[0].getNode());
             String text = JSON_SRC.substring(node.getStartByte(), node.getEndByte());
             if (text.equals("1")) foundOne = true;
             if (text.equals("null")) foundNull = true;
@@ -73,11 +75,11 @@ class TSQueryPredicateTest {
         String src = "[\"bar\", \"baz\"]";
         tree = Objects.requireNonNull(parser.parseString(null, src));
         query = new TSQuery(json, "((string) @foo (#eq? @foo \"\\\"bar\\\"\"))");
-        cursor.exec(query, tree.getRootNode(), src);
+        cursor.exec(query, Objects.requireNonNull(tree.getRootNode()), src);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
         TSQueryCapture[] captures = match.getCaptures();
-        TSNode node = captures[0].getNode();
+        TSNode node = Objects.requireNonNull(captures[0].getNode());
         assertEquals("\"bar\"", src.substring(node.getStartByte(), node.getEndByte()));
         assertFalse(cursor.nextMatch(match));
     }
@@ -88,11 +90,11 @@ class TSQueryPredicateTest {
         String src = "[\"Alpha\", \"beta\"]";
         tree = Objects.requireNonNull(parser.parseString(null, src));
         query = new TSQuery(json, "((string) @foo (#not-match? @foo \"^\\\"[A-Z]\"))");
-        cursor.exec(query, tree.getRootNode(), src);
+        cursor.exec(query, Objects.requireNonNull(tree.getRootNode()), src);
         TSQueryMatch match = new TSQueryMatch();
         assertTrue(cursor.nextMatch(match));
         TSQueryCapture[] captures = match.getCaptures();
-        TSNode node = captures[0].getNode();
+        TSNode node = Objects.requireNonNull(captures[0].getNode());
         assertEquals("\"beta\"", src.substring(node.getStartByte(), node.getEndByte()));
         assertFalse(cursor.nextMatch(match));
     }
@@ -103,7 +105,7 @@ class TSQueryPredicateTest {
         // [ "😊", "世界" ]
         String src = "[ \"\uD83D\uDE0A\", \"\u4E16\u754C\" ]";
         tree = Objects.requireNonNull(parser.parseString(null, src));
-        TSNode root = tree.getRootNode();
+        TSNode root = Objects.requireNonNull(tree.getRootNode());
         TSQueryMatch match = new TSQueryMatch();
 
         // 1. Positive test for Emoji
@@ -125,7 +127,7 @@ class TSQueryPredicateTest {
         // Verify it matched the second string, not the first
         byte[] srcBytes = src.getBytes(StandardCharsets.UTF_8);
         TSQueryCapture[] captures = match.getCaptures();
-        TSNode node = captures[0].getNode();
+        TSNode node = Objects.requireNonNull(captures[0].getNode());
         int start = node.getStartByte();
         int end = node.getEndByte();
         String matchedText = new String(srcBytes, start, end - start, StandardCharsets.UTF_8);

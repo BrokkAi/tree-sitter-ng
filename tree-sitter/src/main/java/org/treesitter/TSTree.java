@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
+import org.jspecify.annotations.Nullable;
 
 public class TSTree implements AutoCloseable {
 
@@ -71,12 +72,14 @@ public class TSTree implements AutoCloseable {
     /**
      * Get the root node of the syntax tree.
      *
-     * @return The root node.
+     * @return The root node, or <code>null</code> if the tree has no root.
      */
-    public TSNode getRootNode() {
+    public @Nullable TSNode getRootNode() {
         ensureOpen();
         TSNode node = ts_tree_root_node(ptr);
-        node.setTree(this);
+        if (node != null) {
+            node.setTree(this);
+        }
         return node;
     }
 
@@ -86,12 +89,14 @@ public class TSTree implements AutoCloseable {
      *
      * @param offsetBytes offset in bytes
      * @param offsetPoint offset in (row, column)
-     * @return The node
+     * @return The node, or <code>null</code> if the tree has no root.
      */
-    public TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
+    public @Nullable TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
         ensureOpen();
         TSNode node = ts_tree_root_node_with_offset(ptr, offsetBytes, offsetPoint);
-        node.setTree(this);
+        if (node != null) {
+            node.setTree(this);
+        }
         return node;
     }
 

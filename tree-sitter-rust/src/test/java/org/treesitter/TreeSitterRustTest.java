@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.Objects;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.treesitter.tests.CorpusTest;
@@ -23,7 +24,7 @@ class TreeSitterRustTest {
                 "#[derive(Is)] \n" + "pub enum Status {\n" + "  Running,\n" + "  Stopped,\n" + "  Initial,\n" + "}";
         TSTree tree = parser.parseString(null, source);
         Assertions.assertNotNull(tree);
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
                 + "    (identifier) @_derive\n"
@@ -46,7 +47,7 @@ class TreeSitterRustTest {
         boolean foundDeriveName = false;
         for (TSQueryCapture capture : match.getCaptures()) {
             String captureName = query.getCaptureNameForId(capture.getIndex());
-            TSNode node = capture.getNode();
+            TSNode node = Objects.requireNonNull(capture.getNode());
             String matchedText = source.substring(node.getStartByte(), node.getEndByte());
 
             if ("macro.derive".equals(captureName)) {
@@ -73,7 +74,7 @@ class TreeSitterRustTest {
 
         TSTree tree = parser.parseString(null, source);
         Assertions.assertNotNull(tree);
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
                 + "    (identifier) @_derive\n"
@@ -103,7 +104,7 @@ class TreeSitterRustTest {
 
         TSTree tree = parser.parseString(null, source);
         Assertions.assertNotNull(tree);
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
                 + "    (identifier) @_derive\n"
@@ -133,7 +134,7 @@ class TreeSitterRustTest {
 
         TSTree tree = parser.parseString(null, source);
         Assertions.assertNotNull(tree);
-        TSNode rootNode = tree.getRootNode();
+        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
 
         String queryString = "(attribute_item\n" + "  (attribute\n"
                 + "    [\n"
@@ -156,7 +157,7 @@ class TreeSitterRustTest {
         boolean foundName = false;
         for (TSQueryCapture capture : match.getCaptures()) {
             String captureName = query.getCaptureNameForId(capture.getIndex());
-            TSNode node = capture.getNode();
+            TSNode node = Objects.requireNonNull(capture.getNode());
             String matchedText = source.substring(node.getStartByte(), node.getEndByte());
 
             if ("macro.attribute".equals(captureName)) {

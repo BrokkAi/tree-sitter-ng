@@ -11,17 +11,18 @@ class TSQueryMetadataTest {
     public static final String JSON_SRC = "[1, 2]";
     private TSLanguage json;
     private TSQueryCursor cursor;
+
+    @SuppressWarnings("NullAway.Init")
     private TSNode rootNode;
 
     @BeforeEach
     void beforeEach() {
-        try (TSParser parser = new TSParser()) {
-            json = new TreeSitterJson();
-            parser.setLanguage(json);
-            TSTree tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
-            rootNode = tree.getRootNode();
-            cursor = new TSQueryCursor();
-        }
+        TSParser parser = new TSParser();
+        json = new TreeSitterJson();
+        parser.setLanguage(json);
+        TSTree tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
+        rootNode = Objects.requireNonNull(tree.getRootNode());
+        cursor = new TSQueryCursor();
     }
 
     @Test

@@ -72,11 +72,13 @@ public class TSTreeCursor implements AutoCloseable {
      *
      * @return The current node.
      */
-    public TSNode currentNode() {
+    public @Nullable TSNode currentNode() {
         ensureOpen();
-        TSNode node = ts_tree_cursor_current_node(ptr);
-        node.setTree(this.node.getTree());
-        return node;
+        TSNode currentNode = ts_tree_cursor_current_node(ptr);
+        if (currentNode != null) {
+            currentNode.setTree(this.node.getTree());
+        }
+        return currentNode;
     }
 
     /**

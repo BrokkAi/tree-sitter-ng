@@ -11,8 +11,14 @@ class TSNodeTest {
     private TSTree tree;
     private TSLanguage json;
     private TSParser parser;
+
+    @SuppressWarnings("NullAway.Init")
     private TSNode rootNode;
+
+    @SuppressWarnings("NullAway.Init")
     private TSNode arrayNode;
+
+    @SuppressWarnings("NullAway.Init")
     private TSNode numberNode;
 
     @BeforeEach
@@ -21,9 +27,9 @@ class TSNodeTest {
         json = new TreeSitterJson();
         parser.setLanguage(json);
         tree = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
-        rootNode = tree.getRootNode();
-        arrayNode = rootNode.getNamedChild(0);
-        numberNode = arrayNode.getNamedChild(0);
+        rootNode = Objects.requireNonNull(tree.getRootNode());
+        arrayNode = Objects.requireNonNull(rootNode.getNamedChild(0));
+        numberNode = Objects.requireNonNull(arrayNode.getNamedChild(0));
     }
 
     @Test
@@ -38,7 +44,8 @@ class TSNodeTest {
 
     @Test
     void getNamedChild() {
-        assertEquals("number", arrayNode.getNamedChild(0).getType());
+        assertEquals(
+                "number", Objects.requireNonNull(arrayNode.getNamedChild(0)).getType());
     }
 
     @Test
@@ -49,11 +56,6 @@ class TSNodeTest {
     @Test
     void getSymbol() {
         assertEquals("array", arrayNode.getType());
-    }
-
-    @Test
-    void isNull() {
-        assertFalse(arrayNode.isNull());
     }
 
     @Test
@@ -120,14 +122,12 @@ class TSNodeTest {
 
     @Test
     void getParent() {
-        assertTrue(rootNode.getParent().isNull());
-        assertNotNull(tree);
-        assertNotNull(rootNode.getParent().getTree());
+        assertNull(rootNode.getParent());
     }
 
     @Test
     void getChild() {
-        assertEquals("array", rootNode.getChild(0).getType());
+        assertEquals("array", Objects.requireNonNull(rootNode.getChild(0)).getType());
     }
 
     @Test
@@ -137,86 +137,86 @@ class TSNodeTest {
 
     @Test
     void getNextNamedSibling() {
-        assertTrue(rootNode.getNextNamedSibling().isNull());
+        assertNull(rootNode.getNextNamedSibling());
     }
 
     @Test
     void getPrevNamedSibling() {
-        assertTrue(rootNode.getPrevNamedSibling().isNull());
+        assertNull(rootNode.getPrevNamedSibling());
     }
 
     @Test
     void getNextSibling() {
-        assertEquals(",", numberNode.getNextSibling().getType());
+        assertEquals(",", Objects.requireNonNull(numberNode.getNextSibling()).getType());
     }
 
     @Test
     void getPrevSibling() {
-        assertEquals("[", numberNode.getPrevSibling().getType());
+        assertEquals("[", Objects.requireNonNull(numberNode.getPrevSibling()).getType());
     }
 
     @Test
     void getChildByFieldName() {
         parser.reset();
         tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
-        assertEquals(
-                "string",
-                tree.getRootNode()
-                        .getNamedChild(0)
-                        .getNamedChild(0)
-                        .getChildByFieldName("key")
-                        .getType());
+        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        TSNode child = Objects.requireNonNull(
+                        Objects.requireNonNull(root.getNamedChild(0)).getNamedChild(0))
+                .getChildByFieldName("key");
+        assertNotNull(child);
+        assertEquals("string", child.getType());
     }
 
     @Test
     void getChildByFieldId() {
         parser.reset();
         tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
-        assertEquals(
-                "string",
-                tree.getRootNode()
-                        .getNamedChild(0)
-                        .getNamedChild(0)
-                        .getChildByFieldId(1)
-                        .getType());
+        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        TSNode child = Objects.requireNonNull(
+                        Objects.requireNonNull(root.getNamedChild(0)).getNamedChild(0))
+                .getChildByFieldId(1);
+        assertNotNull(child);
+        assertEquals("string", child.getType());
     }
 
     @Test
     void getFirstChildForByte() {
-        assertEquals("[", arrayNode.getFirstChildForByte(0).getType());
+        TSNode child = Objects.requireNonNull(arrayNode.getFirstChildForByte(0));
+        assertEquals("[", child.getType());
     }
 
     @Test
     void getFirstNamedChildForByte() {
-        assertEquals("number", arrayNode.getFirstNamedChildForByte(0).getType());
+        TSNode child = arrayNode.getFirstNamedChildForByte(0);
+        assertNotNull(child);
+        assertEquals("number", child.getType());
     }
 
     @Test
     void getDescendantForByteRange() {
-        assertEquals("[", arrayNode.getDescendantForByteRange(0, 1).getType());
+        TSNode descendant = Objects.requireNonNull(arrayNode.getDescendantForByteRange(0, 1));
+        assertEquals("[", descendant.getType());
     }
 
     @Test
     void getDescendantForPointRange() {
-        assertEquals(
-                "[",
-                arrayNode
-                        .getDescendantForPointRange(new TSPoint(0, 0), new TSPoint(0, 1))
-                        .getType());
+        TSNode descendant = arrayNode.getDescendantForPointRange(new TSPoint(0, 0), new TSPoint(0, 1));
+        assertNotNull(descendant);
+        assertEquals("[", descendant.getType());
     }
 
     @Test
     void getNamedDescendantForByteRange() {
-        assertEquals("number", arrayNode.getNamedDescendantForByteRange(1, 2).getType());
+        TSNode descendant = arrayNode.getNamedDescendantForByteRange(1, 2);
+        assertNotNull(descendant);
+        assertEquals("number", descendant.getType());
     }
 
     @Test
     void getNamedDescendantForPointRange() {
-        assertEquals(
-                "number",
-                arrayNode
-                        .getNamedDescendantForPointRange(new TSPoint(0, 1), new TSPoint(0, 2))
-                        .getType());
+        TSNode descendant = arrayNode.getNamedDescendantForPointRange(new TSPoint(0, 1), new TSPoint(0, 2));
+        assertNotNull(descendant);
+        assertEquals("number", descendant.getType());
     }
 
     @Test
@@ -255,16 +255,84 @@ class TSNodeTest {
     @Test
     void getChildWithDescendant() {
         TSNode child = rootNode.getChild(0);
-        TSNode descendant = rootNode.getChild(0).getChild(0);
-        assertEquals(
-                child.toString(), rootNode.getChildWithDescendant(descendant).toString());
-        assertNotNull(rootNode.getChildWithDescendant(descendant));
+        assertNotNull(child);
+        TSNode firstChild = child.getChild(0);
+        assertNotNull(firstChild);
+        TSNode descendant = firstChild;
+        TSNode childWithDescendant = rootNode.getChildWithDescendant(descendant);
+        assertNotNull(childWithDescendant);
+        assertEquals(child.toString(), childWithDescendant.toString());
     }
 
     @Test
     void traversingEquals() {
-        TSNode child = rootNode.getChild(0);
-        assertNotEquals(child, rootNode);
-        assertEquals(child.getParent(), rootNode);
+        TSNode child = Objects.requireNonNull(rootNode.getChild(0));
+        assertFalse(TSNode.eq(child, rootNode));
+        assertTrue(TSNode.eq(child.getParent(), rootNode));
+    }
+
+    @Test
+    void eqDifferentTrees() {
+        // Create a second tree from the same source
+        TSTree tree2 = Objects.requireNonNull(parser.parseString(null, JSON_SRC));
+        TSNode rootNode2 = Objects.requireNonNull(tree2.getRootNode());
+
+        // Even if they are logically the same (root of the same source),
+        // they belong to different native trees and different Java TSTree wrappers.
+        assertFalse(
+                TSNode.eq(rootNode, rootNode2), "Nodes from different TSTree instances should not be equal via eq()");
+        assertFalse(
+                rootNode.equals(rootNode2), "Nodes from different TSTree instances should not be equal via equals()");
+
+        // Same tree node should be equal to itself
+        assertTrue(TSNode.eq(rootNode, rootNode), "Node should be eq() to itself");
+        assertEquals(rootNode, rootNode, "Node should be equals() to itself");
+    }
+
+    @Test
+    @SuppressWarnings("NullAway")
+    void testNullableBoundaryConditions() {
+        // 1. Parent of root
+        assertNull(rootNode.getParent(), "rootNode.getParent() must be null");
+
+        // 2. Siblings of root (single root node)
+        assertNull(rootNode.getNextSibling(), "rootNode.getNextSibling() must be null");
+        assertNull(rootNode.getPrevSibling(), "rootNode.getPrevSibling() must be null");
+        assertNull(rootNode.getNextNamedSibling(), "rootNode.getNextNamedSibling() must be null");
+        assertNull(rootNode.getPrevNamedSibling(), "rootNode.getPrevNamedSibling() must be null");
+
+        // 3. Out of bounds children indices
+        // Using a high index to ensure it's out of bounds for the array node
+        assertNull(arrayNode.getChild(50), "arrayNode.getChild(50) must be null");
+        assertNull(arrayNode.getNamedChild(50), "arrayNode.getNamedChild(50) must be null");
+
+        // 4. Descendant logic - root is not a child of its own children
+        assertNull(
+                numberNode.getChildWithDescendant(rootNode),
+                "numberNode.getChildWithDescendant(rootNode) must be null");
+
+        // 5. Fields - Check methods that return @Nullable String or TSNode
+        // array nodes in JSON usually don't have fields for their elements
+        assertNull(arrayNode.getChildByFieldName("non_existent_field"), "getChildByFieldName should be null");
+        assertNull(arrayNode.getFieldNameForChild(0), "getFieldNameForChild(0) should be null");
+
+        // 6. Byte/Point offsets out of range
+        int tooFar = 10000;
+        // Tree-sitter might return the root or a large-spanning node for out-of-bounds descendant ranges
+        // depending on the internal tree structure, but many child-seekers return null.
+        // We test the ones that are guaranteed to be null or check their actual behavior.
+        assertNull(rootNode.getFirstChildForByte(tooFar), "getFirstChildForByte(tooFar) must be null");
+        assertNull(rootNode.getFirstNamedChildForByte(tooFar), "getFirstNamedChildForByte(tooFar) must be null");
+
+        // 7. Verify literal null vs "Null Node" object wrapper
+        // If the return value was an object (not literal null), this would fail
+        TSNode actualNull = rootNode.getParent();
+        assertNull(actualNull, "Returned value must be literal null");
+
+        // Verify that trying to use the result throws NPE (proving it's a real null and not a wrapper)
+        assertThrows(
+                NullPointerException.class,
+                () -> actualNull.getType(),
+                "Confirmed null should throw NPE on access, verifying it is not a 'null node' object wrapper");
     }
 }

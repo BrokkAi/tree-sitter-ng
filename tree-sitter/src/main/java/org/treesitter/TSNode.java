@@ -2,6 +2,7 @@ package org.treesitter;
 
 import static org.treesitter.TSParser.*;
 
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 public class TSNode {
@@ -32,19 +33,12 @@ public class TSNode {
         this.tree = tree;
     }
 
-    private void asserNotNull() {
-        if (isNull()) {
-            throw new TSException("Node is a null node");
-        }
-    }
-
     /**
      * Get the node's number of children.
      *
      * @return The number of children.
      */
     public int getChildCount() {
-        asserNotNull();
         return ts_node_child_count(this);
     }
 
@@ -56,7 +50,6 @@ public class TSNode {
      * @return The number of named children.
      */
     public int getNamedChildCount() {
-        asserNotNull();
         return ts_node_named_child_count(this);
     }
 
@@ -67,12 +60,13 @@ public class TSNode {
      *
      * @param index The index of the named child to get.
      *
-     * @return The named child at the given index.
+     * @return The named child at the given index, or <code>null</code> if the index is out of bounds.
      */
-    public TSNode getNamedChild(int index) {
-        asserNotNull();
+    public @Nullable TSNode getNamedChild(int index) {
         TSNode ret = ts_node_named_child(this, index);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
     /**
@@ -81,7 +75,6 @@ public class TSNode {
      * @return The node's type.
      */
     public String getType() {
-        asserNotNull();
         return ts_node_type(this);
     }
 
@@ -91,19 +84,7 @@ public class TSNode {
      * @return The node's type id.
      */
     public int getSymbol() {
-        asserNotNull();
         return ts_node_symbol(this);
-    }
-
-    /**
-     * Check if the node is null. Functions like {@link #getChild(int) getChild()} and
-     * {@link #getNextSibling()} will return a null node to indicate that no such node
-     * was found.
-     *
-     * @return True if the node is a null node.
-     */
-    public boolean isNull() {
-        return TSParser.ts_node_is_null(this);
     }
 
     /**
@@ -114,7 +95,6 @@ public class TSNode {
      * @return True if the node is a named node.
      */
     public boolean isNamed() {
-        asserNotNull();
         return ts_node_is_named(this);
     }
 
@@ -125,7 +105,6 @@ public class TSNode {
      * @return True if the node is a missing node.
      */
     public boolean isMissing() {
-        asserNotNull();
         return ts_node_is_missing(this);
     }
 
@@ -136,7 +115,6 @@ public class TSNode {
      * @return True if the node is an extra node.
      */
     public boolean isExtra() {
-        asserNotNull();
         return ts_node_is_extra(this);
     }
 
@@ -146,7 +124,6 @@ public class TSNode {
      * @return True if the node has been edited.
      */
     public boolean hasChanges() {
-        asserNotNull();
         return ts_node_has_changes(this);
     }
 
@@ -156,7 +133,6 @@ public class TSNode {
      * @return True if the node is a syntax error.
      */
     public boolean hasError() {
-        asserNotNull();
         return ts_node_has_error(this);
     }
 
@@ -166,7 +142,6 @@ public class TSNode {
      * @return True node is a syntax error.
      */
     public boolean isError() {
-        asserNotNull();
         return TSParser.ts_node_is_error(this);
     }
 
@@ -176,7 +151,6 @@ public class TSNode {
      * @return nodes's parser state.
      */
     public int getParserState() {
-        asserNotNull();
         return TSParser.ts_node_parse_state(this);
     }
 
@@ -186,7 +160,6 @@ public class TSNode {
      * @return nodes's next parser state.
      */
     public int getNextParserState() {
-        asserNotNull();
         return TSParser.ts_node_next_parse_state(this);
     }
 
@@ -196,7 +169,6 @@ public class TSNode {
      * @return The node's start byte.
      */
     public int getStartByte() {
-        asserNotNull();
         return ts_node_start_byte(this);
     }
 
@@ -206,7 +178,6 @@ public class TSNode {
      * @return The node's end byte.
      */
     public int getEndByte() {
-        asserNotNull();
         return ts_node_end_byte(this);
     }
 
@@ -216,7 +187,6 @@ public class TSNode {
      * @return The node's start position.
      */
     public TSPoint getStartPoint() {
-        asserNotNull();
         return ts_node_start_point(this);
     }
 
@@ -226,7 +196,6 @@ public class TSNode {
      * @return The node's end position.
      */
     public TSPoint getEndPoint() {
-        asserNotNull();
         return ts_node_end_point(this);
     }
 
@@ -236,11 +205,12 @@ public class TSNode {
      *
      * @return The node's parent.
      */
-    public TSNode getParent() {
-        asserNotNull();
-        TSNode node = ts_node_parent(this);
-        node.setTree(tree);
-        return node;
+    public @Nullable TSNode getParent() {
+        TSNode ret = ts_node_parent(this);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
+        return ret;
     }
 
     /**
@@ -251,10 +221,11 @@ public class TSNode {
      * @param descendant the descendant to search.
      * @return child that contains `descendant`.
      */
-    public TSNode getChildWithDescendant(TSNode descendant) {
-        asserNotNull();
+    public @Nullable TSNode getChildWithDescendant(TSNode descendant) {
         TSNode ret = ts_node_child_with_descendant(this, descendant);
-        setTree(this.getTree());
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -264,12 +235,13 @@ public class TSNode {
      *
      * @param index The index of the child to get.
      *
-     * @return The node's child at the given index.
+     * @return The node's child at the given index, or <code>null</code> if the index is out of bounds.
      */
-    public TSNode getChild(int index) {
-        asserNotNull();
+    public @Nullable TSNode getChild(int index) {
         TSNode ret = ts_node_child(this, index);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -282,7 +254,6 @@ public class TSNode {
      * @return The field name for the node's child at the given index.
      */
     public @Nullable String getFieldNameForChild(int index) {
-        asserNotNull();
         return ts_node_field_name_for_child(this, index);
     }
 
@@ -294,7 +265,6 @@ public class TSNode {
      * @return The field name for the node's named child at the given index.
      */
     public @Nullable String getFieldNameForNamedChild(int namedChildIndex) {
-        asserNotNull();
         return TSParser.ts_node_field_name_for_named_child(this, namedChildIndex);
     }
 
@@ -303,10 +273,11 @@ public class TSNode {
      *
      * @return The node's next *named* sibling.
      */
-    public TSNode getNextNamedSibling() {
-        asserNotNull();
+    public @Nullable TSNode getNextNamedSibling() {
         TSNode ret = ts_node_next_named_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -315,10 +286,11 @@ public class TSNode {
      *
      * @return The node's previous *named* sibling.
      */
-    public TSNode getPrevNamedSibling() {
-        asserNotNull();
+    public @Nullable TSNode getPrevNamedSibling() {
         TSNode ret = ts_node_prev_named_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -327,10 +299,11 @@ public class TSNode {
      *
      * @return The node's next sibling.
      */
-    public TSNode getNextSibling() {
-        asserNotNull();
+    public @Nullable TSNode getNextSibling() {
         TSNode ret = ts_node_next_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -339,10 +312,11 @@ public class TSNode {
      *
      * @return the node's previous sibling.
      */
-    public TSNode getPrevSibling() {
-        asserNotNull();
+    public @Nullable TSNode getPrevSibling() {
         TSNode ret = ts_node_prev_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -353,10 +327,11 @@ public class TSNode {
      *
      * @return The node's child with the given field name.
      */
-    public TSNode getChildByFieldName(String fieldName) {
-        asserNotNull();
+    public @Nullable TSNode getChildByFieldName(String fieldName) {
         TSNode ret = ts_node_child_by_field_name(this, fieldName);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -370,10 +345,11 @@ public class TSNode {
      *
      * @return The node's child with the given field id.
      */
-    public TSNode getChildByFieldId(int fieldId) {
-        asserNotNull();
+    public @Nullable TSNode getChildByFieldId(int fieldId) {
         TSNode ret = ts_node_child_by_field_id(this, fieldId);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -384,10 +360,11 @@ public class TSNode {
      *
      * @return The node's first child that beyond the given byte offset.
      */
-    public TSNode getFirstChildForByte(int startByte) {
-        asserNotNull();
+    public @Nullable TSNode getFirstChildForByte(int startByte) {
         TSNode ret = ts_node_first_child_for_byte(this, startByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -398,10 +375,11 @@ public class TSNode {
      *
      * @return The node's first named child that beyond the given byte offset.
      */
-    public TSNode getFirstNamedChildForByte(int startByte) {
-        asserNotNull();
+    public @Nullable TSNode getFirstNamedChildForByte(int startByte) {
         TSNode ret = ts_node_first_named_child_for_byte(this, startByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -413,10 +391,11 @@ public class TSNode {
      *
      * @return The smallest node within this node that spans the given range of bytes.
      */
-    public TSNode getDescendantForByteRange(int startByte, int endByte) {
-        asserNotNull();
+    public @Nullable TSNode getDescendantForByteRange(int startByte, int endByte) {
         TSNode ret = ts_node_descendant_for_byte_range(this, startByte, endByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -428,10 +407,11 @@ public class TSNode {
      *
      * @return The smallest node within this node that spans the given range of positions.
      */
-    public TSNode getDescendantForPointRange(TSPoint startPoint, TSPoint endPoint) {
-        asserNotNull();
+    public @Nullable TSNode getDescendantForPointRange(TSPoint startPoint, TSPoint endPoint) {
         TSNode ret = ts_node_descendant_for_point_range(this, startPoint, endPoint);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -444,10 +424,11 @@ public class TSNode {
      *
      * @return The smallest named node within this node that spans the given range of bytes.
      */
-    public TSNode getNamedDescendantForByteRange(int startByte, int endByte) {
-        asserNotNull();
+    public @Nullable TSNode getNamedDescendantForByteRange(int startByte, int endByte) {
         TSNode ret = ts_node_named_descendant_for_byte_range(this, startByte, endByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -459,10 +440,11 @@ public class TSNode {
      *
      * @return The smallest named node within this node that spans the given range of positions.
      */
-    public TSNode getNamedDescendantForPointRange(TSPoint startPoint, TSPoint endPoint) {
-        asserNotNull();
+    public @Nullable TSNode getNamedDescendantForPointRange(TSPoint startPoint, TSPoint endPoint) {
         TSNode ret = ts_node_named_descendant_for_point_range(this, startPoint, endPoint);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -478,7 +460,6 @@ public class TSNode {
      * @param inputEdit the edit to apply to the node.
      */
     public void edit(TSInputEdit inputEdit) {
-        asserNotNull();
         TSNode tsNode = ts_node_edit(this, inputEdit);
         context0 = tsNode.context0;
         context1 = tsNode.context1;
@@ -496,10 +477,9 @@ public class TSNode {
      *
      * @return Whether the two nodes are identical.
      */
-    public static boolean eq(TSNode a, TSNode b) {
-        if (a.isNull() || b.isNull()) {
-            return false;
-        }
+    public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
+        if (Objects.equals(a, b)) return true;
+        if (a == null || b == null) return false;
         return ts_node_eq(a, b);
     }
 
@@ -508,9 +488,6 @@ public class TSNode {
      */
     @Override
     public String toString() {
-        if (isNull()) {
-            return "null";
-        }
         return TSParser.ts_node_string(this);
     }
 
@@ -520,7 +497,6 @@ public class TSNode {
      * @return Node grammar type
      */
     public String getGrammarType() {
-        asserNotNull();
         return TSParser.ts_node_grammar_type(this);
     }
 
@@ -531,16 +507,12 @@ public class TSNode {
      * @return Node grammar symbol
      */
     public int getGrammarSymbol() {
-        asserNotNull();
         return TSParser.ts_node_grammar_symbol(this);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (int) (idPtr ^ (idPtr >>> 32));
-        return result;
+        return Objects.hash(idPtr, treePtr);
     }
 
     @Override
@@ -548,11 +520,6 @@ public class TSNode {
         if (this == obj) return true;
         if (!(obj instanceof TSNode)) return false;
         TSNode other = (TSNode) obj;
-        if (idPtr != other.idPtr) return false;
-        // If JNI hasn't set the tree yet for one of them, we compare treePtr
-        if (tree != null && other.tree != null) {
-            return tree.getPtr() == other.tree.getPtr();
-        }
-        return treePtr == other.treePtr;
+        return idPtr == other.idPtr && treePtr == other.treePtr;
     }
 }

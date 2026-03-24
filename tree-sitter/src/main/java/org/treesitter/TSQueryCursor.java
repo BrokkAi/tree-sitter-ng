@@ -332,7 +332,10 @@ public class TSQueryCursor implements AutoCloseable {
         TSTree currentTree = this.tree;
         if (currentTree != null) {
             for (TSQueryCapture capture : matchCaptures) {
-                capture.getNode().setTree(currentTree);
+                TSNode node = capture.getNode();
+                if (node != null) {
+                    node.setTree(currentTree);
+                }
             }
         }
     }
