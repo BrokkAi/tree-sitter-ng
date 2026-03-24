@@ -7,15 +7,20 @@ Start hacking!
 // imports are omitted
 class Main {
     public static void main(String[] args) {
-        TSParser parser = new TSParser();
-        // Use `TSLanguage.load` instead if you would like to load parsers as shared object(.so, .dylib, or .dll).
-        // TSLanguage.load("path/to/languane/shared/object", "tree_sitter_some_lang");
-        TSLanguage json = new TreeSitterJson();
-        parser.setLanguage(json);
-        TSTree tree = parser.parseString(null, "[1, null]");
-        TSNode rootNode = tree.getRootNode();
-        TSNode arrayNode = rootNode.getNamedChild(0);
-        TSNode numberNode = arrayNode.getNamedChild(0);
+        // Core classes implement AutoCloseable. They are also registered in the Cleaner
+        // for phantom-reachable cleanup, but explicit closing is recommended.
+        try (TSParser parser = new TSParser();
+             // Use `TSLanguage.load` instead if you would like to load parsers as shared object(.so, .dylib, or .dll).
+             // TSLanguage.load("path/to/languane/shared/object", "tree_sitter_some_lang");
+             TSLanguage json = new TreeSitterJson()) {
+            
+            parser.setLanguage(json);
+            try (TSTree tree = parser.parseString(null, "[1, null]")) {
+                TSNode rootNode = tree.getRootNode();
+                TSNode arrayNode = rootNode.getNamedChild(0);
+                TSNode numberNode = arrayNode.getNamedChild(0);
+            }
+        }
     }
 }
 ```
@@ -57,9 +62,8 @@ To add a new language parser to this project, we provide a code generation task 
    This will create a new directory `tree-sitter-kotlin` with the correct `build.gradle`, `gradle.properties`, JNI bindings, and Java class extending `TSLanguage`. Finally, an entry of `include 'tree-sitter-kotlin'` will be inserted into `settings.gradle`.
 
 2. **Build native modules and test:**
-   Our build system automatically uses Zig to cross-compile the native shared libraries for the new parser. You can trigger the download, native compilation, and tests:
+   Our build system automatically uses Zig to cross-compile the native shared libraries for the new parser as part of the compilation process. You can trigger the download, native compilation, and tests just by running the tests:
    ```bash
-   ./gradlew :tree-sitter-kotlin:buildNative
    ./gradlew :tree-sitter-kotlin:test
    ```
 
@@ -98,61 +102,71 @@ To add a new language parser to this project, we provide a code generation task 
 class Main {
     public static void main(String[] args) throws Exception {
         String jsonSource = "[1, null]";
-        TSParser parser = new TSParser();
-        TSLanguage json = new TreeSitterJson();
+        
+        // TSParser, TSLanguage, TSTree, TSQuery, TSQueryCursor, TSTreeCursor implement AutoCloseable.
+        // They are also registered in the Cleaner, but explicit closing via try-with-resources is recommended.
+        try (TSParser parser = new TSParser();
+             TSLanguage json = new TreeSitterJson()) {
+             
+            // Set language parser
+            parser.setLanguage(json);
 
-        // Set language parser
-        parser.setLanguage(json);
+            // Parse with string input
+            try (TSTree tree = parser.parseString(null, jsonSource)) {
+                assert tree != null;
 
-        // Parse with string input
-        TSTree tree = parser.parseString(null, jsonSource);
-        assert tree != null;
+                parser.reset();
+                // Or parse with encoding
+                try (TSTree tree2 = parser.parseStringEncoding(null, jsonSource, TSInputEncoding.TSInputEncodingUTF8)) {
+                    // ...
+                }
 
-        parser.reset();
-        // Or parse with encoding
-        parser.parseStringEncoding(null, jsonSource, TSInputEncoding.TSInputEncodingUTF8);
+                parser.reset();
+                // Or parse with custom reader
+                byte[] buffer = new byte[1024];
+                TSReader reader = (buf, offset, position) -> {
+                    byte[] sourceBytes = jsonSource.getBytes(StandardCharsets.UTF_8);
+                    if (offset >= sourceBytes.length) {
+                        return 0;
+                    }
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+                    byteBuffer.put(sourceBytes);
+                    return sourceBytes.length;
+                };
+                try (TSTree tree3 = parser.parse(buffer, null, reader, TSInputEncoding.TSInputEncodingUTF8)) {
+                    assert tree3 != null;
+                }
 
-        parser.reset();
-        // Or parse with custom reader
-        byte[] buffer = new byte[1024];
-        TSReader reader = (buf, offset, position) -> {
-            byte[] sourceBytes = jsonSource.getBytes(StandardCharsets.UTF_8);
-            if (offset >= sourceBytes.length) {
-                return 0;
+                // Traverse the AST tree with DOM-like APIs
+                TSNode rootNode = tree.getRootNode();
+                TSNode arrayNode = rootNode.getNamedChild(0);
+
+                // Or traverse the AST with cursor
+                try (TSTreeCursor rootCursor = new TSTreeCursor(rootNode)) {
+                    rootCursor.gotoFirstChild();
+                }
+
+                // Or query the AST with S-expression
+                try (TSQuery query = new TSQuery(json, "((document) @root)");
+                     TSQueryCursor cursor = new TSQueryCursor()) {
+                    cursor.exec(query, rootNode);
+                    TSQueryMatch match = new TSQueryMatch();
+                    while (cursor.nextMatch(match)) {
+                        // do something with the match
+                    }
+                }
+
+                // Debug the parser with a logger
+                TSLogger logger = (type, message) -> {
+                    System.out.println(message);
+                };
+                parser.setLogger(logger);
+
+                // Or output the AST tree as DOT graph
+                File dotFile = File.createTempFile("json", ".dot");
+                parser.printDotGraphs(dotFile);
             }
-            ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
-            byteBuffer.put(sourceBytes);
-            return sourceBytes.length;
-        };
-        tree = parser.parse(buffer, null, reader, TSInputEncoding.TSInputEncodingUTF8);
-        assert tree != null;
-
-        // Traverse the AST tree with DOM-like APIs
-        TSNode rootNode = tree.getRootNode();
-        TSNode arrayNode = rootNode.getNamedChild(0);
-
-        // Or traverse the AST with cursor
-        TSTreeCursor rootCursor = new TSTreeCursor(rootNode);
-        rootCursor.gotoFirstChild();
-
-        // Or query the AST with S-expression
-        TSQuery query = new TSQuery(json, "((document) @root)");
-        TSQueryCursor cursor = new TSQueryCursor();
-        cursor.exec(query, rootNode);
-        TSQueryMatch match = new TSQueryMatch();
-        while (cursor.nextMatch(match)) {
-            // do something with the match
         }
-
-        // Debug the parser with a logger
-        TSLogger logger = (type, message) -> {
-            System.out.println(message);
-        };
-        parser.setLogger(logger);
-
-        // Or output the AST tree as DOT graph
-        File dotFile = File.createTempFile("json", ".dot");
-        parser.printDotGraphs(dotFile);
     }
 }
 ```
