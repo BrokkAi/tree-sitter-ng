@@ -2,3 +2,11 @@
 tasks.named('downloadSource') {
     url = "https://github.com/dlvandenberg/tree-sitter-angular/archive/refs/tags/v0.8.3.zip"
 }
+
+tasks.named("buildNative") {
+    def newSrcDir = downloadDir.dir("tree-sitter-angular-0.8.3/src")
+    additionalCFiles = newSrcDir.asFileTree.matching {
+        include("**/*.c")
+    }
+    additionalIncludeDirs = project.files(newSrcDir)
+}
