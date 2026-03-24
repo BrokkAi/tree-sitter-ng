@@ -2,7 +2,6 @@ package org.treesitter;
 
 import static org.treesitter.TSParser.*;
 
-import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 public class TSNode {
@@ -478,9 +477,9 @@ public class TSNode {
      * @return Whether the two nodes are identical.
      */
     public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
-        if (Objects.equals(a, b)) return true;
+        if (a == b) return true;
         if (a == null || b == null) return false;
-        return ts_node_eq(a, b);
+        return a.equals(b) || ts_node_eq(a, b);
     }
 
     /**
@@ -523,11 +522,6 @@ public class TSNode {
         if (this == obj) return true;
         if (!(obj instanceof TSNode)) return false;
         TSNode other = (TSNode) obj;
-        if (idPtr != other.idPtr) return false;
-        // If JNI hasn't set the tree yet for one of them, we compare treePtr
-        if (tree != null && other.tree != null) {
-            return Objects.equals(tree, other.tree);
-        }
-        return treePtr == other.treePtr;
+        return idPtr == other.idPtr && treePtr == other.treePtr;
     }
 }
