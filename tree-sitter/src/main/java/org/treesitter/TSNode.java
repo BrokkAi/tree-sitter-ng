@@ -72,7 +72,9 @@ public class TSNode {
     public TSNode getNamedChild(int index) {
         asserNotNull();
         TSNode ret = ts_node_named_child(this, index);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
     /**
@@ -239,7 +241,9 @@ public class TSNode {
     public TSNode getParent() {
         asserNotNull();
         TSNode node = ts_node_parent(this);
-        node.setTree(tree);
+        if (node != null) {
+            node.setTree(tree);
+        }
         return node;
     }
 
@@ -254,7 +258,9 @@ public class TSNode {
     public TSNode getChildWithDescendant(TSNode descendant) {
         asserNotNull();
         TSNode ret = ts_node_child_with_descendant(this, descendant);
-        setTree(this.getTree());
+        if (ret != null) {
+            ret.setTree(this.getTree());
+        }
         return ret;
     }
 
@@ -269,7 +275,9 @@ public class TSNode {
     public TSNode getChild(int index) {
         asserNotNull();
         TSNode ret = ts_node_child(this, index);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -306,7 +314,9 @@ public class TSNode {
     public TSNode getNextNamedSibling() {
         asserNotNull();
         TSNode ret = ts_node_next_named_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -318,7 +328,9 @@ public class TSNode {
     public TSNode getPrevNamedSibling() {
         asserNotNull();
         TSNode ret = ts_node_prev_named_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -330,7 +342,9 @@ public class TSNode {
     public TSNode getNextSibling() {
         asserNotNull();
         TSNode ret = ts_node_next_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -342,7 +356,9 @@ public class TSNode {
     public TSNode getPrevSibling() {
         asserNotNull();
         TSNode ret = ts_node_prev_sibling(this);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -356,7 +372,9 @@ public class TSNode {
     public TSNode getChildByFieldName(String fieldName) {
         asserNotNull();
         TSNode ret = ts_node_child_by_field_name(this, fieldName);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -373,7 +391,9 @@ public class TSNode {
     public TSNode getChildByFieldId(int fieldId) {
         asserNotNull();
         TSNode ret = ts_node_child_by_field_id(this, fieldId);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -387,7 +407,9 @@ public class TSNode {
     public TSNode getFirstChildForByte(int startByte) {
         asserNotNull();
         TSNode ret = ts_node_first_child_for_byte(this, startByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -401,7 +423,9 @@ public class TSNode {
     public TSNode getFirstNamedChildForByte(int startByte) {
         asserNotNull();
         TSNode ret = ts_node_first_named_child_for_byte(this, startByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -416,7 +440,9 @@ public class TSNode {
     public TSNode getDescendantForByteRange(int startByte, int endByte) {
         asserNotNull();
         TSNode ret = ts_node_descendant_for_byte_range(this, startByte, endByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -431,7 +457,9 @@ public class TSNode {
     public TSNode getDescendantForPointRange(TSPoint startPoint, TSPoint endPoint) {
         asserNotNull();
         TSNode ret = ts_node_descendant_for_point_range(this, startPoint, endPoint);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -447,7 +475,9 @@ public class TSNode {
     public TSNode getNamedDescendantForByteRange(int startByte, int endByte) {
         asserNotNull();
         TSNode ret = ts_node_named_descendant_for_byte_range(this, startByte, endByte);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 
@@ -462,7 +492,9 @@ public class TSNode {
     public TSNode getNamedDescendantForPointRange(TSPoint startPoint, TSPoint endPoint) {
         asserNotNull();
         TSNode ret = ts_node_named_descendant_for_point_range(this, startPoint, endPoint);
-        ret.setTree(tree);
+        if (ret != null) {
+            ret.setTree(tree);
+        }
         return ret;
     }
 

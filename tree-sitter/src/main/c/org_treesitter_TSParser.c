@@ -46,6 +46,9 @@ jfieldID ts_jni_get_field_id(JNIEnv *env, jclass clz, const char *field_name, co
 }
 
 jobject ts_node_to_obj(JNIEnv *env, TSNode ts_node){
+    if (ts_node.id == NULL) {
+        return NULL;
+    }
     jclass ts_node_class = ts_jni_find_class(env, TS_NODE_CLASS_NAME);
     jobject ts_node_object = (*env)->AllocObject(env, ts_node_class);
     (*env)->SetIntField(env, ts_node_object, ts_jni_get_field_id(env, ts_node_class, "context0", "I"), ts_node.context[0]);
