@@ -205,11 +205,11 @@ public class TSNode {
      * @return The node's parent.
      */
     public @Nullable TSNode getParent() {
-        TSNode node = ts_node_parent(this);
-        if (node != null) {
-            node.setTree(tree);
+        TSNode ret = ts_node_parent(this);
+        if (ret != null) {
+            ret.setTree(tree);
         }
-        return node;
+        return ret;
     }
 
     /**
@@ -223,7 +223,7 @@ public class TSNode {
     public @Nullable TSNode getChildWithDescendant(TSNode descendant) {
         TSNode ret = ts_node_child_with_descendant(this, descendant);
         if (ret != null) {
-            ret.setTree(this.getTree());
+            ret.setTree(tree);
         }
         return ret;
     }
