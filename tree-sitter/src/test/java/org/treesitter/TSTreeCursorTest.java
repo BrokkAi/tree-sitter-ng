@@ -35,8 +35,7 @@ class TSTreeCursorTest {
 
     @Test
     void currentNode() {
-        TSNode node = rootCursor.currentNode();
-        assertNotNull(node);
+        TSNode node = Objects.requireNonNull(rootCursor.currentNode());
         assertEquals("document", node.getType());
     }
 

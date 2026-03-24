@@ -182,8 +182,7 @@ class TSNodeTest {
 
     @Test
     void getFirstChildForByte() {
-        TSNode child = arrayNode.getFirstChildForByte(0);
-        assertNotNull(child);
+        TSNode child = Objects.requireNonNull(arrayNode.getFirstChildForByte(0));
         assertEquals("[", child.getType());
     }
 
@@ -196,8 +195,7 @@ class TSNodeTest {
 
     @Test
     void getDescendantForByteRange() {
-        TSNode descendant = arrayNode.getDescendantForByteRange(0, 1);
-        assertNotNull(descendant);
+        TSNode descendant = Objects.requireNonNull(arrayNode.getDescendantForByteRange(0, 1));
         assertEquals("[", descendant.getType());
     }
 

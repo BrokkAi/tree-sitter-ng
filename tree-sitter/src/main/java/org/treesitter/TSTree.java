@@ -72,7 +72,7 @@ public class TSTree implements AutoCloseable {
     /**
      * Get the root node of the syntax tree.
      *
-     * @return The root node.
+     * @return The root node, or <code>null</code> if the tree has no root.
      */
     public @Nullable TSNode getRootNode() {
         ensureOpen();
@@ -89,7 +89,7 @@ public class TSTree implements AutoCloseable {
      *
      * @param offsetBytes offset in bytes
      * @param offsetPoint offset in (row, column)
-     * @return The node
+     * @return The node, or <code>null</code> if the tree has no root.
      */
     public @Nullable TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
         ensureOpen();
