@@ -13,7 +13,9 @@ public class Main {
             TSTree tree = tsParser.parseString(null, "[1, null]");
             if (tree != null) {
                 TSNode rootNode = tree.getRootNode();
+                assert rootNode != null;
                 TSNode arrayNode = rootNode.getNamedChild(0);
+                assert arrayNode != null;
                 TSNode numberNode = arrayNode.getNamedChild(0);
                 assert rootNode.getType().equals("document");
                 assert arrayNode.getType().equals("array");
