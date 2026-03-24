@@ -478,7 +478,7 @@ public class TSNode {
      * @return Whether the two nodes are identical.
      */
     public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
-        if (a == b) return true;
+        if (Objects.equals(a, b)) return true;
         if (a == null || b == null) return false;
         return ts_node_eq(a, b);
     }

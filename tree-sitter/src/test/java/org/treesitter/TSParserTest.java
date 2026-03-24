@@ -219,7 +219,8 @@ class TSParserTest {
         TSTree tree = Objects.requireNonNull(parser.parseString(null, "c"));
         TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
         TSTreeCursor cursor = new TSTreeCursor(rootNode);
-        TSNode currentNode = Objects.requireNonNull(cursor.currentNode());
+        TSNode currentNode = cursor.currentNode();
+        assertNotNull(currentNode);
         assertNotNull(currentNode.getType());
         assertNotNull(currentNode.getTree());
     }

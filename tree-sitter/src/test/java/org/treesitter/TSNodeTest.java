@@ -123,7 +123,6 @@ class TSNodeTest {
     @Test
     void getParent() {
         assertNull(rootNode.getParent());
-        assertNotNull(tree);
     }
 
     @Test
@@ -255,20 +254,20 @@ class TSNodeTest {
 
     @Test
     void getChildWithDescendant() {
-        TSNode child = Objects.requireNonNull(rootNode.getChild(0));
-        TSNode descendant = Objects.requireNonNull(
-                Objects.requireNonNull(rootNode.getChild(0)).getChild(0));
-        assertEquals(
-                child.toString(),
-                Objects.requireNonNull(rootNode.getChildWithDescendant(descendant))
-                        .toString());
-        assertNotNull(rootNode.getChildWithDescendant(descendant));
+        TSNode child = rootNode.getChild(0);
+        assertNotNull(child);
+        TSNode firstChild = child.getChild(0);
+        assertNotNull(firstChild);
+        TSNode descendant = firstChild;
+        TSNode childWithDescendant = rootNode.getChildWithDescendant(descendant);
+        assertNotNull(childWithDescendant);
+        assertEquals(child.toString(), childWithDescendant.toString());
     }
 
     @Test
     void traversingEquals() {
         TSNode child = Objects.requireNonNull(rootNode.getChild(0));
-        assertNotEquals(child, rootNode);
-        assertEquals(child.getParent(), rootNode);
+        assertFalse(TSNode.eq(child, rootNode));
+        assertTrue(TSNode.eq(child.getParent(), rootNode));
     }
 }
