@@ -200,7 +200,7 @@ subprojects {
         }
 
         sourceSets.main.resources {
-            srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+            srcDir(buildNative.map { it.jniOutDir })
         }
     } else if (project.name == 'tree-sitter') {
         // tree-sitter core also needs to build its native part
@@ -212,7 +212,7 @@ subprojects {
         }
 
         sourceSets.main.resources {
-            srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+            srcDir(buildNative.map { it.jniOutDir })
         }
     }
 

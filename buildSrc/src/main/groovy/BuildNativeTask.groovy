@@ -75,17 +75,13 @@ class BuildNativeTask extends DefaultTask{
 
     @Internal
     Directory getJniOutDir() {
-        return project.layout.buildDirectory.dir("jni-libs/lib").get()
+        return project.layout.buildDirectory.dir("jni-libs").get()
     }
 
     @OutputFiles
     FileCollection getJniLibFiles(){
-        def props = (String) project.rootProject.properties.get("treeSitterTargets")
-        if(props == null){
-            throw new GradleException("Can't find `treeSitterTargets` in gradle.properties")
-        }
         def files = targets.collect() { target ->
-            jniOutDir.file("$target-$libName.${libExt(target)}")
+            Utils.jniOutFile(project, target, libName)
         }
         return project.files(files)
     }
@@ -167,7 +163,7 @@ class BuildNativeTask extends DefaultTask{
             logger.lifecycle("No source found for native build in project ${project.name}, skipping.")
             return
         }
-        jniOutDir.asFile.mkdirs()
+        jniOutDir.dir("lib").asFile.mkdirs()
         targets.each {target ->
             def jniMdIncludeDir = getJniMdInclude(target)
             def jniOutFile = Utils.jniOutFile(project, target, libName)

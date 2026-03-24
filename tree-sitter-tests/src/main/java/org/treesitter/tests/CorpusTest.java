@@ -184,6 +184,7 @@ public class CorpusTest {
 
     private static void runAllTestsInFolderRecursive(File folderPath, TSLanguage language, String langName)
             throws IOException {
+        System.out.println("Looking for corpus tests in: " + folderPath.getAbsolutePath());
         if (!folderPath.exists() || !folderPath.isDirectory()) {
             throw new TreeSitterTestException(folderPath.getPath() + " does not exist or not a folder.");
         }
@@ -202,25 +203,139 @@ public class CorpusTest {
     }
 
     public static void runAllTestsInDefaultFolder(TSLanguage language, String langName) throws IOException {
-        try (FileInputStream input = new FileInputStream("gradle.properties")) {
-            Properties properties = new Properties();
-            properties.load(input);
-            String libVersion = (String) properties.get("libVersion");
-            String corpusFolder =
-                    "build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion + "/test/corpus";
-            CorpusTest.runAllTestsInFolder(corpusFolder, language, langName);
+        File currentDir = new File(".").getAbsoluteFile();
+        File rootDir = null;
+        File searchDir = currentDir;
+        while (searchDir != null) {
+            if (new File(searchDir, "settings.gradle").exists()) {
+                rootDir = searchDir;
+                break;
+            }
+            searchDir = searchDir.getParentFile();
         }
+
+        if (rootDir == null) {
+            // Fallback to gradle.properties if settings.gradle is not found
+            searchDir = currentDir;
+            while (searchDir != null) {
+                if (new File(searchDir, "gradle.properties").exists()) {
+                    rootDir = searchDir;
+                    break;
+                }
+                searchDir = searchDir.getParentFile();
+            }
+        }
+
+        if (rootDir == null) {
+            throw new TreeSitterTestException("Could not find project root in " + currentDir + " or any parent.");
+        }
+
+        System.out.println("Project root identified at: " + rootDir.getAbsolutePath());
+
+        String libVersion = null;
+        File langPropFile = new File(rootDir, "tree-sitter-" + langName + "/gradle.properties");
+        if (langPropFile.exists()) {
+            System.out.println("Loading language properties from: " + langPropFile.getAbsolutePath());
+            Properties properties = new Properties();
+            try (FileInputStream input = new FileInputStream(langPropFile)) {
+                properties.load(input);
+                libVersion = properties.getProperty("upstreamVersion");
+            }
+        }
+
+        if (libVersion == null) {
+            File rootPropFile = new File(rootDir, "gradle.properties");
+            if (rootPropFile.exists()) {
+                Properties properties = new Properties();
+                try (FileInputStream input = new FileInputStream(rootPropFile)) {
+                    properties.load(input);
+                    libVersion = properties.getProperty("upstreamVersion");
+                    if (libVersion == null) libVersion = properties.getProperty("libVersion");
+                }
+            }
+        }
+
+        if (libVersion == null) libVersion = "0.1.0"; // Fallback
+        System.out.println("Using libVersion: " + libVersion + " for language: " + langName);
+
+        // Try different possible locations for the corpus relative to the project root
+        String[] possibleFolders = {
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-" + langName + "-" + libVersion
+                    + "/test/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/tree-sitter-" + langName + "/test/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "-" + libVersion + "/test/corpus",
+            "tree-sitter-" + langName + "/build/tree-sitter-" + langName + "/test/corpus",
+            "tree-sitter-typescript/build/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/src/corpus",
+            "tree-sitter-typescript/build/tree-sitter-typescript/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/test/corpus",
+            "tree-sitter-typescript/build/typescript/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/src/corpus", // TS/TSX specific
+            "tree-sitter-typescript/build/typescript/tree-sitter-typescript-" + libVersion + "/" + langName
+                    + "/test/corpus",
+            "tree-sitter-typescript/build/tsx/tree-sitter-typescript-" + libVersion + "/" + langName + "/src/corpus",
+            "tree-sitter-typescript/build/tsx/tree-sitter-typescript-" + libVersion + "/" + langName + "/test/corpus",
+            "build/tree-sitter-" + langName + "-" + libVersion + "/test/corpus",
+            "build/tree-sitter-" + langName + "/test/corpus"
+        };
+
+        for (String relativePath : possibleFolders) {
+            File folder = new File(rootDir, relativePath);
+            System.out.println("Checking corpus path: " + folder.getAbsolutePath());
+            if (folder.exists() && folder.isDirectory()) {
+                System.out.println("Found corpus at: " + folder.getAbsolutePath());
+                CorpusTest.runAllTestsInFolder(folder.getPath(), language, langName);
+                return;
+            }
+        }
+        StringBuilder sb = new StringBuilder("Could not find corpus folder for ")
+                .append(langName)
+                .append(". Searched:\n");
+        for (String p : possibleFolders)
+            sb.append("  - ").append(new File(rootDir, p).getAbsolutePath()).append("\n");
+        throw new TreeSitterTestException(sb.toString());
     }
 
     public static void runAllTestsInDefaultFolderSecondaryLang(
             TSLanguage language, String langName, String secondaryLang) throws IOException {
-        try (FileInputStream input = new FileInputStream("gradle.properties")) {
-            Properties properties = new Properties();
-            properties.load(input);
-            String libVersion = (String) properties.get("libVersion");
-            String corpusFolder = "build/tree-sitter-" + secondaryLang + "/tree-sitter-" + langName + "-" + libVersion
-                    + "/test/corpus";
-            CorpusTest.runAllTestsInFolder(corpusFolder, language, secondaryLang);
+        File currentDir = new File(".").getAbsoluteFile();
+        File propFile = null;
+        File searchDir = currentDir;
+        while (searchDir != null) {
+            File potential = new File(searchDir, "gradle.properties");
+            if (potential.exists()) {
+                propFile = potential;
+                break;
+            }
+            searchDir = searchDir.getParentFile();
         }
+
+        if (propFile == null) {
+            throw new TreeSitterTestException("Could not find gradle.properties");
+        }
+
+        System.out.println("Loading properties from: " + propFile.getAbsolutePath());
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream(propFile)) {
+            properties.load(input);
+        }
+
+        String libVersion = properties.getProperty("libVersion");
+        if (libVersion == null) libVersion = properties.getProperty("upstreamVersion");
+        if (libVersion == null) libVersion = "0.1.0";
+
+        File rootDir = propFile.getParentFile();
+        String corpusFolder =
+                "tree-sitter-" + secondaryLang + "/build/tree-sitter-" + langName + "-" + libVersion + "/test/corpus";
+        File folder = new File(rootDir, corpusFolder);
+        if (!folder.exists()) {
+            // fall back to simple build path
+            folder = new File(
+                    rootDir,
+                    "build/tree-sitter-" + secondaryLang + "/tree-sitter-" + langName + "-" + libVersion
+                            + "/test/corpus");
+        }
+        System.out.println("Checking corpus path (secondary): " + folder.getAbsolutePath());
+        CorpusTest.runAllTestsInFolder(folder.getPath(), language, secondaryLang);
     }
 }

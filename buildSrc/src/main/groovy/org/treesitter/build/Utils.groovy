@@ -112,12 +112,12 @@ abstract class Utils {
     }
 
     static Directory jniOutDir(Project project){
-        return project.layout.buildDirectory.dir("jni-libs/lib").get()
+        return project.layout.buildDirectory.dir("jni-libs").get()
     }
 
     static RegularFile jniOutFile(Project project, String target, String name){
         String ext = libExt(target)
-        return jniOutDir(project).file("$target-$name.$ext")
+        return jniOutDir(project).file("lib/$target-$name.$ext")
     }
 
     static String[] treeSitterTargets(Project project){
