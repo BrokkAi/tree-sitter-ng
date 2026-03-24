@@ -2,6 +2,8 @@
 
 Next generation Tree Sitter Java binding. A fork from https://github.com/bonede/tree-sitter-ng.
 
+The artifacts are published under the group ID `ai.brokk`.
+
 Start hacking!
 ```java
 // imports are omitted
@@ -33,6 +35,17 @@ class Main {
 
 # Build and test all subprojects
 ./gradlew build
+```
+
+# Releases
+
+When building or publishing for a specific release version, use the `libVersion` property:
+```bash
+# Build with version
+./gradlew build -PlibVersion=0.1.0
+
+# Publish with version
+./gradlew publish -PlibVersion=0.1.0
 ```
 
 > **Note**: Native binaries are generated into `src/main/resources/lib` during the build process and are ignored by Git. They are built automatically in CI and do not need to be committed to the repository.

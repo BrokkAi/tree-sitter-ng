@@ -12,7 +12,7 @@ plugins {
 }
 
 allprojects {
-    group = 'io.github.bonede'
+    group = 'ai.brokk'
     repositories {
         mavenCentral()
     }
@@ -117,13 +117,14 @@ subprojects {
             disable("MissingSummary")
             disable("NonCanonicalType")
 
-            excludedPaths = ".*/src/main/java/(dev/|eu/).*"
+            excludedPaths = ".*/src/main/java/(dev/|eu/|org/treesitter/tests/).*"
 
             error("NullAway")
             warn("UnnecessarilyFullyQualified")
             warn("EmptyBlockTag")
 
-            option("NullAway:AnnotatedPackages", "io.github.bonede")
+            option("NullAway:AnnotatedPackages", "org.treesitter")
+            option("NullAway:ExcludedPackages", "org.treesitter.tests")
             option("NullAway:ExcludedFieldAnnotations",
                    "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll,org.junit.jupiter.api.Test")
             option("NullAway:ExcludedClassAnnotations",
@@ -133,7 +134,7 @@ subprojects {
             option("NullAway:KnownInitializers",
                    "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll")
             option("NullAway:HandleTestAssertionLibraries", "true")
-            option("NullAway:ExcludedPaths", ".*/src/main/java/dev/.*")
+            option("NullAway:ExcludedPaths", ".*/(dev/|tree-sitter-tests/).*")
         }
     }
 
@@ -143,7 +144,7 @@ subprojects {
                 from components.java
                 pom {
                     name = project.name
-                    url = 'https://github.com/bonede/tree-sitter-ng'
+                    url = 'https://github.com/brokk-ai/tree-sitter-ng'
                     description = "Next generation Tree Sitter Java binding"
                     licenses {
                         license {
@@ -151,9 +152,9 @@ subprojects {
                         }
                     }
                     scm {
-                        connection = 'scm:git:https://github.com/bonede/tree-sitter-ng.git'
-                        developerConnection = 'scm:git:https://github.com/bonede/tree-sitter-ng.git'
-                        url = 'https://github.com/bonede/tree-sitter-ng'
+                        connection = 'scm:git:https://github.com/brokk-ai/tree-sitter-ng.git'
+                        developerConnection = 'scm:git:https://github.com/brokk-ai/tree-sitter-ng.git'
+                        url = 'https://github.com/brokk-ai/tree-sitter-ng'
                     }
                     developers {
                         developer {
