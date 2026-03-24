@@ -279,16 +279,14 @@ class TSNodeTest {
 
         // Even if they are logically the same (root of the same source),
         // they belong to different native trees and different Java TSTree wrappers.
-        assertFalse(TSNode.eq(rootNode, rootNode2),
-                "Nodes from different TSTree instances should not be equal via eq()");
-        assertFalse(rootNode.equals(rootNode2),
-                "Nodes from different TSTree instances should not be equal via equals()");
+        assertFalse(
+                TSNode.eq(rootNode, rootNode2), "Nodes from different TSTree instances should not be equal via eq()");
+        assertFalse(
+                rootNode.equals(rootNode2), "Nodes from different TSTree instances should not be equal via equals()");
 
         // Same tree node should be equal to itself
-        assertTrue(TSNode.eq(rootNode, rootNode),
-                "Node should be eq() to itself");
-        assertEquals(rootNode, rootNode,
-                "Node should be equals() to itself");
+        assertTrue(TSNode.eq(rootNode, rootNode), "Node should be eq() to itself");
+        assertEquals(rootNode, rootNode, "Node should be equals() to itself");
     }
 
     @Test
