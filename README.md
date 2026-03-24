@@ -39,7 +39,9 @@ class Main {
 
 # Releases
 
-When building or publishing for a specific release version, use the `libVersion` property:
+The project distinguishes between the **Java library version** (`libVersion`) and the **upstream grammar version** (`upstreamVersion`).
+
+When building or publishing a new release of the Java bindings, specify the `libVersion`:
 ```bash
 # Build with version
 ./gradlew build -PlibVersion=0.1.0
@@ -47,6 +49,8 @@ When building or publishing for a specific release version, use the `libVersion`
 # Publish with version
 ./gradlew publish -PlibVersion=0.1.0
 ```
+
+The `upstreamVersion` is managed in each subproject's `gradle.properties` and controls which version of the native tree-sitter C code is downloaded and compiled.
 
 > **Note**: Native binaries are generated into `src/main/resources/lib` during the build process and are ignored by Git. They are built automatically in CI and do not need to be committed to the repository.
 
