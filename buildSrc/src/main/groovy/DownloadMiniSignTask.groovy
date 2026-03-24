@@ -59,6 +59,9 @@ class DownloadMiniSignTask extends DefaultTask {
 
     @TaskAction
     void downloadMiniSign(){
+        if (miniSignExe.asFile.exists()) {
+            return
+        }
         def url = "https://github.com/jedisct1/minisign/releases/download/$miniSignVersion/${miniSignArchive.asFile.name}"
         Utils.downloadFile(url, miniSignArchive.asFile)
         def archive = miniSignArchive.asFile

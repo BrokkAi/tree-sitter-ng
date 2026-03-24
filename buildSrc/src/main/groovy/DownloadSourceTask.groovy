@@ -58,6 +58,9 @@ class DownloadSourceTask extends DefaultTask{
 
     @TaskAction
     def downloadSource(){
+        if (srcDir.asFile.exists() && srcDir.asFile.list().length > 0) {
+            return
+        }
         if(!downloadDir.asFile.exists()){
             downloadDir.asFile.mkdirs()
         }
