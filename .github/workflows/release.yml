@@ -36,7 +36,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4.2.1
 
       - name: Build and Zip Jars
-        run: ./gradlew build zipReleaseJars --stacktrace
+        run: ./gradlew build zipReleaseJars -PlibVersion=${{ github.event.inputs.tag_name }} --stacktrace
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

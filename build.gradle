@@ -258,10 +258,9 @@ tasks.register("zipReleaseJars", Zip) {
 
     subprojects.forEach { sub ->
         sub.plugins.withType(JavaPlugin) {
-            dependsOn(sub.tasks.named("jar"), sub.tasks.named("sourcesJar"), sub.tasks.named("javadocJar"))
-            from(sub.tasks.named("jar"))
-            from(sub.tasks.named("sourcesJar"))
-            from(sub.tasks.named("javadocJar"))
+            from(sub.tasks.named("jar")) { into(sub.name) }
+            from(sub.tasks.named("sourcesJar")) { into(sub.name) }
+            from(sub.tasks.named("javadocJar")) { into(sub.name) }
         }
     }
 }
