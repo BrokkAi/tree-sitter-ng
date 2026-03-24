@@ -33,9 +33,6 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      ORG_GRADLE_PROJECT_ossrhUsername: na
-      ORG_GRADLE_PROJECT_ossrhPassword: na
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 11

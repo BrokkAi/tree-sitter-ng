@@ -219,7 +219,7 @@ public class TSParser implements AutoCloseable {
 
     protected static native void ts_query_disable_capture(long ts_query_ptr, String name);
 
-    protected static native void ts_query_disable_pattern(long ts_query_ptr, int patter_index);
+    protected static native void ts_query_disable_pattern(long ts_query_ptr, int pattern_index);
 
     protected static native long ts_query_cursor_new();
 

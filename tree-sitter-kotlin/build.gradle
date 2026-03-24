@@ -1,4 +1,13 @@
 
 tasks.named('downloadSource') {
-    url = "https://github.com/fwcd/tree-sitter-kotlin/archive/refs/tags/0.3.8.zip"
+    url = "https://github.com/fwcd/tree-sitter-kotlin/archive/refs/tags/${upstreamVersion}.zip"
+}
+
+tasks.named("buildNative") {
+    def newSrcDir = downloadDir.dir("tree-sitter-kotlin-${upstreamVersion}/src")
+    additionalCFiles = newSrcDir.asFileTree.matching {
+        include("**/*.c")
+        include("**/*.cpp")
+    }
+    additionalIncludeDirs = project.files(newSrcDir)
 }

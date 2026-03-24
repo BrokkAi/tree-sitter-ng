@@ -6,14 +6,13 @@ import java.net.http.HttpResponse
 
 plugins {
     alias(libs.plugins.download)
-    alias(libs.plugins.nexus.staging)
     alias(libs.plugins.errorprone) apply false
     id 'com.diffplug.spotless' version '6.25.0' apply false
     id 'base'
 }
 
 allprojects {
-    group = 'io.github.bonede'
+    group = 'ai.brokk'
     repositories {
         mavenCentral()
     }
@@ -25,9 +24,7 @@ allprojects {
 
 
 subprojects {
-    if (project.hasProperty('libVersion')) {
-        version = project.libVersion
-    }
+    version = project.findProperty('libVersion') ?: '0.1.0'
 
     apply plugin: 'java'
     apply plugin: 'signing'
@@ -118,13 +115,14 @@ subprojects {
             disable("MissingSummary")
             disable("NonCanonicalType")
 
-            excludedPaths = ".*/src/main/java/(dev/|eu/).*"
+            excludedPaths = ".*/src/main/java/(dev/|eu/|org/treesitter/tests/).*"
 
             error("NullAway")
             warn("UnnecessarilyFullyQualified")
             warn("EmptyBlockTag")
 
-            option("NullAway:AnnotatedPackages", "io.github.bonede")
+            option("NullAway:AnnotatedPackages", "org.treesitter")
+            option("NullAway:ExcludedPackages", "org.treesitter.tests")
             option("NullAway:ExcludedFieldAnnotations",
                    "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll,org.junit.jupiter.api.Test")
             option("NullAway:ExcludedClassAnnotations",
@@ -134,31 +132,17 @@ subprojects {
             option("NullAway:KnownInitializers",
                    "org.junit.jupiter.api.BeforeEach,org.junit.jupiter.api.BeforeAll")
             option("NullAway:HandleTestAssertionLibraries", "true")
-            option("NullAway:ExcludedPaths", ".*/src/main/java/dev/.*")
+            option("NullAway:ExcludedPaths", ".*/(dev/|tree-sitter-tests/).*")
         }
     }
 
     publishing {
-        repositories {
-            maven {
-                name = "MavenCentral"
-                def releasesRepoUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
-                def snapshotsRepoUrl =  "https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/"
-                credentials {
-                    if (project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')) {
-                        username = ossrhUsername
-                        password = ossrhPassword
-                    }
-                }
-                url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            }
-        }
         publications {
             maven(MavenPublication) {
                 from components.java
                 pom {
                     name = project.name
-                    url = 'https://github.com/bonede/tree-sitter-ng'
+                    url = 'https://github.com/brokk-ai/tree-sitter-ng'
                     description = "Next generation Tree Sitter Java binding"
                     licenses {
                         license {
@@ -166,9 +150,9 @@ subprojects {
                         }
                     }
                     scm {
-                        connection = 'scm:git:https://github.com/bonede/tree-sitter-ng.git'
-                        developerConnection = 'scm:git:https://github.com/bonede/tree-sitter-ng.git'
-                        url = 'https://github.com/bonede/tree-sitter-ng'
+                        connection = 'scm:git:https://github.com/brokk-ai/tree-sitter-ng.git'
+                        developerConnection = 'scm:git:https://github.com/brokk-ai/tree-sitter-ng.git'
+                        url = 'https://github.com/brokk-ai/tree-sitter-ng'
                     }
                     developers {
                         developer {
@@ -216,7 +200,7 @@ subprojects {
         }
 
         sourceSets.main.resources {
-            srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+            srcDir(buildNative.map { it.jniOutDir })
         }
     } else if (project.name == 'tree-sitter') {
         // tree-sitter core also needs to build its native part
@@ -228,7 +212,7 @@ subprojects {
         }
 
         sourceSets.main.resources {
-            srcDir(buildNative.map { it.jniOutDir.asFile.parentFile })
+            srcDir(buildNative.map { it.jniOutDir })
         }
     }
 
@@ -241,15 +225,6 @@ subprojects {
     }
 }
 
-
-nexusStaging {
-    serverUrl = "https://s01.oss.sonatype.org/service/local/"
-    packageGroup = "io.github.bonede"
-    if (project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')) {
-        username = ossrhUsername
-        password = ossrhPassword
-    }
-}
 
 tasks.register('downloadMiniSign', DownloadMiniSignTask)
 
@@ -274,111 +249,17 @@ tasks.register("gen", GenTask) {
     description = "Generate sub project for tree sitter parser"
 }
 
-tasks.register("dropStagingRepo") {
-    group = "publishing"
-    description = "Drop closed staging repositories to unblock new releases"
-    doLast {
-        def baseUrl = "https://ossrh-staging-api.central.sonatype.com"
-        def token = Base64.encoder.encodeToString("$ossrhUsername:$ossrhPassword".getBytes())
-        def client = HttpClient.newHttpClient()
+tasks.register("zipReleaseJars", Zip) {
+    group = "build"
+    description = "Bundles all subproject jars (classes, sources, and javadoc) into a single zip file."
+    archiveFileName = "tree-sitter-ng-release-jars.zip"
+    destinationDirectory = layout.buildDirectory.dir("distributions")
 
-        // Search for closed repositories
-        def searchUrl = "$baseUrl/manual/search/repositories?profile_id=io.github.bonede&state=closed&ip=any"
-        def searchReq = HttpRequest.newBuilder()
-                .uri(URI.create(searchUrl))
-                .header("Authorization", "Bearer $token")
-                .GET()
-                .build()
-        def searchResp = client.send(searchReq, HttpResponse.BodyHandlers.ofString())
-        if (searchResp.statusCode() != 200) {
-            throw new GradleException("Search failed with status ${searchResp.statusCode()}: ${searchResp.body()}")
+    subprojects.forEach { sub ->
+        sub.plugins.withType(JavaPlugin) {
+            from(sub.tasks.named("jar")) { into(sub.name) }
+            from(sub.tasks.named("sourcesJar")) { into(sub.name) }
+            from(sub.tasks.named("javadocJar")) { into(sub.name) }
         }
-        println "Found repositories:\n${searchResp.body()}"
-
-        // Parse repository keys and drop each one
-        def json = new groovy.json.JsonSlurper().parseText(searchResp.body())
-        def repos = json.repositories ?: []
-        if (repos.isEmpty()) {
-            println "No closed staging repositories found."
-            return
-        }
-        repos.each { repo ->
-            def key = repo.key
-            println "Dropping repository: $key (state: ${repo.state})"
-            def dropReq = HttpRequest.newBuilder()
-                    .uri(URI.create("$baseUrl/manual/drop/repository/$key"))
-                    .header("Authorization", "Bearer $token")
-                    .DELETE()
-                    .build()
-            def dropResp = client.send(dropReq, HttpResponse.BodyHandlers.ofString())
-            if (dropResp.statusCode() != 200 && dropResp.statusCode() != 204) {
-                System.err.println("Drop failed for $key with status ${dropResp.statusCode()}: ${dropResp.body()}")
-            } else {
-                println "Dropped $key successfully."
-            }
-        }
-    }
-}
-
-tasks.register("postPublish") {
-    group = "publishing"
-    description = "Upload staging deployment to Central Portal. Drops closed repos if needed."
-    doLast {
-        def baseUrl = "https://ossrh-staging-api.central.sonatype.com"
-        def namespace = "io.github.bonede"
-        def token = Base64.encoder.encodeToString("$ossrhUsername:$ossrhPassword".getBytes())
-        def client = HttpClient.newHttpClient()
-
-        def uploadUrl = "$baseUrl/manual/upload/defaultRepository/$namespace"
-        def req = HttpRequest.newBuilder()
-                .uri(URI.create(uploadUrl))
-                .header("Authorization", "Bearer $token")
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build()
-        def resp = client.send(req, HttpResponse.BodyHandlers.ofString())
-
-        if (resp.statusCode() == 400 && resp.body()?.contains("must be dropped")) {
-            println "Detected stale closed repository, dropping it..."
-
-            // Search and drop closed repos
-            def searchUrl = "$baseUrl/manual/search/repositories?profile_id=$namespace&state=closed&ip=any"
-            def searchReq = HttpRequest.newBuilder()
-                    .uri(URI.create(searchUrl))
-                    .header("Authorization", "Bearer $token")
-                    .GET()
-                    .build()
-            def searchResp = client.send(searchReq, HttpResponse.BodyHandlers.ofString())
-            if (searchResp.statusCode() == 200) {
-                def json = new groovy.json.JsonSlurper().parseText(searchResp.body())
-                (json.repositories ?: []).each { repo ->
-                    println "Dropping ${repo.key}..."
-                    def dropReq = HttpRequest.newBuilder()
-                            .uri(URI.create("$baseUrl/manual/drop/repository/${repo.key}"))
-                            .header("Authorization", "Bearer $token")
-                            .DELETE()
-                            .build()
-                    client.send(dropReq, HttpResponse.BodyHandlers.ofString())
-                }
-            }
-
-            println "Stale repositories dropped. Please re-run publish and then postPublish:"
-            println "  ./gradlew :tree-sitter-<package>:publish"
-            println "  ./gradlew postPublish"
-            return
-        }
-
-        if (resp.statusCode() == 400 && resp.body()?.contains("No repository found")) {
-            println "No staging repository found. Please publish first:"
-            println "  ./gradlew :tree-sitter-<package>:publish"
-            return
-        }
-
-        if (resp.statusCode() != 200) {
-            def msg = "HTTP request failed with status ${resp.statusCode()}"
-            System.err.println(msg)
-            System.err.println(resp.body())
-            throw new GradleException(msg)
-        }
-        println "Published to Portal with response body:\n${resp.body()}"
     }
 }

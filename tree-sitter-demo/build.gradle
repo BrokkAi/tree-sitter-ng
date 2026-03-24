@@ -4,8 +4,7 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'io.github.bonede'
-version = '0.1.0'
+group = 'ai.brokk'
 
 repositories {
     mavenCentral()

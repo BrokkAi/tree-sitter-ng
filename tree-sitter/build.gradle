@@ -5,10 +5,14 @@ dependencies {
 }
 
 tasks.named('downloadSource') {
-
+    url = "https://github.com/tree-sitter/tree-sitter/archive/refs/tags/v${upstreamVersion}.zip"
 }
 
 tasks.named('buildNative') {
-    additionalCFiles = downloadSource.srcDir.files("lib/src/lib.c")
-    additionalIncludeDirs = project.files(downloadSource.srcDir.dir("lib/src"))
+    def newSrcDir = downloadDir.dir("tree-sitter-${upstreamVersion}")
+    additionalCFiles = newSrcDir.files("lib/src/lib.c")
+    additionalIncludeDirs = project.files(
+        newSrcDir.dir("lib/src"),
+        newSrcDir.dir("lib/include")
+    )
 }

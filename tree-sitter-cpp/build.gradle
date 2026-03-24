@@ -1,3 +1,12 @@
 tasks.named('downloadSource') {
-    url = "https://github.com/tree-sitter/tree-sitter-cpp/archive/refs/tags/v${libVersion}.zip"
+    url = "https://github.com/tree-sitter/tree-sitter-cpp/archive/refs/tags/v${upstreamVersion}.zip"
+}
+
+tasks.named("buildNative") {
+    def newSrcDir = downloadDir.dir("tree-sitter-cpp-${upstreamVersion}/src")
+    additionalCFiles = newSrcDir.asFileTree.matching {
+        include("**/*.c")
+        include("**/*.cpp")
+    }
+    additionalIncludeDirs = project.files(newSrcDir)
 }

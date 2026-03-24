@@ -1,0 +1,53 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v0.1.0)'
+        required: true
+        default: 'v0.1.0'
+      release_name:
+        description: 'Release name'
+        required: false
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'corretto'
+
+      - name: Cache tools directory
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: ${{ runner.os }}-tools-${{ hashFiles('gradle.properties') }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4.2.1
+
+      - name: Build and Zip Jars
+        run: |
+          TAG=${{ github.event.inputs.tag_name }}
+          VERSION=${TAG#v}
+          ./gradlew build zipReleaseJars -PlibVersion=$VERSION --stacktrace
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          name: ${{ github.event.inputs.release_name || github.event.inputs.tag_name }}
+          files: build/distributions/tree-sitter-ng-release-jars.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
