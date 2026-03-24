@@ -2,6 +2,7 @@ package org.treesitter;
 
 import static org.treesitter.TSParser.*;
 
+import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
 public class TSNode {
@@ -477,9 +478,9 @@ public class TSNode {
      * @return Whether the two nodes are identical.
      */
     public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
-        if (a == b) return true;
+        if (Objects.equals(a, b)) return true;
         if (a == null || b == null) return false;
-        return a.equals(b) || ts_node_eq(a, b);
+        return ts_node_eq(a, b);
     }
 
     /**
@@ -511,10 +512,7 @@ public class TSNode {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (int) (idPtr ^ (idPtr >>> 32));
-        return result;
+        return Objects.hash(idPtr, treePtr);
     }
 
     @Override

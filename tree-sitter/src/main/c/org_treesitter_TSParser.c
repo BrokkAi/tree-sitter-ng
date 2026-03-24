@@ -46,7 +46,7 @@ jfieldID ts_jni_get_field_id(JNIEnv *env, jclass clz, const char *field_name, co
 }
 
 jobject ts_node_to_obj(JNIEnv *env, TSNode ts_node){
-    if (ts_node.id == NULL) {
+    if (ts_node_is_null(ts_node)) {
         return NULL;
     }
     jclass ts_node_class = ts_jni_find_class(env, TS_NODE_CLASS_NAME);

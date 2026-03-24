@@ -270,4 +270,47 @@ class TSNodeTest {
         assertFalse(TSNode.eq(child, rootNode));
         assertTrue(TSNode.eq(child.getParent(), rootNode));
     }
+
+    @Test
+    @SuppressWarnings("NullAway")
+    void testNullableBoundaryConditions() {
+        // 1. Parent of root
+        assertNull(rootNode.getParent(), "rootNode.getParent() must be null");
+
+        // 2. Siblings of root (single root node)
+        assertNull(rootNode.getNextSibling(), "rootNode.getNextSibling() must be null");
+        assertNull(rootNode.getPrevSibling(), "rootNode.getPrevSibling() must be null");
+        assertNull(rootNode.getNextNamedSibling(), "rootNode.getNextNamedSibling() must be null");
+        assertNull(rootNode.getPrevNamedSibling(), "rootNode.getPrevNamedSibling() must be null");
+
+        // 3. Out of bounds children indices
+        // Using a high index to ensure it's out of bounds for the array node
+        assertNull(arrayNode.getChild(50), "arrayNode.getChild(50) must be null");
+        assertNull(arrayNode.getNamedChild(50), "arrayNode.getNamedChild(50) must be null");
+
+        // 4. Descendant logic - root is not a child of its own children
+        assertNull(numberNode.getChildWithDescendant(rootNode), "numberNode.getChildWithDescendant(rootNode) must be null");
+
+        // 5. Fields - Check methods that return @Nullable String or TSNode
+        // array nodes in JSON usually don't have fields for their elements
+        assertNull(arrayNode.getChildByFieldName("non_existent_field"), "getChildByFieldName should be null");
+        assertNull(arrayNode.getFieldNameForChild(0), "getFieldNameForChild(0) should be null");
+
+        // 6. Byte/Point offsets out of range
+        int tooFar = 10000;
+        // Tree-sitter might return the root or a large-spanning node for out-of-bounds descendant ranges
+        // depending on the internal tree structure, but many child-seekers return null.
+        // We test the ones that are guaranteed to be null or check their actual behavior.
+        assertNull(rootNode.getFirstChildForByte(tooFar), "getFirstChildForByte(tooFar) must be null");
+        assertNull(rootNode.getFirstNamedChildForByte(tooFar), "getFirstNamedChildForByte(tooFar) must be null");
+
+        // 7. Verify literal null vs "Null Node" object wrapper
+        // If the return value was an object (not literal null), this would fail
+        TSNode actualNull = rootNode.getParent();
+        assertNull(actualNull, "Returned value must be literal null");
+
+        // Verify that trying to use the result throws NPE (proving it's a real null and not a wrapper)
+        assertThrows(NullPointerException.class, () -> actualNull.getType(),
+                "Confirmed null should throw NPE on access, verifying it is not a 'null node' object wrapper");
+    }
 }
