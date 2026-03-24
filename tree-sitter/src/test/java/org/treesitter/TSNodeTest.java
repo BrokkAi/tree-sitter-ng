@@ -289,7 +289,9 @@ class TSNodeTest {
         assertNull(arrayNode.getNamedChild(50), "arrayNode.getNamedChild(50) must be null");
 
         // 4. Descendant logic - root is not a child of its own children
-        assertNull(numberNode.getChildWithDescendant(rootNode), "numberNode.getChildWithDescendant(rootNode) must be null");
+        assertNull(
+                numberNode.getChildWithDescendant(rootNode),
+                "numberNode.getChildWithDescendant(rootNode) must be null");
 
         // 5. Fields - Check methods that return @Nullable String or TSNode
         // array nodes in JSON usually don't have fields for their elements
@@ -310,7 +312,9 @@ class TSNodeTest {
         assertNull(actualNull, "Returned value must be literal null");
 
         // Verify that trying to use the result throws NPE (proving it's a real null and not a wrapper)
-        assertThrows(NullPointerException.class, () -> actualNull.getType(),
+        assertThrows(
+                NullPointerException.class,
+                () -> actualNull.getType(),
                 "Confirmed null should throw NPE on access, verifying it is not a 'null node' object wrapper");
     }
 }
