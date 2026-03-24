@@ -60,7 +60,7 @@ public class TSNode {
      *
      * @param index The index of the named child to get.
      *
-     * @return The named child at the given index.
+     * @return The named child at the given index, or <code>null</code> if the index is out of bounds.
      */
     public @Nullable TSNode getNamedChild(int index) {
         TSNode ret = ts_node_named_child(this, index);
@@ -235,7 +235,7 @@ public class TSNode {
      *
      * @param index The index of the child to get.
      *
-     * @return The node's child at the given index.
+     * @return The node's child at the given index, or <code>null</code> if the index is out of bounds.
      */
     public @Nullable TSNode getChild(int index) {
         TSNode ret = ts_node_child(this, index);
@@ -478,10 +478,8 @@ public class TSNode {
      * @return Whether the two nodes are identical.
      */
     public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
-        if (Objects.equals(a, b)) return true;
-        if (a == null || b == null) {
-            return false;
-        }
+        if (a == b) return true;
+        if (a == null || b == null) return false;
         return ts_node_eq(a, b);
     }
 
