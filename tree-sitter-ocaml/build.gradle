@@ -3,7 +3,7 @@ tasks.named('downloadSource') {
 }
 
 tasks.named("buildNative") {
-    def newSrcDir = downloadDir.dir("tree-sitter-ocaml-$upstreamVersion/grammars/ocaml/src")
+    def newSrcDir = downloadDir.dir("tree-sitter-ocaml-${upstreamVersion}/grammars/ocaml/src")
     additionalCFiles = newSrcDir.asFileTree.matching {
         include("**/*.c")
     }

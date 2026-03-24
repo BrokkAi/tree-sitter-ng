@@ -3,7 +3,7 @@ tasks.named('downloadSource') {
 }
 
 tasks.named("buildNative") {
-    def newSrcDir = downloadDir.dir("tree-sitter-embedded-template-$upstreamVersion/src")
+    def newSrcDir = downloadDir.dir("tree-sitter-embedded-template-${upstreamVersion}/src")
     additionalCFiles = newSrcDir.asFileTree.matching {
         include("**/*.c")
         include("**/*.cpp")

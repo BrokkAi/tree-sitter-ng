@@ -3,7 +3,7 @@ tasks.named('downloadSource') {
 }
 
 tasks.named("buildNative") {
-    def newSrcDir = downloadDir.dir("tree-sitter-c-$upstreamVersion/src")
+    def newSrcDir = downloadDir.dir("tree-sitter-c-${upstreamVersion}/src")
     additionalCFiles = newSrcDir.asFileTree.matching {
         include("**/*.c")
     }
