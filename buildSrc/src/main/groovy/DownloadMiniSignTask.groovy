@@ -28,7 +28,7 @@ class DownloadMiniSignTask extends DefaultTask {
 
     @Internal
     Directory getMiniSignDir(){
-        return project.rootProject.layout.buildDirectory.dir("mini-sign").get()
+        return project.rootProject.layout.projectDirectory.dir("tools/mini-sign")
     }
 
     @Internal

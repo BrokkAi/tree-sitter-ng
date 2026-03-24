@@ -65,7 +65,7 @@ class BuildNativeTask extends DefaultTask{
 
     @Internal
     Directory getDownloadDir(){
-        return project.layout.buildDirectory.dir(project.name).get()
+        return project.rootProject.layout.projectDirectory.dir("tools/parsers/" + project.name)
     }
 
     @Input
