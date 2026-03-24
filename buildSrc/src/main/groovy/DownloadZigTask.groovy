@@ -161,7 +161,10 @@ class DownloadZigTask extends DefaultTask{
     }
 
     @TaskAction
-    downloadZig(){
+    void downloadZig(){
+        if (zigExe.asFile.exists()) {
+            return
+        }
         def mirrorUrls = mirrorUrls()
         downloadZigFromMirrors(mirrorUrls, zigZipFile.asFile, zigSignatureFile.asFile)
         miniSignExe.asFile.setExecutable(true, true)
