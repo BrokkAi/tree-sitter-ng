@@ -1,4 +1,4 @@
-
+// Note: This doesn't come with a corpora, the tests are validated in CI/CD on the grammar repo
 tasks.named('downloadSource') {
     url = "https://github.com/tree-sitter-grammars/tree-sitter-zig/archive/6479aa13f32f701c383083d8b28360ebd682fb7d.zip"
 }
