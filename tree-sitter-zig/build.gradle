@@ -1,0 +1,4 @@
+
+tasks.named('downloadSource') {
+    url = "https://github.com/tree-sitter-grammars/tree-sitter-zig/archive/refs/tags/v1.1.2.zip"
+}
