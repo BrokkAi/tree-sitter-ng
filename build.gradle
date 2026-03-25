@@ -252,7 +252,7 @@ tasks.register("gen", GenTask) {
 tasks.register("zipReleaseJars", Zip) {
     group = "build"
     description = "Bundles all subproject jars (classes, sources, and javadoc) into a single zip file."
-    archiveFileName = "tree-sitter-ng-release-jars.zip"
+    archiveFileName = "tree-sitter-ng-jar.zip"
     destinationDirectory = layout.buildDirectory.dir("distributions")
 
     subprojects.forEach { sub ->
