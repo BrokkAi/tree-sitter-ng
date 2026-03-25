@@ -110,7 +110,7 @@ class TreeSitter${capitalized}Test {
     }
 
     static void genProperties(File projectDir, String version){
-        def content = """libVersion=${version}"""
+        def content = """libVersion=0.1.0\nupstreamVersion=${version}"""
         try(OutputStream outputStream = new FileOutputStream(new File(projectDir, "gradle.properties"))){
             outputStream.withPrintWriter {it.write(content)}
         }
