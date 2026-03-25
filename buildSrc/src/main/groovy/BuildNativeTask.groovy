@@ -56,9 +56,17 @@ class BuildNativeTask extends DefaultTask{
         return project.version == "unspecified" ? "0.0.0" : project.version.toString()
     }
 
+    @Input
+    String getUpstreamVersion(){
+        if (project.hasProperty("upstreamVersion")) {
+            return project.property("upstreamVersion")
+        }
+        return getLibVersion()
+    }
+
     @Internal
     Directory getSrcDir(){
-        def version = getLibVersion()
+        def version = getUpstreamVersion()
         def srcDirName = (version == "0.0.0" || version == "unspecified") ? libName : "$libName-$version"
         return downloadDir.dir(srcDirName)
     }
@@ -111,21 +119,16 @@ class BuildNativeTask extends DefaultTask{
     FileCollection getParserSourceFiles() {
         def dir = srcDir.dir("src")
         if (!dir.asFile.exists()) return project.files()
-        dir.asFileTree.matching {
-            include("**/*.c")
-            include("**/*.h")
-            include("**/*.cpp")
-        }
+        def files = Utils.libFiles().collect { dir.file(it).asFile }.findAll { it.exists() }
+        return project.files(files)
     }
 
     @InputFiles
     FileCollection getParserCFiles() {
         def dir = srcDir.dir("src")
         if (!dir.asFile.exists()) return project.files()
-        dir.asFileTree.matching {
-            include("**/*.c")
-            include("**/*.cpp")
-        }
+        def files = Utils.libFiles().collect { dir.file(it).asFile }.findAll { it.exists() }
+        return project.files(files)
     }
 
     @Internal
@@ -184,9 +187,12 @@ class BuildNativeTask extends DefaultTask{
                 cmd.add("-I")
                 cmd.add(f.absolutePath)
             }
-            cmd.addAll(jniCFiles)
-            cmd.addAll(parserCFiles)
-            cmd.addAll(additionalCFiles)
+            def allFiles = new LinkedHashSet<File>()
+            allFiles.addAll(jniCFiles.files)
+            allFiles.addAll(parserCFiles.files)
+            allFiles.addAll(additionalCFiles.files)
+            cmd.addAll(allFiles.collect { it.absolutePath })
+            
             project.exec{
                 workingDir jniCDir
                 commandLine(cmd)

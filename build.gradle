@@ -181,6 +181,84 @@ subprojects {
     test {
         useJUnitPlatform()
         mustRunAfter("spotlessCheck")
+
+        // Test execution settings
+        testLogging {
+            events("passed", "skipped") // Only show passed/skipped during execution
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showExceptions = false
+            showCauses = false
+            showStackTraces = false
+            showStandardStreams = false
+        }
+
+        // Collect failed tests and their output for end summary
+        def failedTests = []
+        def testOutputs = [:]
+
+        // Helper function to format exception with full cause chain
+        def formatExceptionWithCauses = { Throwable e ->
+            if (e == null) return "Unknown error"
+            StringBuilder sb = new StringBuilder()
+            Throwable current = e
+            boolean isFirst = true
+            while (current != null) {
+                if (!isFirst) {
+                    sb.append("\n   Caused by: ")
+                } else {
+                    isFirst = false
+                }
+                sb.append(current.message ?: current.getClass().getName())
+                sb.append("\n")
+                current.stackTrace.each { frame ->
+                    sb.append("      at $frame\n")
+                }
+                current = current.cause
+            }
+            return sb.toString().trim()
+        }
+
+        // Capture test output for failed tests
+        addTestOutputListener(new TestOutputListener() {
+            @Override
+            void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
+                def testKey = "${testDescriptor.className}.${testDescriptor.name}"
+                if (outputEvent.destination == TestOutputEvent.Destination.StdOut ||
+                    outputEvent.destination == TestOutputEvent.Destination.StdErr) {
+                    testOutputs[testKey] = (testOutputs[testKey] ?: "") + outputEvent.message
+                }
+            }
+        })
+
+        // Capture individual test failures for later reporting
+        afterTest { desc, result ->
+            if (result.resultType == TestResult.ResultType.FAILURE) {
+                def testKey = "${desc.className}.${desc.name}"
+                def exceptionDetails = formatExceptionWithCauses(result.exception)
+                def output = testOutputs[testKey] ? "\n   Output:\n${testOutputs[testKey]}" : ""
+                failedTests << "❌ $testKey\n   $exceptionDetails$output"
+            }
+        }
+
+        // Show all failures grouped at the end
+        afterSuite { desc, result ->
+            if (desc.parent == null) { // Only execute once for the root suite
+                if (result.failedTestCount > 0) {
+                    println "\n" + "=".repeat(80)
+                    println "FAILED TESTS SUMMARY"
+                    println "=".repeat(80)
+                    failedTests.each { failure ->
+                        println "\n$failure"
+                    }
+                    println "\n" + "=".repeat(80)
+                    println "Total tests: ${result.testCount}"
+                    println "Passed: ${result.successfulTestCount}"
+                    println "Failed: ${result.failedTestCount}"
+                    println "Skipped: ${result.skippedTestCount}"
+                    println "=".repeat(80)
+                }
+            }
+        }
     }
 
     tasks.withType(ProcessResources).configureEach {

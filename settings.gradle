@@ -35,5 +35,5 @@ include 'tree-sitter-verilog'
 include 'tree-sitter-demo'
 include 'tree-sitter-tests'
 include 'tree-sitter-kotlin'
-
 include 'tree-sitter-angular'
+include 'tree-sitter-zig'

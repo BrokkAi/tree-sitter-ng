@@ -31,18 +31,26 @@ class DownloadSourceTask extends DefaultTask{
     }
 
     @Input
+    String getUpstreamVersion(){
+        if(project.hasProperty("upstreamVersion")){
+            return project.property("upstreamVersion")
+        }
+        return getLibVersion()
+    }
+
+    @Input
     String getLibName(){
         return project.name
     }
 
     @OutputFile
     RegularFile getZipFile(){
-        return downloadDir.file("$libName-v${libVersion}.zip")
+        return downloadDir.file("$libName-v${upstreamVersion}.zip")
     }
 
     @OutputDirectory
     Directory getSrcDir(){
-        def srcDirName = "$libName-$libVersion"
+        def srcDirName = "$libName-$upstreamVersion"
         return downloadDir.dir(srcDirName)
     }
 
@@ -53,7 +61,7 @@ class DownloadSourceTask extends DefaultTask{
 
     @Internal
     String getDefaultUrl(){
-        return "https://github.com/tree-sitter/${libName}/archive/refs/tags/v${libVersion}.zip"
+        return "https://github.com/tree-sitter/${libName}/archive/refs/tags/v${upstreamVersion}.zip"
     }
 
     @TaskAction
