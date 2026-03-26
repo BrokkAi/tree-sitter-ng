@@ -1,39 +1,63 @@
 # Tree Sitter NG
 
-Next generation Tree Sitter Java binding. A fork from https://github.com/bonede/tree-sitter-ng.
+[![CI](https://github.com/BrokkAi/tree-sitter-ng/actions/workflows/ci.yml/badge.svg)](https://github.com/BrokkAi/tree-sitter-ng/actions)
+[![Latest Release](https://img.shields.io/github/v/release/BrokkAi/tree-sitter-ng)](https://github.com/BrokkAi/tree-sitter-ng/releases)
 
-The artifacts are published under the group ID `ai.brokk`.
+Next generation Tree Sitter Java binding. A "Java-first" fork optimized for modern developer experience, safety, and ecosystem breadth.
 
-Start hacking!
+## Why this fork?
+
+*   **Ecosystem Breadth**: Support for the full modern stack (Kotlin, Groovy, Zig, Angular, Vue.js) which the upstream project refuses to maintain.
+*   **Modern Java Ergonomics**: Moving away from C-style wrappers toward a library that feels native to Java 21+.
+    *   **Strict Null Safety**: Integration with **JSpecify** and **Error Prone** for compile-time safety at the JNI boundary.
+    *   **Idiomatic Patterns**: Lazy collection patterns (e.g., `getNamedChildren()`) and strict handling (e.g., `parseStringOrThrow()`).
+    *   **Resource Management**: Automated native memory management using the **Cleaner API** with `AutoCloseable` support.
+
+### Start hacking!
 
 ```java
-// imports are omitted
-class Main {
-    public static void main(String[] args) {
-        // Core classes implement AutoCloseable. They are also registered in the Cleaner
-        // for phantom-reachable cleanup, but explicit closing is recommended.
-        try (TSParser parser = new TSParser();
-             // Use `TSLanguage.load` instead if you would like to load parsers as shared object(.so, .dylib, or .dll).
-             // TSLanguage.load("path/to/languane/shared/object", "tree_sitter_some_lang");
-             TSLanguage json = new TreeSitterJson()) {
+try (TSParser parser = new TSParser();
+     TSLanguage json = new TreeSitterJson()) {
 
-            parser.setLanguage(json);
-            // Use parseStringOrThrow for strict null handling
-            try (TSTree tree = parser.parseStringOrThrow(null, "[1, null]")) {
-                TSNode rootNode = tree.getRootNode();
-                
-                // You can access children via index
-                TSNode arrayNode = rootNode.getNamedChild(0);
+    parser.setLanguage(json);
+    
+    // Use parseStringOrThrow for strict null handling
+    try (TSTree tree = parser.parseStringOrThrow(null, "[1, null]")) {
+        TSNode rootNode = tree.getRootNode();
+        
+        // Access children via index
+        TSNode arrayNode = rootNode.getNamedChild(0);
 
-                // Or use the new lazy list pattern for easier iteration
-                for (TSNode child : arrayNode.getNamedChildren()) {
-                    System.out.println(child.getType());
-                }
-            }
+        // Or use the new lazy list pattern for easier iteration
+        for (TSNode child : arrayNode.getNamedChildren()) {
+            System.out.println(child.getType());
         }
     }
 }
 ```
+
+## Supported Grammars
+
+We maintain both official and high-demand community grammars.
+
+| Language | Status | Implementation |
+| :--- | :--- | :--- |
+| Java, Python, C++, Go | **Official** | Upstream maintained |
+| Kotlin, Groovy | **Community** | First-class support in this fork |
+| Vue, Angular, Zig | **Community** | Extended ecosystem support |
+
+## Technical Design
+
+### JNI Safety & Memory Management
+We bridge the gap between Java's GC and C's manual memory management using a dual-layered approach:
+1.  **AutoCloseable**: Primary resources (Parsers, Trees, Cursors) implement `AutoCloseable` for deterministic cleanup via `try-with-resources`.
+2.  **Cleaner API**: A `Cleaner` fallback ensures that if a Java object is garbage collected without being closed, the underlying native memory is still freed, preventing leaks in long-running processes.
+
+### Type Safety
+By utilizing **JSpecify** annotations and **Error Prone** static analysis, we enforce null-safety across the JNI boundary. This ensures that the "C-heavy" nature of Tree-Sitter doesn't lead to `NullPointerException` or JVM crashes in your Java application.
+
+### Zig Cross-Compilation
+We use **Zig** as our C/C++ compiler toolchain. This allows us to produce perfectly matched native binaries for Linux, macOS, and Windows (x86_64 and aarch64) from a single CI environment without complex cross-compilation headers.
 
 # Commands
 
@@ -48,7 +72,8 @@ class Main {
 # Releases
 
 The project distinguishes between the **Java library version** (`libVersion`) and the **upstream grammar version** (
-`upstreamVersion`).
+`upstreamVersion`). We **are not** currently working on Maven Central publishing. For now, we provide a pre-bundled ZIP
+to ensure all native binaries are perfectly matched to the library version.
 
 ## Lockstep Versioning
 
@@ -94,14 +119,16 @@ tree-sitter C code is downloaded and compiled.
 
 # Integrating Tree-Sitter-NG into Gradle
 
-Because these libraries contain native components and are hosted as a bundled ZIP release on GitHub, the integration 
+Because these libraries contain native components and are hosted as a bundled ZIP release on GitHub, the integration
 requires a two-step process:
+
 1. **Automated Retrieval**: A Gradle task to download and extract the JARs.
 2. **Repository Configuration**: A `flatDir` repository that points to the extracted artifacts.
 
 ## 1. Define Versions in `libs.versions.toml`
 
-First, add the coordinates to your Version Catalog. We use a custom namespace (`ai.brokk`) to avoid collisions with upstream libraries.
+First, add the coordinates to your Version Catalog. We use a custom namespace (`ai.brokk`) to avoid collisions with
+upstream libraries.
 
 ```toml
 [versions]
@@ -119,7 +146,8 @@ treesitter-python = { group = "ai.brokk", name = "tree-sitter-python", version.r
 
 ## 2. Configure the Download Task
 
-In your **root** `build.gradle.kts`, create a task to handle the lifecycle of the native ZIP. This task is incremental, meaning it only runs when the version changes.
+In your **root** `build.gradle.kts`, create a task to handle the lifecycle of the native ZIP. This task is incremental,
+meaning it only runs when the version changes.
 
 ```kotlin
 tasks.register("downloadTreeSitterNg") {
@@ -141,7 +169,7 @@ tasks.register("downloadTreeSitterNg") {
             from(zipTree(zipFile))
             into(cacheDir)
             // Extract only the language directories
-            include("tree-sitter*/**") 
+            include("tree-sitter*/**")
             includeEmptyDirs = false
         }
     }
@@ -150,9 +178,11 @@ tasks.register("downloadTreeSitterNg") {
 
 ## 3. Set Up the Local Repository
 
-In the `allprojects` or `subprojects` block of your root build script, configure Gradle to look into the extracted folders for dependencies.
+In the `allprojects` or `subprojects` block of your root build script, configure Gradle to look into the extracted
+folders for dependencies.
 
-> **Note:** `flatDir` does not support recursive searching, so you must point it directly to the subdirectories containing the `.jar` files.
+> **Note:** `flatDir` does not support recursive searching, so you must point it directly to the subdirectories
+> containing the `.jar` files.
 
 ```kotlin
 allprojects {
@@ -172,7 +202,8 @@ allprojects {
 
 ## 4. Usage in Subprojects
 
-In your application or library module (e.g., `app/build.gradle.kts`), declare the dependencies and ensure the download task runs before compilation.
+In your application or library module (e.g., `app/build.gradle.kts`), declare the dependencies and ensure the download
+task runs before compilation.
 
 ```kotlin
 dependencies {
@@ -190,15 +221,20 @@ tasks.withType<JavaCompile> {
 ## Important Considerations
 
 ### Why Use `flatDir`?
-Since these JARs are extracted from a ZIP and do not include Maven `pom.xml` metadata, `flatDir` is the simplest way to 
+
+Since these JARs are extracted from a ZIP and do not include Maven `pom.xml` metadata, `flatDir` is the simplest way to
 treat a local directory as a repository. It matches the filename (e.g., `tree-sitter-java.jar`) to the dependency name.
 
 ### Native Access
-When running your application with these libraries, remember that Tree-sitter uses JNI (Java Native Interface). If you 
-are using JDK 21+, you may need to pass the following JVM argument to allow native access: `--enable-native-access=ALL-UNNAMED`
+
+When running your application with these libraries, remember that Tree-sitter uses JNI (Java Native Interface). If you
+are using JDK 21+, you may need to pass the following JVM argument to allow native access:
+`--enable-native-access=ALL-UNNAMED`
 
 ### Cleaning
-The artifacts are stored in the `.gradle` folder. Running `./gradlew clean` typically does not remove this folder. If you need to force a re-download, delete the `.gradle/tree-sitter-ng` directory manually.
+
+The artifacts are stored in the `.gradle` folder. Running `./gradlew clean` typically does not remove this folder. If
+you need to force a re-download, delete the `.gradle/tree-sitter-ng` directory manually.
 
 # Developers: How to Add a Parser
 
@@ -297,7 +333,7 @@ class Main {
 
                 // Traverse the AST tree with DOM-like APIs
                 TSNode rootNode = tree.getRootNode();
-                
+
                 // Access children as a standard Java List
                 List<TSNode> children = rootNode.getChildren();
                 TSNode arrayNode = rootNode.getNamedChild(0);
