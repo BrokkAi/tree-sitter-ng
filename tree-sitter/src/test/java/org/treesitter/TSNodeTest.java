@@ -56,8 +56,18 @@ class TSNodeTest {
     @Test
     void getChildren() {
         List<TSNode> children = rootNode.getChildren();
-        assertEquals(rootNode.getChildCount(), children.size());
-        assertEquals("array", children.get(0).getType());
+        int count = rootNode.getChildCount();
+        assertEquals(count, children.size());
+        for (int i = 0; i < count; i++) {
+            assertEquals(rootNode.getChild(i), children.get(i));
+        }
+        // Verify iteration
+        int i = 0;
+        for (TSNode child : children) {
+            assertEquals(rootNode.getChild(i++), child);
+        }
+        assertEquals(count, i);
+
         assertThrows(IndexOutOfBoundsException.class, () -> children.get(-1));
         assertThrows(IndexOutOfBoundsException.class, () -> children.get(children.size()));
     }
@@ -65,9 +75,18 @@ class TSNodeTest {
     @Test
     void getNamedChildren() {
         List<TSNode> namedChildren = arrayNode.getNamedChildren();
-        assertEquals(arrayNode.getNamedChildCount(), namedChildren.size());
-        assertEquals("number", namedChildren.get(0).getType());
-        assertEquals("null", namedChildren.get(1).getType());
+        int count = arrayNode.getNamedChildCount();
+        assertEquals(count, namedChildren.size());
+        for (int i = 0; i < count; i++) {
+            assertEquals(arrayNode.getNamedChild(i), namedChildren.get(i));
+        }
+        // Verify iteration
+        int i = 0;
+        for (TSNode namedChild : namedChildren) {
+            assertEquals(arrayNode.getNamedChild(i++), namedChild);
+        }
+        assertEquals(count, i);
+
         assertThrows(IndexOutOfBoundsException.class, () -> namedChildren.get(-1));
         assertThrows(IndexOutOfBoundsException.class, () -> namedChildren.get(namedChildren.size()));
     }
