@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
-import org.jspecify.annotations.Nullable;
 
 public class TSTree implements AutoCloseable {
 
@@ -31,10 +30,6 @@ public class TSTree implements AutoCloseable {
     TSTree(long ptr, TSLanguage language) {
         this.ptr = ptr;
         this.language = language;
-        if (ts_tree_root_node(ptr) == null) {
-            ts_tree_delete(ptr);
-            throw new IllegalStateException("Tree created with null root node");
-        }
         this.cleanable = CleanerRunner.register(this, new TSTreeCleanAction(ptr));
     }
 
