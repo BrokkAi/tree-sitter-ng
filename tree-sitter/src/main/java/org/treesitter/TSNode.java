@@ -16,6 +16,14 @@ public class TSNode {
     private long idPtr;
     private long treePtr;
 
+    /**
+     * Check if the node is null.
+     * @return True if the node is null.
+     */
+    public boolean isNull() {
+        return idPtr == 0;
+    }
+
     @SuppressWarnings("NullAway.Init")
     private TSTree tree;
 
