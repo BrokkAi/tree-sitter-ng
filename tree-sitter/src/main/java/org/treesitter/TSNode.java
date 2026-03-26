@@ -89,7 +89,9 @@ public class TSNode {
                 }
                 TSNode node = getChild(index);
                 if (node == null) {
-                    throw new IllegalStateException("Child at index " + index + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
+                    throw new IllegalStateException(
+                            "Child at index " + index
+                                    + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
                 }
                 return node;
             }
@@ -119,7 +121,9 @@ public class TSNode {
                 }
                 TSNode node = getNamedChild(index);
                 if (node == null) {
-                    throw new IllegalStateException("Named child at index " + index + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
+                    throw new IllegalStateException(
+                            "Named child at index " + index
+                                    + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
                 }
                 return node;
             }
