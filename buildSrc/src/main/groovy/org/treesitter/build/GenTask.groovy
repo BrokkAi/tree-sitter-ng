@@ -110,14 +110,14 @@ class TreeSitter${capitalized}Test {
     }
 
     static void genProperties(File projectDir, String version) {
-        def content = """libVersion=0.1.0\nupstreamVersion=${version}"""
+        def content = """upstreamVersion=${version}"""
         try (OutputStream outputStream = new FileOutputStream(new File(projectDir, "gradle.properties"))) {
             outputStream.withPrintWriter { it.write(content) }
         }
     }
 
 
-    static void genBuildGradle(File projectDir, String libShortName, String url) {
+    static void genBuildGradle(File projectDir, String url) {
         def gradleFile = new File(projectDir, "build.gradle")
         def content = """
 tasks.named('downloadSource') {
@@ -192,7 +192,7 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TreeSitter${capitalized}_tree_1sitte
         genPackageInfo(projectDir)
         genJavaFile(projectDir, libShortName)
         genJniCFile(projectDir, libShortName)
-        genBuildGradle(projectDir, libShortName, url)
+        genBuildGradle(projectDir, url)
         genJavaTestFile(projectDir, libShortName)
         updateSettingsGradle(project, libShortName)
     }

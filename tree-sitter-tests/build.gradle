@@ -1,4 +1,4 @@
 dependencies {
+    // tree-sitter dependency is handled by the root build.gradle subprojects block
     testImplementation project(":tree-sitter-scala")
-    implementation project(":tree-sitter")
 }
