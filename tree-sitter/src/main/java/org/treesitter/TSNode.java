@@ -87,7 +87,11 @@ public class TSNode {
                 if (index < 0 || index >= size()) {
                     throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
                 }
-                return Objects.requireNonNull(getChild(index));
+                TSNode node = getChild(index);
+                if (node == null) {
+                    throw new IllegalStateException("Child at index " + index + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
+                }
+                return node;
             }
 
             @Override
@@ -113,7 +117,11 @@ public class TSNode {
                 if (index < 0 || index >= size()) {
                     throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
                 }
-                return Objects.requireNonNull(getNamedChild(index));
+                TSNode node = getNamedChild(index);
+                if (node == null) {
+                    throw new IllegalStateException("Named child at index " + index + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
+                }
+                return node;
             }
 
             @Override
