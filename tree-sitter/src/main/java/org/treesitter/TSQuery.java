@@ -284,6 +284,9 @@ public class TSQuery implements AutoCloseable {
                         throw new TSQueryException("Predicate must begin with a string");
                     }
                     String name = getStringValueForId(firstStep.getValueId());
+                    if (name == null) {
+                        throw new TSQueryException("Predicate name is null for id: " + firstStep.getValueId());
+                    }
 
                     if (TSQueryPredicate.TSQueryPredicateEq.NAMES.contains(name)) {
                         patternPredicates.add(handleEq(name, steps, stepIndex, nargs));
@@ -319,9 +322,17 @@ public class TSQuery implements AutoCloseable {
         TSQueryPredicateStep arg2 = steps[start + 2];
         int arg2ValueId = arg2.getValueId();
         boolean isCapture = arg2.getType() == TSQueryPredicateStepType.TSQueryPredicateStepTypeCapture;
-        String literalValue = isCapture ? "" : getStringValueForId(arg2ValueId);
+        String literalValue = isCapture ? "" : getNonNullStringValueForId(arg2ValueId);
 
         return new TSQueryPredicate.TSQueryPredicateEq(name, captureId, literalValue, arg2ValueId, isCapture);
+    }
+
+    private String getNonNullStringValueForId(int id) {
+        String value = getStringValueForId(id);
+        if (value == null) {
+            throw new TSException("String value is null for id: " + id);
+        }
+        return value;
     }
 
     private TSQueryPredicate handleMatch(String name, TSQueryPredicateStep[] steps, int start, int nargs) {
@@ -338,7 +349,7 @@ public class TSQuery implements AutoCloseable {
         if (arg2.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("Second argument to #%s must be a string literal", name));
         }
-        String patternStr = getStringValueForId(arg2.getValueId());
+        String patternStr = getNonNullStringValueForId(arg2.getValueId());
 
         return new TSQueryPredicate.TSQueryPredicateMatch(name, captureId, patternStr);
     }
@@ -360,7 +371,7 @@ public class TSQuery implements AutoCloseable {
             if (arg.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
                 throw new TSQueryException(String.format("Arguments to #%s must be string literals", name));
             }
-            values.add(getStringValueForId(arg.getValueId()));
+            values.add(getNonNullStringValueForId(arg.getValueId()));
         }
 
         return new TSQueryPredicate.TSQueryPredicateAnyOf(name, captureId, values);
@@ -374,13 +385,13 @@ public class TSQuery implements AutoCloseable {
         if (arg1.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("First argument to #%s must be a string literal (key)", name));
         }
-        String key = getStringValueForId(arg1.getValueId());
+        String key = getNonNullStringValueForId(arg1.getValueId());
 
         TSQueryPredicateStep arg2 = steps[start + 2];
         if (arg2.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("Second argument to #%s must be a string literal (value)", name));
         }
-        String value = getStringValueForId(arg2.getValueId());
+        String value = getNonNullStringValueForId(arg2.getValueId());
 
         return new TSQueryPredicate.TSQueryPredicateSet(name, key, value);
     }
@@ -393,13 +404,13 @@ public class TSQuery implements AutoCloseable {
         if (arg1.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("First argument to #%s must be a string literal (key)", name));
         }
-        String key = getStringValueForId(arg1.getValueId());
+        String key = getNonNullStringValueForId(arg1.getValueId());
 
         TSQueryPredicateStep arg2 = steps[start + 2];
         if (arg2.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("Second argument to #%s must be a string literal (value)", name));
         }
-        String value = getStringValueForId(arg2.getValueId());
+        String value = getNonNullStringValueForId(arg2.getValueId());
 
         return new TSQueryPredicate.TSQueryPredicateIs(name, key, value);
     }
