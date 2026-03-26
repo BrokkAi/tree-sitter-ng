@@ -3,15 +3,20 @@
 [![CI](https://github.com/BrokkAi/tree-sitter-ng/actions/workflows/main.yml/badge.svg)](https://github.com/BrokkAi/tree-sitter-ng/actions)
 [![Latest Release](https://img.shields.io/github/v/release/BrokkAi/tree-sitter-ng)](https://github.com/BrokkAi/tree-sitter-ng/releases)
 
-Next generation Tree Sitter Java binding. A "Java-first" fork optimized for modern developer experience, safety, and ecosystem breadth.
+Next generation Tree Sitter Java binding. A "Java-first" fork optimized for modern developer experience, safety, and
+ecosystem breadth.
 
 ## Why this fork?
 
-*   **Ecosystem Breadth**: Support for the full modern stack (Kotlin, Groovy, Zig, Angular, Vue.js) which the upstream project refuses to maintain.
-*   **Modern Java Ergonomics**: Moving away from C-style wrappers toward a library that feels native to Java 21+.
-    *   **Strict Null Safety**: Integration with **JSpecify** and **Error Prone** for compile-time safety at the JNI boundary.
-    *   **Idiomatic Patterns**: Lazy collection patterns (e.g., `getNamedChildren()`) and strict handling (e.g., `parseStringOrThrow()`).
-    *   **Resource Management**: Automated native memory management using the **Cleaner API** with `AutoCloseable` support.
+* **Ecosystem Breadth**: Expanded support for the modern stack (Kotlin, Zig, Angular, Vue.js), supplementing the
+  official grammars maintained by the upstream project.
+* **Modern Java Ergonomics**: Moving away from C-style wrappers toward a library that feels native to Java 21+.
+    * **Strict Null Safety**: Integration with **JSpecify** and **Error Prone** for compile-time safety at the JNI
+      boundary.
+    * **Idiomatic Patterns**: Lazy collection patterns (e.g., `getNamedChildren()`) and strict handling (e.g.,
+      `parseStringOrThrow()`).
+    * **Resource Management**: Automated native memory management using the **Cleaner API** with `AutoCloseable`
+      support.
 
 ### Start hacking!
 
@@ -40,24 +45,33 @@ try (TSParser parser = new TSParser();
 
 We maintain both official and high-demand community grammars.
 
-| Language | Status | Implementation |
-| :--- | :--- | :--- |
-| Java, Python, C++, Go | **Official** | Upstream maintained |
-| Kotlin, Groovy | **Community** | First-class support in this fork |
-| Vue, Angular, Zig | **Community** | Extended ecosystem support |
+| Language                    | Status        | Support Level                      |
+|:----------------------------|:--------------|:-----------------------------------|
+| Java, Python, C++, Go, etc. | **Official**  | Upstream grammars, bundled here    |
+| Kotlin, Zig                 | **Community** | Maintained & packaged in this fork |
+| Vue, Angular                | **Framework** | Extended support for web stack     |
 
 ## Technical Design
 
 ### JNI Safety & Memory Management
+
 We bridge the gap between Java's GC and C's manual memory management using a dual-layered approach:
-1.  **AutoCloseable**: Primary resources (Parsers, Trees, Cursors) implement `AutoCloseable` for deterministic cleanup via `try-with-resources`.
-2.  **Cleaner API**: A `Cleaner` fallback ensures that if a Java object is garbage collected without being closed, the underlying native memory is still freed, preventing leaks in long-running processes.
+
+1. **AutoCloseable**: Primary resources (Parsers, Trees, Cursors) implement `AutoCloseable` for deterministic cleanup
+   via `try-with-resources`.
+2. **Cleaner API**: A `Cleaner` fallback ensures that if a Java object is garbage collected without being closed, the
+   underlying native memory is still freed, preventing leaks in long-running processes.
 
 ### Type Safety
-By utilizing **JSpecify** annotations and **Error Prone** static analysis, we enforce null-safety across the JNI boundary. This ensures that the "C-heavy" nature of Tree-Sitter doesn't lead to `NullPointerException` or JVM crashes in your Java application.
+
+By utilizing **JSpecify** annotations and **Error Prone** static analysis, we enforce null-safety across the JNI
+boundary. This ensures that the "C-heavy" nature of Tree-Sitter doesn't lead to `NullPointerException` or JVM crashes in
+your Java application.
 
 ### Zig Cross-Compilation
-We use **Zig** as our C/C++ compiler toolchain. This allows us to produce perfectly matched native binaries for Linux, macOS, and Windows (x86_64 and aarch64) from a single CI environment without complex cross-compilation headers.
+
+We use **Zig** as our C/C++ compiler toolchain. This allows us to produce perfectly matched native binaries for Linux,
+macOS, and Windows (x86_64 and aarch64) from a single CI environment without complex cross-compilation headers.
 
 # Commands
 
@@ -119,11 +133,14 @@ tree-sitter C code is downloaded and compiled.
 
 ## Installation
 
-Currently, we distribute perfectly matched native binaries via a pre-bundled ZIP to avoid Git history bloat. For full instructions on how to automate fetching and caching these dependencies via Gradle `flatDir`, please see our [Installation Guide](INSTALL.md).
+Currently, we distribute perfectly matched native binaries via a pre-bundled ZIP to avoid Git history bloat. For full
+instructions on how to automate fetching and caching these dependencies via Gradle `flatDir`, please see
+our [Installation Guide](INSTALL.md).
 
 ## Contributing
 
-Want to add a new community grammar? Check out our [Guide to Adding Parsers](CONTRIBUTING.md) to see how our code-generation task handles the boilerplate.
+Want to add a new community grammar? Check out our [Guide to Adding Parsers](CONTRIBUTING.md) to see how our
+code-generation task handles the boilerplate.
 
 # Built-in Parsers
 
