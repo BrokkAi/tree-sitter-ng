@@ -32,10 +32,6 @@ public class TSTree implements AutoCloseable {
         if (ptr == 0) {
             throw new IllegalArgumentException("Cannot create a TSTree with a null pointer");
         }
-        if (ts_tree_root_node(ptr) == null) {
-            ts_tree_delete(ptr);
-            throw new IllegalStateException("Tree created with null root node");
-        }
         this.ptr = ptr;
         this.language = language;
         this.cleanable = CleanerRunner.register(this, new TSTreeCleanAction(ptr));
