@@ -230,13 +230,20 @@ class Main {
                     rootCursor.gotoFirstChild();
                 }
 
-                // Or query the AST with S-expression
+                // Or query the AST with S-expression using modern Stream API
                 try (TSQuery query = new TSQuery(json, "((document) @root)");
                      TSQueryCursor cursor = new TSQueryCursor()) {
                     cursor.exec(query, rootNode);
-                    TSQueryMatch match = new TSQueryMatch();
-                    while (cursor.nextMatch(match)) {
-                        // do something with the match
+
+                    // Use .stream() for functional patterns. 
+                    // Note: use .copy() if you need to collect matches, as the cursor reuses match objects!
+                    List<TSQueryMatch> matches = cursor.stream()
+                            .map(TSQueryMatch::copy)
+                            .collect(Collectors.toList());
+
+                    // Or use the enhanced for-loop (Iterable)
+                    for (TSQueryMatch match : cursor) {
+                        System.out.println("Pattern index: " + match.getPatternIndex());
                     }
                 }
 
