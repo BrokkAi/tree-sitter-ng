@@ -8,20 +8,20 @@ import org.gradle.api.tasks.options.Option
 
 class GenTask extends DefaultTask {
 
-    static String subProjectName(String libShortName){
+    static String subProjectName(String libShortName) {
         return "tree-sitter-$libShortName"
     }
 
-    static String capitalizedLibName(String libShortName){
-        return libShortName.split("-").collect {it.capitalize()}.join("")
+    static String capitalizedLibName(String libShortName) {
+        return libShortName.split("-").collect { it.capitalize() }.join("")
     }
 
-    static String libIdentifierName(String libShortName){
+    static String libIdentifierName(String libShortName) {
         return libShortName.replace("-", "_")
     }
 
 
-    static void genJavaFile(File projectDir, String libShortName){
+    static void genJavaFile(File projectDir, String libShortName) {
         def capitalized = capitalizedLibName(libShortName)
         def className = "TreeSitter$capitalized"
         def idName = libIdentifierName(libShortName)
@@ -66,8 +66,8 @@ public class $className extends TSLanguage {
 }
 """
         classFile.getParentFile().mkdirs()
-        try (OutputStream outputStream = new FileOutputStream(classFile)){
-            outputStream.withPrintWriter {writer -> writer.write(content)}
+        try (OutputStream outputStream = new FileOutputStream(classFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content) }
         }
     }
 
@@ -85,7 +85,7 @@ import org.jspecify.annotations.NullMarked;
         }
     }
 
-    static void genJavaTestFile(File projectDir, String libShortName){
+    static void genJavaTestFile(File projectDir, String libShortName) {
         def capitalized = capitalizedLibName(libShortName)
         def classFile = new File(projectDir, "src/test/java/org/treesitter/TreeSitter${capitalized}Test.java")
         def content = """
@@ -104,34 +104,36 @@ class TreeSitter${capitalized}Test {
 }
 """
         classFile.getParentFile().mkdirs()
-        try (OutputStream outputStream = new FileOutputStream(classFile)){
-            outputStream.withPrintWriter {writer -> writer.write(content)}
+        try (OutputStream outputStream = new FileOutputStream(classFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content) }
         }
     }
 
-    static void genProperties(File projectDir, String version){
-        def content = """libVersion=0.1.0\nupstreamVersion=${version}"""
-        try(OutputStream outputStream = new FileOutputStream(new File(projectDir, "gradle.properties"))){
-            outputStream.withPrintWriter {it.write(content)}
+    static void genProperties(File projectDir, String version) {
+        def content = """upstreamVersion=${version}"""
+        try (OutputStream outputStream = new FileOutputStream(new File(projectDir, "gradle.properties"))) {
+            outputStream.withPrintWriter { it.write(content) }
         }
     }
 
 
-    static void genBuildGradle(File projectDir, String libShortName, String url){
+    static void genBuildGradle(File projectDir, String url) {
         def gradleFile = new File(projectDir, "build.gradle")
         def content = """
 tasks.named('downloadSource') {
     url = "$url"
 }
 """
-        try (OutputStream outputStream = new FileOutputStream(gradleFile)){
-            outputStream.withPrintWriter {writer -> writer.write(content)}
+        try (OutputStream outputStream = new FileOutputStream(gradleFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content) }
         }
     }
-    static String jniMethodName(String idName){
+
+    static String jniMethodName(String idName) {
         return idName.replace("_", "_1")
     }
-    static void genJniCFile(File projectDir, String libShortName){
+
+    static void genJniCFile(File projectDir, String libShortName) {
         def capitalized = capitalizedLibName(libShortName)
         def cFile = new File(projectDir, "src/main/c/org_treesitter_TreeSitter${capitalized}.c")
         def idName = libIdentifierName(libShortName)
@@ -150,36 +152,38 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TreeSitter${capitalized}_tree_1sitte
 }
 """
         cFile.getParentFile().mkdirs()
-        try (OutputStream outputStream = new FileOutputStream(cFile)){
-            outputStream.withPrintWriter {writer -> writer.write(content)}
+        try (OutputStream outputStream = new FileOutputStream(cFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content) }
         }
     }
 
-    static void updateSettingsGradle(Project project, String libShortName){
+    static void updateSettingsGradle(Project project, String libShortName) {
         def projectLine = "include 'tree-sitter-$libShortName'"
         def settingsFile = project.rootProject.file("settings.gradle")
         def shouldUpdate = true
 
-        try(InputStream inputStream = new FileInputStream(settingsFile)){
-            inputStream.withReader {reader ->
-                reader.eachLine {line -> {
-                    if(line == projectLine){
-                        shouldUpdate = false
+        try (InputStream inputStream = new FileInputStream(settingsFile)) {
+            inputStream.withReader { reader ->
+                reader.eachLine { line ->
+                    {
+                        if (line == projectLine) {
+                            shouldUpdate = false
+                        }
                     }
-                }}
+                }
             }
         }
-        if(shouldUpdate){
-            try(OutputStream outputStream = new FileOutputStream(settingsFile, true)){
-                outputStream.withPrintWriter {writer -> writer.println(System.lineSeparator() + projectLine)}
+        if (shouldUpdate) {
+            try (OutputStream outputStream = new FileOutputStream(settingsFile, true)) {
+                outputStream.withPrintWriter { writer -> writer.println(projectLine + System.lineSeparator()) }
             }
         }
     }
 
-    static void genAll(Project project, String libShortName, String version, String url){
+    static void genAll(Project project, String libShortName, String version, String url) {
         def subProjectName = subProjectName(libShortName)
         def projectDir = project.rootProject.layout.projectDirectory.dir(subProjectName).asFile
-        if(projectDir.exists()){
+        if (projectDir.exists()) {
             throw new GradleException("Can't generate sub project. $projectDir existed!")
         }
         project.rootProject.mkdir(projectDir)
@@ -188,7 +192,7 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TreeSitter${capitalized}_tree_1sitte
         genPackageInfo(projectDir)
         genJavaFile(projectDir, libShortName)
         genJniCFile(projectDir, libShortName)
-        genBuildGradle(projectDir, libShortName, url)
+        genBuildGradle(projectDir, url)
         genJavaTestFile(projectDir, libShortName)
         updateSettingsGradle(project, libShortName)
     }
@@ -198,7 +202,7 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TreeSitter${capitalized}_tree_1sitte
     private String version
 
     @Option(option = "parser-zip", description = "Parser zip url")
-     void setUrl(String url) {
+    void setUrl(String url) {
         this.url = url
     }
 
@@ -215,7 +219,7 @@ JNIEXPORT jlong JNICALL Java_org_treesitter_TreeSitter${capitalized}_tree_1sitte
 
     @TaskAction
     void gen() {
-        if(url == null || libShortName == null || version == null){
+        if (url == null || libShortName == null || version == null) {
             throw new GradleException("Require options missing! \nExample:\n  ./gradlew gen --parser-name=bash --parser-version=0.1.1 --parser-zip=https://exmaple.org/bash.zip")
         }
         genAll(project, libShortName, version, url)

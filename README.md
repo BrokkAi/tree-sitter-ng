@@ -252,6 +252,7 @@ This is also how you can add an "unofficial" or community parser.
 | `tree-sitter-tsx`               | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-typescript/archive/refs/tags/v0.23.2.zip)                           |
 | `tree-sitter-typescript`        | `0.23.2`        | [official](https://github.com/tree-sitter/tree-sitter-typescript/archive/refs/tags/v0.23.2.zip)                           |
 | `tree-sitter-verilog`           | `1.0.3`         | [official](https://github.com/tree-sitter/tree-sitter-verilog/archive/refs/tags/v1.0.3.zip)                               |
+| `tree-sitter-vue`               | `ce8011a4`      | [community](https://github.com/tree-sitter-grammars/tree-sitter-vue/archive/ce8011a414fdf8091f4e4071752efc376f4afb08.zip) |
 | `tree-sitter-zig`               | `6479aa13`      | [community](https://github.com/tree-sitter-grammars/tree-sitter-zig/archive/6479aa13f32f701c383083d8b28360ebd682fb7d.zip) |
 
 # API Tour
