@@ -46,11 +46,11 @@ try (TSParser parser = new TSParser();
 
 We maintain both official and high-demand community grammars.
 
-| Language                    | Status        | Support Level                      |
+| Language                    | Source        | Support Level                      |
 |:----------------------------|:--------------|:-----------------------------------|
 | Java, Python, C++, Go, etc. | **Official**  | Upstream grammars, bundled here    |
 | Kotlin, Zig                 | **Community** | Maintained & packaged in this fork |
-| Vue, Angular                | **Framework** | Extended support for web stack     |
+| Vue, Angular                | **Community** | Extended support for web stack     |
 
 ## Technical Design
 
