@@ -88,11 +88,10 @@ public class TSTree implements AutoCloseable {
     public @Nullable TSNode getRootNode() {
         ensureOpen();
         TSNode node = ts_tree_root_node(ptr);
-        if (node != null && !node.isNull()) {
+        if (node != null) {
             node.setTree(this);
-            return node;
         }
-        return null;
+        return node;
     }
 
     /**
@@ -106,11 +105,10 @@ public class TSTree implements AutoCloseable {
     public @Nullable TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
         ensureOpen();
         TSNode node = ts_tree_root_node_with_offset(ptr, offsetBytes, offsetPoint);
-        if (node != null && !node.isNull()) {
+        if (node != null) {
             node.setTree(this);
-            return node;
         }
-        return null;
+        return node;
     }
 
     /**

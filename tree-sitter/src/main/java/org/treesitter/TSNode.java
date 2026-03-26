@@ -20,7 +20,7 @@ public class TSNode {
      * Check if the node is null.
      * @return True if the node is null.
      */
-    public boolean isNull() {
+    boolean isNull() {
         return idPtr == 0;
     }
 
