@@ -140,7 +140,7 @@ public class TSNode {
      *
      * @return The node's type.
      */
-    public String getType() {
+    public @Nullable String getType() {
         return ts_node_type(this);
     }
 
@@ -562,7 +562,7 @@ public class TSNode {
      *
      * @return Node grammar type
      */
-    public String getGrammarType() {
+    public @Nullable String getGrammarType() {
         return TSParser.ts_node_grammar_type(this);
     }
 

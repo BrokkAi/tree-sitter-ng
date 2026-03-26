@@ -1,6 +1,7 @@
 package org.treesitter;
 
 import java.lang.ref.Cleaner.Cleanable;
+import org.jspecify.annotations.Nullable;
 
 public abstract class TSLanguage implements AutoCloseable {
     private long ptr;
@@ -61,7 +62,7 @@ public abstract class TSLanguage implements AutoCloseable {
      * the language's `tree-sitter.json` file.
      * @return Metadata of the language. Maybe <code>null</code>.
      */
-    public TSLanguageMetadata metadata() {
+    public @Nullable TSLanguageMetadata metadata() {
         ensureOpen();
         return TSParser.ts_language_metadata(this.getPtr());
     }
@@ -91,7 +92,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return <code>NULL</code>in older parsers.
      */
-    public String name() {
+    public @Nullable String name() {
         ensureOpen();
         return TSParser.ts_language_name(this.getPtr());
     }
@@ -113,7 +114,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return The field name string.
      */
-    public String fieldNameForId(int id) {
+    public @Nullable String fieldNameForId(int id) {
         ensureOpen();
         return TSParser.ts_language_field_name_for_id(this.getPtr(), id);
     }
@@ -174,7 +175,7 @@ public abstract class TSLanguage implements AutoCloseable {
      *
      * @return the node type string.
      */
-    public String symbolName(int symbol) {
+    public @Nullable String symbolName(int symbol) {
         ensureOpen();
         return TSParser.ts_language_symbol_name(this.getPtr(), symbol);
     }
