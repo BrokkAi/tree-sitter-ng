@@ -10,7 +10,7 @@ ecosystem breadth.
 
 * **Ecosystem Breadth**: Expanded support for the modern stack (Kotlin, Zig, Angular, Vue.js), supplementing the
   official grammars maintained by the upstream project.
-* **Modern Java Ergonomics**: Moving away from C-style wrappers toward a library that feels native to Java 21+.
+* **Modern Java Ergonomics**: Moving away from C-style wrappers toward a library that feels native to modern Java, while maintaining a low **Java 11+** baseline requirement.
     * **Strict Null Safety**: Integration with **JSpecify** and **Error Prone** for compile-time safety at the JNI
       boundary.
     * **Idiomatic Patterns**: Lazy collection patterns (e.g., `getNamedChildren()`) and strict handling (e.g.,
@@ -119,6 +119,7 @@ tree-sitter C code is downloaded and compiled.
 
 # Features
 
+- **Wide Compatibility**: Low **Java 11** minimum requirement.
 - 100% [Tree Sitter API](https://github.com/tree-sitter/tree-sitter/blob/master/lib/include/tree_sitter/api.h) coverage.
 - Easy to bootstrap cross compiling environments powered by [Zig](https://ziglang.org/).
 - Built-in official parsers.
