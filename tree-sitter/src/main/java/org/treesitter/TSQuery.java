@@ -444,12 +444,6 @@ public class TSQuery implements AutoCloseable {
     }
 
     /**
-     * Get TSQueryPredicateStepTypeString by id. See {@link #getPredicateForPattern(int)}
-     * @param id the <code>valueId</code> got from {@link #getPredicateForPattern(int)}.
-     * @return the literal string value.
-     * @throws TSException if the id is invalid.
-     */
-    /**
      * Get the string value for the given id.
      * @param id the string id.
      * @return the string value.
