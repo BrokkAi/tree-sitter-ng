@@ -1,3 +1,5 @@
+name: "Cross Platform Quality & Unit Tests"
+
 on:
   pull_request:
     branches: [ "main" ]
