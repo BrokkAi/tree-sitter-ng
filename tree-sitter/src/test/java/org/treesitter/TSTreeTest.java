@@ -158,4 +158,19 @@ class TSTreeTest {
         tree.printDotGraphs(dotFile);
         assertTrue(dotFile.length() > 0);
     }
+
+    @Test
+    void testNullRootThrowsException() {
+        // The TSTree API now guarantees that a root node exists for an open tree.
+        // If the tree is closed, getRootNode() must throw IllegalStateException.
+        TSTree localTree = parser.parseString(null, "{}");
+        assertNotNull(localTree);
+        localTree.close();
+        assertThrows(IllegalStateException.class, localTree::getRootNode);
+
+        // Additionally, the constructor throws IllegalStateException if the 
+        // native library returns a tree with a null root. While hard to 
+        // trigger with a healthy native library, the check is present 
+        // in the constructor.
+    }
 }
