@@ -38,13 +38,21 @@ jobs:
           VERSION=${TAG#v}
           ./gradlew build zipReleaseJars -PlibVersion=$VERSION --stacktrace
 
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd build/distributions
+          sha256sum tree-sitter-ng-jar.zip > checksums.txt
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.event.inputs.tag_name }}
           name: ${{ github.event.inputs.tag_name }}
-          files: build/distributions/tree-sitter-ng-jar.zip
+          files: |
+            build/distributions/tree-sitter-ng-jar.zip
+            build/distributions/checksums.txt
           draft: false
           prerelease: false
           generate_release_notes: true
