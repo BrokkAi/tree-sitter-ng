@@ -413,8 +413,7 @@ public class TSQueryCursor implements AutoCloseable, Iterable<TSQueryMatch> {
             this.isCapture = isCapture;
         }
 
-        @Override
-        public boolean hasNext() {
+        private boolean fetchNext() {
             if (hasNextTempMatch != null) {
                 return true;
             }
@@ -429,23 +428,19 @@ public class TSQueryCursor implements AutoCloseable, Iterable<TSQueryMatch> {
         }
 
         @Override
+        public boolean hasNext() {
+            return fetchNext();
+        }
+
+        @Override
         public TSQueryMatch next() {
-            if (hasNextTempMatch != null) {
-                TSQueryMatch currentMatch = hasNextTempMatch;
-                hasNextTempMatch = null;
-                lastMatch = currentMatch;
-                return currentMatch;
-            }
-            cursor.ensureOpen();
-            cursor.assertExecuted();
-            TSQueryMatch match = new TSQueryMatch();
-            boolean hasNext = isCapture ? cursor.nextCapture(match) : cursor.nextMatch(match);
-            if (hasNext) {
-                lastMatch = match;
-                return match;
-            } else {
+            if (!fetchNext()) {
                 throw new NoSuchElementException();
             }
+            TSQueryMatch currentMatch = Objects.requireNonNull(hasNextTempMatch);
+            hasNextTempMatch = null;
+            lastMatch = currentMatch;
+            return currentMatch;
         }
 
         @Override
