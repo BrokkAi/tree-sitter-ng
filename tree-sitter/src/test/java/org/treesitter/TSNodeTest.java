@@ -7,10 +7,6 @@ import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Objects;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 class TSNodeTest {
     public static final String JSON_SRC = "[1, null]";
     private TSTree tree;
