@@ -2,6 +2,11 @@ package org.treesitter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+import java.util.Objects;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +51,25 @@ class TSNodeTest {
     void getNamedChild() {
         assertEquals(
                 "number", Objects.requireNonNull(arrayNode.getNamedChild(0)).getType());
+    }
+
+    @Test
+    void getChildren() {
+        List<TSNode> children = rootNode.getChildren();
+        assertEquals(rootNode.getChildCount(), children.size());
+        assertEquals("array", children.get(0).getType());
+        assertThrows(IndexOutOfBoundsException.class, () -> children.get(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> children.get(children.size()));
+    }
+
+    @Test
+    void getNamedChildren() {
+        List<TSNode> namedChildren = arrayNode.getNamedChildren();
+        assertEquals(arrayNode.getNamedChildCount(), namedChildren.size());
+        assertEquals("number", namedChildren.get(0).getType());
+        assertEquals("null", namedChildren.get(1).getType());
+        assertThrows(IndexOutOfBoundsException.class, () -> namedChildren.get(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> namedChildren.get(namedChildren.size()));
     }
 
     @Test
