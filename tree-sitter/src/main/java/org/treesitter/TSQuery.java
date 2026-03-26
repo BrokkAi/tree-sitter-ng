@@ -44,7 +44,12 @@ public class TSQuery implements AutoCloseable {
         @Override
         public void run() {
             if (ptr != 0) {
-                ts_query_delete(ptr);
+                try {
+                    ts_query_delete(ptr);
+                } catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
+                    // This can happen during JVM shutdown if the native library
+                    // or required classes have already been unloaded.
+                }
             }
         }
     }
@@ -54,8 +59,13 @@ public class TSQuery implements AutoCloseable {
             throw new TSQueryException("Failed to create query: pointer is null");
         }
         this.ptr = ptr;
+        try {
+            this.predicates = parsePredicates();
+        } catch (Exception e) {
+            ts_query_delete(ptr);
+            throw e;
+        }
         this.cleanable = CleanerRunner.register(this, new TSQueryCleanRunner(ptr));
-        this.predicates = parsePredicates();
     }
 
     @Override
