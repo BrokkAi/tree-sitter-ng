@@ -49,40 +49,27 @@ class TSAutoCloseableTest {
         assertDoesNotThrow(cursor::close);
     }
 
-    private static class TestLanguage extends TSLanguage {
-        TestLanguage() {
-            super(0);
+    private TSTree createValidTree() {
+        TSParser parser = new TSParser();
+        parser.setLanguage(new TreeSitterJson());
+        TSTree tree = parser.parseString(null, "{}");
+        if (tree == null) {
+            throw new RuntimeException("Failed to create test tree");
         }
-
-        @Override
-        public TSLanguage copy() {
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return "";
-        }
-
-        @Override
-        public int symbolCount() {
-            return 0;
-        }
+        return tree;
     }
 
     @Test
     void testTreeUseAfterClose() {
-        TSLanguage lang = new TestLanguage();
-        TSTree tree = new TSTree(0, lang);
+        TSTree tree = createValidTree();
         tree.close();
         assertThrows(IllegalStateException.class, tree::getRootNode);
     }
 
     @Test
     void testTreeGetChangedRangesAfterClose() {
-        TSLanguage lang = new TestLanguage();
-        TSTree tree1 = new TSTree(0, lang);
-        TSTree tree2 = new TSTree(0, lang);
+        TSTree tree1 = createValidTree();
+        TSTree tree2 = createValidTree();
         tree1.close();
         assertThrows(IllegalStateException.class, () -> TSTree.getChangedRanges(tree1, tree2));
         assertThrows(IllegalStateException.class, () -> TSTree.getChangedRanges(tree2, tree1));
@@ -91,8 +78,7 @@ class TSAutoCloseableTest {
     @Test
     @SuppressWarnings("NullAway")
     void testTreeGetChangedRangesNull() {
-        TSLanguage lang = new TestLanguage();
-        TSTree tree1 = new TSTree(0, lang);
+        TSTree tree1 = createValidTree();
         assertThrows(NullPointerException.class, () -> TSTree.getChangedRanges(tree1, null));
     }
 

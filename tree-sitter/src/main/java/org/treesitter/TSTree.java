@@ -28,6 +28,9 @@ public class TSTree implements AutoCloseable {
     }
 
     TSTree(long ptr, TSLanguage language) {
+        if (ptr == 0) {
+            throw new IllegalArgumentException("Cannot create a TSTree with a null pointer");
+        }
         if (ts_tree_root_node(ptr) == null) {
             ts_tree_delete(ptr);
             throw new IllegalStateException("Tree created with null root node");
@@ -69,7 +72,11 @@ public class TSTree implements AutoCloseable {
      */
     public TSTree copy() {
         ensureOpen();
-        return new TSTree(ts_tree_copy(ptr), language);
+        long newPtr = ts_tree_copy(ptr);
+        if (newPtr == 0) {
+            throw new RuntimeException("Failed to copy TSTree");
+        }
+        return new TSTree(newPtr, language);
     }
 
     /**

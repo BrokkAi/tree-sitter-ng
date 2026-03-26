@@ -168,9 +168,9 @@ class TSTreeTest {
         localTree.close();
         assertThrows(IllegalStateException.class, localTree::getRootNode);
 
-        // Additionally, the constructor throws IllegalStateException if the 
-        // native library returns a tree with a null root. While hard to 
-        // trigger with a healthy native library, the check is present 
+        // Additionally, the constructor throws IllegalStateException if the
+        // native library returns a tree with a null root. While hard to
+        // trigger with a healthy native library, the check is present
         // in the constructor.
     }
 }
