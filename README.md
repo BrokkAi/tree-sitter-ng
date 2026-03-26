@@ -18,10 +18,17 @@ class Main {
              TSLanguage json = new TreeSitterJson()) {
 
             parser.setLanguage(json);
-            try (TSTree tree = parser.parseString(null, "[1, null]")) {
+            // Use parseStringOrThrow for strict null handling
+            try (TSTree tree = parser.parseStringOrThrow(null, "[1, null]")) {
                 TSNode rootNode = tree.getRootNode();
+                
+                // You can access children via index
                 TSNode arrayNode = rootNode.getNamedChild(0);
-                TSNode numberNode = arrayNode.getNamedChild(0);
+
+                // Or use the new lazy list pattern for easier iteration
+                for (TSNode child : arrayNode.getNamedChildren()) {
+                    System.out.println(child.getType());
+                }
             }
         }
     }
@@ -290,6 +297,9 @@ class Main {
 
                 // Traverse the AST tree with DOM-like APIs
                 TSNode rootNode = tree.getRootNode();
+                
+                // Access children as a standard Java List
+                List<TSNode> children = rootNode.getChildren();
                 TSNode arrayNode = rootNode.getNamedChild(0);
 
                 // Or traverse the AST with cursor
