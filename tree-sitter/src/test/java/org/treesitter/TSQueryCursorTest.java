@@ -2,6 +2,8 @@ package org.treesitter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -213,7 +215,7 @@ class TSQueryCursorTest {
     @Test
     void nextMatch() {
         TSQueryMatch match = new TSQueryMatch();
-        assertThrows(TSException.class, () -> cursor.nextMatch(match));
+        assertThrows(IllegalStateException.class, () -> cursor.nextMatch(match));
         cursor.exec(query, rootNode);
         assertTrue(cursor.nextMatch(match));
         assertEquals(0, match.getId());
@@ -278,5 +280,51 @@ class TSQueryCursorTest {
     void setContainingPointRange() {
         assertTrue(cursor.setContainingPointRange(new TSPoint(0, 0), new TSPoint(0, 10)));
         assertFalse(cursor.setContainingPointRange(new TSPoint(0, 10), new TSPoint(0, 1)));
+    }
+
+    @Test
+    void matchCopy() {
+        // Query that matches multiple nodes
+        query = new TSQuery(json, "(number) @num");
+        cursor.exec(query, rootNode);
+
+        List<TSQueryMatch> matches = new ArrayList<>();
+        TSQueryMatch match = new TSQueryMatch();
+        while (cursor.nextMatch(match)) {
+            matches.add(match.copy());
+        }
+
+        // JSON_SRC = "[1, null]" -> contains one number '1'
+        // If we change JSON_SRC to something with more matches for the test
+        parser.reset();
+        String multiJson = "[1, 2, 3]";
+        TSTree multiTree = Objects.requireNonNull(parser.parseString(null, multiJson));
+        TSNode multiRoot = Objects.requireNonNull(multiTree.getRootNode());
+        cursor.exec(query, multiRoot);
+
+        matches.clear();
+        while (cursor.nextMatch(match)) {
+            matches.add(match.copy());
+        }
+
+        assertEquals(3, matches.size());
+        // Verify they are independent snapshots.
+        // The last iteration of nextMatch() would have overwritten the internal state
+        // of the 'match' object, but our list contains copies.
+        assertNotSame(matches.get(0), matches.get(1));
+
+        TSNode node1 = matches.get(0).getCaptures()[0].getNode();
+        TSNode node2 = matches.get(1).getCaptures()[0].getNode();
+        TSNode node3 = matches.get(2).getCaptures()[0].getNode();
+
+        assertNotNull(node1);
+        assertNotNull(node2);
+        assertNotNull(node3);
+
+        // Verify they point to different ranges in the source "[1, 2, 3]"
+        // '1' is at byte 1, '2' is at byte 4, '3' is at byte 7
+        assertEquals(1, node1.getStartByte());
+        assertEquals(4, node2.getStartByte());
+        assertEquals(7, node3.getStartByte());
     }
 }

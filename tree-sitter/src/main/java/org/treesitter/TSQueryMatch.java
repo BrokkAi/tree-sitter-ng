@@ -52,4 +52,27 @@ public class TSQueryMatch {
     public void clearMetadata() {
         metadata = null;
     }
+
+    /**
+     * Create a copy of this match.
+     * <p>
+     * This is useful because {@code TSQueryMatch} objects are reused by {@link TSQueryCursor}
+     * during iteration. If you need to store matches in a collection, you should copy them.
+     *
+     * @return A new match instance.
+     */
+    public TSQueryMatch copy() {
+        TSQueryMatch copy = new TSQueryMatch();
+        copy.id = this.id;
+        copy.patternIndex = this.patternIndex;
+        copy.captureIndex = this.captureIndex;
+        copy.captures = new TSQueryCapture[this.captures.length];
+        for (int i = 0; i < this.captures.length; i++) {
+            copy.captures[i] = this.captures[i].copy();
+        }
+        if (this.metadata != null) {
+            copy.metadata = new HashMap<>(this.metadata);
+        }
+        return copy;
+    }
 }
