@@ -230,15 +230,19 @@ public class TSQuery implements AutoCloseable {
      *
      * @param captureId The id of the capture.
      * @return The name of the capture.
-     * @throws TSException If the capture ID is invalid.
+     * @throws TSException If the capture ID is invalid or the name cannot be retrieved.
      */
-    public @Nullable String getCaptureNameForId(int captureId) {
+    public String getCaptureNameForId(int captureId) {
         ensureOpen();
         int captureCount = getCaptureCount();
-        if (captureId >= captureCount) {
+        if (captureId < 0 || captureId >= captureCount) {
             throw new TSException("Invalid capture id: " + captureId);
         }
-        return ts_query_capture_name_for_id(ptr, captureId);
+        String name = ts_query_capture_name_for_id(ptr, captureId);
+        if (name == null) {
+            throw new TSException("Invariant violation: capture name is null for valid id " + captureId);
+        }
+        return name;
     }
 
     /**
