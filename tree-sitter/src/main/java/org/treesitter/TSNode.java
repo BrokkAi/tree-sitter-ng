@@ -2,6 +2,8 @@ package org.treesitter;
 
 import static org.treesitter.TSParser.*;
 
+import java.util.AbstractList;
+import java.util.List;
 import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 
@@ -69,6 +71,70 @@ public class TSNode {
         }
         return ret;
     }
+    /**
+     * Get a list of the node's children.
+     * <p>
+     * While this provides convenient iteration, developers should consider using
+     * {@link TSTreeCursor} directly for performance-critical code or very large trees
+     * to avoid allocation overhead.
+     *
+     * @return A lazy list of the node's children.
+     */
+    public List<TSNode> getChildren() {
+        return new AbstractList<TSNode>() {
+            @Override
+            public TSNode get(int index) {
+                if (index < 0 || index >= size()) {
+                    throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+                }
+                TSNode node = getChild(index);
+                if (node == null) {
+                    throw new IllegalStateException(
+                            "Child at index " + index
+                                    + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
+                }
+                return node;
+            }
+
+            @Override
+            public int size() {
+                return getChildCount();
+            }
+        };
+    }
+
+    /**
+     * Get a list of the node's *named* children.
+     * <p>
+     * While this provides convenient iteration, developers should consider using
+     * {@link TSTreeCursor} directly for performance-critical code or very large trees
+     * to avoid allocation overhead.
+     *
+     * @return A lazy list of the node's named children.
+     */
+    public List<TSNode> getNamedChildren() {
+        return new AbstractList<TSNode>() {
+            @Override
+            public TSNode get(int index) {
+                if (index < 0 || index >= size()) {
+                    throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+                }
+                TSNode node = getNamedChild(index);
+                if (node == null) {
+                    throw new IllegalStateException(
+                            "Named child at index " + index
+                                    + " is null despite being within bounds. The tree may have been edited or is in an invalid state.");
+                }
+                return node;
+            }
+
+            @Override
+            public int size() {
+                return getNamedChildCount();
+            }
+        };
+    }
+
     /**
      * Get the node's type as a string.
      *

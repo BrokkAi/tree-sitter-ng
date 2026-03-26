@@ -2,6 +2,7 @@ package org.treesitter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,44 @@ class TSNodeTest {
     void getNamedChild() {
         assertEquals(
                 "number", Objects.requireNonNull(arrayNode.getNamedChild(0)).getType());
+    }
+
+    @Test
+    void getChildren() {
+        List<TSNode> children = rootNode.getChildren();
+        int count = rootNode.getChildCount();
+        assertEquals(count, children.size());
+        for (int i = 0; i < count; i++) {
+            assertEquals(rootNode.getChild(i), children.get(i));
+        }
+        // Verify iteration
+        int i = 0;
+        for (TSNode child : children) {
+            assertEquals(rootNode.getChild(i++), child);
+        }
+        assertEquals(count, i);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> children.get(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> children.get(children.size()));
+    }
+
+    @Test
+    void getNamedChildren() {
+        List<TSNode> namedChildren = arrayNode.getNamedChildren();
+        int count = arrayNode.getNamedChildCount();
+        assertEquals(count, namedChildren.size());
+        for (int i = 0; i < count; i++) {
+            assertEquals(arrayNode.getNamedChild(i), namedChildren.get(i));
+        }
+        // Verify iteration
+        int i = 0;
+        for (TSNode namedChild : namedChildren) {
+            assertEquals(arrayNode.getNamedChild(i++), namedChild);
+        }
+        assertEquals(count, i);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> namedChildren.get(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> namedChildren.get(namedChildren.size()));
     }
 
     @Test

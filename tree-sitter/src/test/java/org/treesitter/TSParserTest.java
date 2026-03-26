@@ -28,6 +28,12 @@ class TSParserTest {
     }
 
     @Test
+    public void parseStringOrThrow() {
+        TSTree tree = parser.parseStringOrThrow(null, JSON_SRC);
+        assertNotNull(tree);
+    }
+
+    @Test
     public void parseEncoding() {
         parser.reset();
         TSTree tree =
