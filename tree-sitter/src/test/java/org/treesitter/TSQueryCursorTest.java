@@ -246,9 +246,7 @@ class TSQueryCursorTest {
     @Test
     void getMatches() {
         cursor.exec(query, rootNode);
-        TSQueryCursor.TSMatchIterator matchIter = cursor.getMatches();
-        while (matchIter.hasNext()) {
-            TSQueryMatch match = matchIter.next();
+        for (TSQueryMatch match : cursor.getMatches()) {
             assertEquals(0, match.getId());
             assertEquals(0, match.getPatternIndex());
         }
@@ -257,9 +255,7 @@ class TSQueryCursorTest {
     @Test
     void getCaptures() {
         cursor.exec(query, rootNode);
-        TSQueryCursor.TSMatchIterator captureIter = cursor.getCaptures();
-        while (captureIter.hasNext()) {
-            TSQueryMatch match = captureIter.next();
+        for (TSQueryMatch match : cursor.getCaptures()) {
             assertEquals(0, match.getId());
             assertEquals(0, match.getPatternIndex());
             assertEquals(1, match.getCaptures().length);
@@ -268,6 +264,42 @@ class TSQueryCursorTest {
             assertNotNull(node);
             assertTrue(TSNode.eq(rootNode, node));
         }
+    }
+
+    @Test
+    void testIterableMatches() {
+        cursor.exec(query, rootNode);
+        int count = 0;
+        for (TSQueryMatch match : cursor) {
+            assertNotNull(match);
+            count++;
+        }
+        assertEquals(1, count);
+    }
+
+    @Test
+    void testIterableCaptures() {
+        cursor.exec(query, rootNode);
+        int count = 0;
+        for (TSQueryMatch match : cursor.getCaptures()) {
+            assertNotNull(match);
+            count++;
+        }
+        assertEquals(1, count);
+    }
+
+    @Test
+    void testStreamMatches() {
+        cursor.exec(query, rootNode);
+        long count = cursor.stream().count();
+        assertEquals(1, count);
+    }
+
+    @Test
+    void testStreamCaptures() {
+        cursor.exec(query, rootNode);
+        long count = cursor.streamCaptures().count();
+        assertEquals(1, count);
     }
 
     @Test
