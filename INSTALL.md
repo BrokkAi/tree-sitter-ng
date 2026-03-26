@@ -32,25 +32,44 @@ meaning it only runs when the version changes.
 
 ```kotlin
 tasks.register("downloadTreeSitterNg") {
-    val version = libs.versions.treesitter.get()
+    description = "Downloads and extracts tree-sitter-ng native libraries"
+    group = "build setup"
+
+    val version = treeSitterNgVersion
     val downloadUrl = "https://github.com/BrokkAi/tree-sitter-ng/releases/download/v$version/tree-sitter-ng-jar.zip"
     val cacheDir = file(".gradle/tree-sitter-ng/v$version")
-    val zipFile = file(".gradle/tree-sitter-ng/tree-sitter-ng.zip")
+    val zipFile = file(".gradle/tree-sitter-ng/tree-sitter-ng-$version.zip")
 
     inputs.property("version", version)
     outputs.dir(cacheDir)
 
     doLast {
-        if (!zipFile.exists()) {
-            zipFile.parentFile.mkdirs()
-            java.net.URI(downloadUrl).toURL().openStream().use { it.copyTo(zipFile.outputStream()) }
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
         }
+
+        if (!zipFile.exists()) {
+            logger.lifecycle("Downloading TreeSitter NG v$version...")
+            zipFile.parentFile.mkdirs()
+            java.net.URI(downloadUrl).toURL().openStream().use { input ->
+                zipFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+
+        logger.lifecycle("Extracting TreeSitter NG modules to ${cacheDir.absolutePath}...")
+        val jarsDir = cacheDir.resolve("jars")
+        jarsDir.mkdirs()
 
         copy {
             from(zipTree(zipFile))
-            into(cacheDir)
-            // Extract only the language directories
-            include("tree-sitter*/**")
+            into(jarsDir)
+            include("**/*.jar")
+            // Flatten the directory structure so all JARs are in the root of 'jarsDir'
+            eachFile {
+                path = name
+            }
             includeEmptyDirs = false
         }
     }

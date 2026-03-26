@@ -19,3 +19,5 @@ This is also how you can add an "unofficial" or community parser.
    ```bash
    ./gradlew :tree-sitter-kotlin:test
    ```
+
+   **Note on Testing:** The generated test class effectively runs the test corpus from the upstream library. If a community grammar doesn't supply one in the expected directory, the test class may need to be modified or removed (e.g., `tree-sitter-zig` requires special handling as it fetches tests via CI/CD from the official parser).
