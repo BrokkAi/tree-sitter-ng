@@ -1,6 +1,6 @@
 # Tree Sitter NG
 
-[![CI](https://github.com/BrokkAi/tree-sitter-ng/actions/workflows/ci.yml/badge.svg)](https://github.com/BrokkAi/tree-sitter-ng/actions)
+[![CI](https://github.com/BrokkAi/tree-sitter-ng/actions/workflows/main.yml/badge.svg)](https://github.com/BrokkAi/tree-sitter-ng/actions)
 [![Latest Release](https://img.shields.io/github/v/release/BrokkAi/tree-sitter-ng)](https://github.com/BrokkAi/tree-sitter-ng/releases)
 
 Next generation Tree Sitter Java binding. A "Java-first" fork optimized for modern developer experience, safety, and ecosystem breadth.
