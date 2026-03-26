@@ -3,6 +3,7 @@ package org.treesitter;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -204,6 +205,26 @@ class TSNodeTest {
                 .getChildByFieldName("key");
         assertNotNull(child);
         assertEquals("string", child.getType());
+    }
+
+    @Test
+    void getChildByField() {
+        parser.reset();
+        // In JSON, a 'pair' node has 'key' and 'value' fields
+        tree = Objects.requireNonNull(parser.parseString(null, "{\"foo\": 42}"));
+        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        // object -> pair
+        TSNode pair = Objects.requireNonNull(
+                Objects.requireNonNull(root.getNamedChild(0)).getNamedChild(0));
+
+        Map<String, List<TSNode>> fieldMap = pair.getChildByField();
+
+        assertTrue(fieldMap.containsKey("key"));
+        assertTrue(fieldMap.containsKey("value"));
+        assertEquals(1, Objects.requireNonNull(fieldMap.get("key")).size());
+        assertEquals("string", Objects.requireNonNull(fieldMap.get("key")).get(0).getType());
+        assertEquals(1, Objects.requireNonNull(fieldMap.get("value")).size());
+        assertEquals("number", Objects.requireNonNull(fieldMap.get("value")).get(0).getType());
     }
 
     @Test

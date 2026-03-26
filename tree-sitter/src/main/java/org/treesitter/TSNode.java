@@ -2,6 +2,7 @@ package org.treesitter;
 
 import static org.treesitter.TSParser.*;
 
+import java.util.*;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.Objects;
@@ -321,6 +322,27 @@ public class TSNode {
      */
     public @Nullable String getFieldNameForChild(int index) {
         return ts_node_field_name_for_child(this, index);
+    }
+
+    /**
+     * Get a map of the node's children associated with their field names.
+     *
+     * @return A map where keys are field names and values are lists of children
+     *         associated with those field names.
+     */
+    public Map<String, List<TSNode>> getChildByField() {
+        Map<String, List<TSNode>> fieldMap = new HashMap<>();
+        int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            String fieldName = getFieldNameForChild(i);
+            if (fieldName != null) {
+                TSNode child = getChild(i);
+                if (child != null) {
+                    fieldMap.computeIfAbsent(fieldName, k -> new ArrayList<>()).add(child);
+                }
+            }
+        }
+        return fieldMap;
     }
 
     /**
