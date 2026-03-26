@@ -562,8 +562,7 @@ public class TSNode {
      *
      * @param a The first node to compare.
      * @param b The second node to compare.
-     *
-     * @return Whether the two nodes are identical.
+     * @return {@code true} if the two nodes are identical.
      */
     public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
         if (Objects.equals(a, b)) return true;

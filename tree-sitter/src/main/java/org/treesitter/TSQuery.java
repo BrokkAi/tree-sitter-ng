@@ -215,13 +215,14 @@ public class TSQuery implements AutoCloseable {
     }
 
     /**
-     * Get the name and length of one of the query's captures, or one of the
-     * query's string literals. Each capture and string is associated with a
-     * numeric id based on the order that it appeared in the query's source.
+     * Get the name of one of the query's captures.
+     *
+     * Each capture is associated with a numeric id based on the order that it
+     * appeared in the query's source.
      *
      * @param captureId The id of the capture.
-     *
      * @return The name of the capture.
+     * @throws TSException If the capture ID is invalid.
      */
     public @Nullable String getCaptureNameForId(int captureId) {
         ensureOpen();
