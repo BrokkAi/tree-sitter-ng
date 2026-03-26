@@ -426,6 +426,23 @@ public class TSParser implements AutoCloseable {
     }
 
     /**
+     * Use the parser to parse some source code stored in one contiguous buffer.
+     *
+     * @param oldTree The old tree to use. If any.
+     * @param input the source code to parse.
+     *
+     * @return {@link TSTree}
+     * @throws IllegalStateException if parsing fails.
+     */
+    public TSTree parseStringOrThrow(@Nullable TSTree oldTree, String input) {
+        TSTree tree = parseString(oldTree, input);
+        if (tree == null) {
+            throw new IllegalStateException("Failed to parse string");
+        }
+        return tree;
+    }
+
+    /**
      * Use the parser to parse some source code stored in one contiguous buffer with
      * a given encoding. The first four parameters work the same as in the
      * {@link #parseString(TSTree, String) parserString()} method above. The final parameter indicates whether
