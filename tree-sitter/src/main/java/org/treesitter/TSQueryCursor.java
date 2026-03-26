@@ -353,7 +353,7 @@ public class TSQueryCursor implements AutoCloseable {
 
     private void assertExecuted() {
         if (!executed) {
-            throw new TSException("Query not executed, call exec() first.");
+            throw new IllegalStateException("Query not executed, call exec() first.");
         }
     }
 

@@ -236,7 +236,7 @@ public class TSQuery implements AutoCloseable {
         ensureOpen();
         int captureCount = getCaptureCount();
         if (captureId < 0 || captureId >= captureCount) {
-            throw new TSException("Invalid capture id: " + captureId);
+            throw new IndexOutOfBoundsException("Invalid capture id: " + captureId);
         }
         String name = ts_query_capture_name_for_id(ptr, captureId);
         if (name == null) {
@@ -448,7 +448,7 @@ public class TSQuery implements AutoCloseable {
             case 4:
                 return TSQuantifier.TSQuantifierOneOrMore;
             default:
-                throw new TSException("Can't handle quantifier type: %d" + quantifier);
+                throw new IllegalStateException("Can't handle quantifier type: " + quantifier);
         }
     }
 
@@ -463,7 +463,7 @@ public class TSQuery implements AutoCloseable {
         if (closed) return null;
         int stringCount = getStringCount();
         if (id < 0 || id >= stringCount) {
-            throw new TSException("Invalid string id: " + id);
+            throw new IndexOutOfBoundsException("Invalid string id: " + id);
         }
         String value = ts_query_string_value_for_id(ptr, id);
         if (value == null) {

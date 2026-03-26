@@ -154,7 +154,7 @@ public abstract class TSLanguage implements AutoCloseable {
             case 3:
                 return TSSymbolType.TSSymbolTypeAuxiliary;
             default:
-                throw new TSException(String.format("Can't handle symbol type: %d", type));
+                throw new IllegalStateException(String.format("Can't handle symbol type: %d", type));
         }
     }
 
