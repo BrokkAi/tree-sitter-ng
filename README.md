@@ -15,6 +15,7 @@ ecosystem breadth.
       boundary.
     * **Idiomatic Patterns**: Lazy collection patterns (e.g., `getNamedChildren()`) and strict handling (e.g.,
       `parseStringOrThrow()`).
+    * **Advanced Query Support**: First-class support for Tree-sitter **predicates** and **directives** (e.g., `#eq?`, `#match?`, `#set!`) directly within the Java API.
     * **Resource Management**: Automated native memory management using the **Cleaner API** with `AutoCloseable`
       support.
 
