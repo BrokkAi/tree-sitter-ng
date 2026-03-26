@@ -31,13 +31,13 @@ class TSTreeTest {
 
     @Test
     void getRootNode() {
-        TSNode rootNode = Objects.requireNonNull(tree.getRootNode());
+        TSNode rootNode = tree.getRootNode();
         assertEquals("document", rootNode.getType());
     }
 
     @Test
     void getRootNodeWithOffset() {
-        TSNode rootNode = Objects.requireNonNull(tree.getRootNodeWithOffset(0, new TSPoint(0, 0)));
+        TSNode rootNode = tree.getRootNodeWithOffset(0, new TSPoint(0, 0));
         assertEquals("document", rootNode.getType());
     }
 
@@ -84,7 +84,7 @@ class TSTreeTest {
             }
         };
         tree = Objects.requireNonNull(parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8));
-        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        TSNode root = tree.getRootNode();
         assertEquals(1, root.getChildCount());
         assertEquals(2, Objects.requireNonNull(root.getNamedChild(0)).getNamedChildCount());
         int editStart = 0;
@@ -98,7 +98,7 @@ class TSTreeTest {
                 new TSPoint(0, editEnd)));
         edited.set(true);
         tree = Objects.requireNonNull(parser.parse(buf, tree, reader, TSInputEncoding.TSInputEncodingUTF8));
-        TSNode root2 = Objects.requireNonNull(tree.getRootNode());
+        TSNode root2 = tree.getRootNode();
         assertEquals(1, root2.getChildCount());
         assertEquals(3, Objects.requireNonNull(root2.getNamedChild(0)).getNamedChildCount());
     }
@@ -132,7 +132,7 @@ class TSTreeTest {
             }
         };
         tree = Objects.requireNonNull(parser.parse(buf, null, reader, TSInputEncoding.TSInputEncodingUTF8));
-        TSNode root = Objects.requireNonNull(tree.getRootNode());
+        TSNode root = tree.getRootNode();
         assertEquals(1, root.getChildCount());
         assertEquals(2, Objects.requireNonNull(root.getNamedChild(0)).getNamedChildCount());
         int editStart = 0;
@@ -157,5 +157,20 @@ class TSTreeTest {
         File dotFile = File.createTempFile("tree", ".dot");
         tree.printDotGraphs(dotFile);
         assertTrue(dotFile.length() > 0);
+    }
+
+    @Test
+    void testNullRootThrowsException() {
+        // The TSTree API now guarantees that a root node exists for an open tree.
+        // If the tree is closed, getRootNode() must throw IllegalStateException.
+        TSTree localTree = parser.parseString(null, "{}");
+        assertNotNull(localTree);
+        localTree.close();
+        assertThrows(IllegalStateException.class, localTree::getRootNode);
+
+        // Additionally, the constructor throws IllegalStateException if the
+        // native library returns a tree with a null root. While hard to
+        // trigger with a healthy native library, the check is present
+        // in the constructor.
     }
 }

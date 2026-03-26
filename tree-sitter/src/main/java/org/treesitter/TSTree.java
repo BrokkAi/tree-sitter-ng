@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
-import org.jspecify.annotations.Nullable;
 
 public class TSTree implements AutoCloseable {
 
@@ -29,6 +28,13 @@ public class TSTree implements AutoCloseable {
     }
 
     TSTree(long ptr, TSLanguage language) {
+        if (ptr == 0) {
+            throw new IllegalArgumentException("Cannot create a TSTree with a null pointer");
+        }
+        if (ts_tree_root_node(ptr) == null) {
+            ts_tree_delete(ptr);
+            throw new IllegalStateException("Tree created with null root node");
+        }
         this.ptr = ptr;
         this.language = language;
         this.cleanable = CleanerRunner.register(this, new TSTreeCleanAction(ptr));
@@ -66,20 +72,25 @@ public class TSTree implements AutoCloseable {
      */
     public TSTree copy() {
         ensureOpen();
-        return new TSTree(ts_tree_copy(ptr), language);
+        long newPtr = ts_tree_copy(ptr);
+        if (newPtr == 0) {
+            throw new RuntimeException("Failed to copy TSTree");
+        }
+        return new TSTree(newPtr, language);
     }
 
     /**
      * Get the root node of the syntax tree.
      *
-     * @return The root node, or <code>null</code> if the tree has no root.
+     * @return The root node.
      */
-    public @Nullable TSNode getRootNode() {
+    public TSNode getRootNode() {
         ensureOpen();
         TSNode node = ts_tree_root_node(ptr);
-        if (node != null) {
-            node.setTree(this);
+        if (node == null) {
+            throw new IllegalStateException("Tree has no root node");
         }
+        node.setTree(this);
         return node;
     }
 
@@ -89,14 +100,15 @@ public class TSTree implements AutoCloseable {
      *
      * @param offsetBytes offset in bytes
      * @param offsetPoint offset in (row, column)
-     * @return The node, or <code>null</code> if the tree has no root.
+     * @return The node.
      */
-    public @Nullable TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
+    public TSNode getRootNodeWithOffset(int offsetBytes, TSPoint offsetPoint) {
         ensureOpen();
         TSNode node = ts_tree_root_node_with_offset(ptr, offsetBytes, offsetPoint);
-        if (node != null) {
-            node.setTree(this);
+        if (node == null) {
+            throw new IllegalStateException("Tree has no root node");
         }
+        node.setTree(this);
         return node;
     }
 
