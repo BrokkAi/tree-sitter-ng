@@ -222,9 +222,11 @@ class TSNodeTest {
         assertTrue(fieldMap.containsKey("key"));
         assertTrue(fieldMap.containsKey("value"));
         assertEquals(1, Objects.requireNonNull(fieldMap.get("key")).size());
-        assertEquals("string", Objects.requireNonNull(fieldMap.get("key")).get(0).getType());
+        assertEquals(
+                "string", Objects.requireNonNull(fieldMap.get("key")).get(0).getType());
         assertEquals(1, Objects.requireNonNull(fieldMap.get("value")).size());
-        assertEquals("number", Objects.requireNonNull(fieldMap.get("value")).get(0).getType());
+        assertEquals(
+                "number", Objects.requireNonNull(fieldMap.get("value")).get(0).getType());
     }
 
     @Test
