@@ -305,8 +305,6 @@ public class TSQuery implements AutoCloseable {
                         throw new TSQueryException("Predicate must begin with a string");
                     }
                     String name = getNonNullStringValueForId(firstStep.getValueId());
-                    // Since getStringValueForId throws on invalid IDs and this is during init (not closed),
-                    // name is guaranteed non-null here.
                     if (TSQueryPredicate.TSQueryPredicateEq.NAMES.contains(name)) {
                         patternPredicates.add(handleEq(name, steps, stepIndex, nargs));
                     } else if (TSQueryPredicate.TSQueryPredicateMatch.NAMES.contains(name)) {
