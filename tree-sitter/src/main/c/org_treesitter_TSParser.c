@@ -545,6 +545,9 @@ JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1query_1string_1value_
       index,
       &length
     );
+    if(str == NULL){
+        return NULL;
+    }
     return (*env)->NewStringUTF(env, str);
 }
 
@@ -1442,6 +1445,9 @@ JNIEXPORT jint JNICALL Java_org_treesitter_TSParser_ts_1language_1field_1count
 JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1language_1field_1name_1for_1id
   (JNIEnv *env, jclass clz, jlong lang_ptr, jint field_id){
     const char *str = ts_language_field_name_for_id((const TSLanguage *) lang_ptr, (TSFieldId) field_id);
+    if(str == NULL){
+        return NULL;
+    }
     return (*env)->NewStringUTF(env, str);
 }
 
@@ -1557,6 +1563,9 @@ JNIEXPORT jint JNICALL Java_org_treesitter_TSParser_ts_1language_1symbol_1count
 JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1language_1symbol_1name
   (JNIEnv *env, jclass clz, jlong lang_ptr, jint ts_symbol){
    const char *str = ts_language_symbol_name((const TSLanguage *) lang_ptr, (TSSymbol) ts_symbol);
+   if(str == NULL){
+       return NULL;
+   }
    return (*env)->NewStringUTF(env, str);
 }
 
@@ -1617,6 +1626,9 @@ JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1node_1grammar_1type
   (JNIEnv *env, jclass clz, jobject ts_node_obj){
   TSNode ts_node = ts_node_from_obj(env, ts_node_obj);
   const char *str = ts_node_grammar_type(ts_node);
+  if(str == NULL){
+      return NULL;
+  }
   return (*env)->NewStringUTF(env, str);
 }
 
@@ -1740,6 +1752,9 @@ JNIEXPORT jint JNICALL Java_org_treesitter_TSParser_ts_1lookahead_1iterator_1cur
 JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1lookahead_1iterator_1current_1symbol_1name
   (JNIEnv *env, jclass clz, jlong iter_ptr){
     const char *str = ts_lookahead_iterator_current_symbol_name((TSLookaheadIterator *) iter_ptr);
+    if(str == NULL){
+        return NULL;
+    }
     return (*env)->NewStringUTF(env, str);
 }
 
@@ -1765,6 +1780,9 @@ JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1node_1field_1name_1fo
   (JNIEnv *env, jclass clz, jobject ts_node_obj, jlong named_child_index){
     TSNode node = ts_node_from_obj(env, ts_node_obj);
     const char *str = ts_node_field_name_for_named_child(node, named_child_index);
+    if(str == NULL){
+        return NULL;
+    }
     return (*env)->NewStringUTF(env, str);
 }
 
@@ -1981,6 +1999,9 @@ JNIEXPORT jintArray JNICALL Java_org_treesitter_TSParser_ts_1language_1subtypes
 JNIEXPORT jstring JNICALL Java_org_treesitter_TSParser_ts_1language_1name
   (JNIEnv *env, jclass clz, jlong lang_ptr){
     const char *name = ts_language_name((TSLanguage *) lang_ptr);
+    if(name == NULL){
+        return NULL;
+    }
     return (*env)->NewStringUTF(env, name);
 }
 

@@ -20,6 +20,7 @@ import static org.treesitter.TSParser.ts_query_string_value_for_id;
 import java.lang.ref.Cleaner.Cleanable;
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public class TSQuery implements AutoCloseable {
     private final long ptr;
@@ -43,13 +44,27 @@ public class TSQuery implements AutoCloseable {
         @Override
         public void run() {
             if (ptr != 0) {
-                ts_query_delete(ptr);
+                try {
+                    ts_query_delete(ptr);
+                } catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
+                    // This can happen during JVM shutdown if the native library
+                    // or required classes have already been unloaded.
+                }
             }
         }
     }
 
     private TSQuery(long ptr) {
+        if (ptr == 0) {
+            throw new TSQueryException("Failed to create query: pointer is null");
+        }
         this.ptr = ptr;
+        try {
+            this.predicates = parsePredicates();
+        } catch (Exception e) {
+            ts_query_delete(ptr);
+            throw e;
+        }
         this.cleanable = CleanerRunner.register(this, new TSQueryCleanRunner(ptr));
     }
 
@@ -73,11 +88,15 @@ public class TSQuery implements AutoCloseable {
      * @throws TSQueryException If the query is invalid
      */
     public TSQuery(TSLanguage language, String query) {
-        this(ts_query_new(language.getPtr(), query));
+        this(ts_query_new_checked(language.getPtr(), query));
+    }
+
+    private static long ts_query_new_checked(long langPtr, String query) {
+        long ptr = ts_query_new(langPtr, query);
         if (ptr == 0) {
             throw new TSQueryException("Syntax error in query: " + query);
         }
-        this.predicates = parsePredicates();
+        return ptr;
     }
 
     protected long getPtr() {
@@ -214,21 +233,26 @@ public class TSQuery implements AutoCloseable {
     }
 
     /**
-     * Get the name and length of one of the query's captures, or one of the
-     * query's string literals. Each capture and string is associated with a
-     * numeric id based on the order that it appeared in the query's source.
+     * Get the name of one of the query's captures.
+     *
+     * Each capture is associated with a numeric id based on the order that it
+     * appeared in the query's source.
      *
      * @param captureId The id of the capture.
-     *
      * @return The name of the capture.
+     * @throws TSException If the capture ID is invalid or the name cannot be retrieved.
      */
     public String getCaptureNameForId(int captureId) {
         ensureOpen();
         int captureCount = getCaptureCount();
-        if (captureId >= captureCount) {
-            throw new TSException("Invalid capture id: " + captureId);
+        if (captureId < 0 || captureId >= captureCount) {
+            throw new IndexOutOfBoundsException("Invalid capture id: " + captureId);
         }
-        return ts_query_capture_name_for_id(ptr, captureId);
+        String name = ts_query_capture_name_for_id(ptr, captureId);
+        if (name == null) {
+            throw new TSException("Invariant violation: capture name is null for valid id " + captureId);
+        }
+        return name;
     }
 
     /**
@@ -261,6 +285,14 @@ public class TSQuery implements AutoCloseable {
         return false;
     }
 
+    private String getNonNullStringValueForId(int id) {
+        String value = getStringValueForId(id);
+        if (value == null) {
+            throw new TSException("String value is null for id: " + id);
+        }
+        return value;
+    }
+
     private List<List<TSQueryPredicate>> parsePredicates() {
         int patternCount = getPatternCount();
         List<List<TSQueryPredicate>> result = new ArrayList<>(patternCount);
@@ -282,8 +314,7 @@ public class TSQuery implements AutoCloseable {
                     if (firstStep.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
                         throw new TSQueryException("Predicate must begin with a string");
                     }
-                    String name = getStringValueForId(firstStep.getValueId());
-
+                    String name = getNonNullStringValueForId(firstStep.getValueId());
                     if (TSQueryPredicate.TSQueryPredicateEq.NAMES.contains(name)) {
                         patternPredicates.add(handleEq(name, steps, stepIndex, nargs));
                     } else if (TSQueryPredicate.TSQueryPredicateMatch.NAMES.contains(name)) {
@@ -318,7 +349,7 @@ public class TSQuery implements AutoCloseable {
         TSQueryPredicateStep arg2 = steps[start + 2];
         int arg2ValueId = arg2.getValueId();
         boolean isCapture = arg2.getType() == TSQueryPredicateStepType.TSQueryPredicateStepTypeCapture;
-        String literalValue = isCapture ? "" : getStringValueForId(arg2ValueId);
+        String literalValue = isCapture ? "" : getNonNullStringValueForId(arg2ValueId);
 
         return new TSQueryPredicate.TSQueryPredicateEq(name, captureId, literalValue, arg2ValueId, isCapture);
     }
@@ -337,7 +368,7 @@ public class TSQuery implements AutoCloseable {
         if (arg2.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("Second argument to #%s must be a string literal", name));
         }
-        String patternStr = getStringValueForId(arg2.getValueId());
+        String patternStr = getNonNullStringValueForId(arg2.getValueId());
 
         return new TSQueryPredicate.TSQueryPredicateMatch(name, captureId, patternStr);
     }
@@ -359,7 +390,7 @@ public class TSQuery implements AutoCloseable {
             if (arg.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
                 throw new TSQueryException(String.format("Arguments to #%s must be string literals", name));
             }
-            values.add(getStringValueForId(arg.getValueId()));
+            values.add(getNonNullStringValueForId(arg.getValueId()));
         }
 
         return new TSQueryPredicate.TSQueryPredicateAnyOf(name, captureId, values);
@@ -373,13 +404,13 @@ public class TSQuery implements AutoCloseable {
         if (arg1.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("First argument to #%s must be a string literal (key)", name));
         }
-        String key = getStringValueForId(arg1.getValueId());
+        String key = getNonNullStringValueForId(arg1.getValueId());
 
         TSQueryPredicateStep arg2 = steps[start + 2];
         if (arg2.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("Second argument to #%s must be a string literal (value)", name));
         }
-        String value = getStringValueForId(arg2.getValueId());
+        String value = getNonNullStringValueForId(arg2.getValueId());
 
         return new TSQueryPredicate.TSQueryPredicateSet(name, key, value);
     }
@@ -392,13 +423,13 @@ public class TSQuery implements AutoCloseable {
         if (arg1.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("First argument to #%s must be a string literal (key)", name));
         }
-        String key = getStringValueForId(arg1.getValueId());
+        String key = getNonNullStringValueForId(arg1.getValueId());
 
         TSQueryPredicateStep arg2 = steps[start + 2];
         if (arg2.getType() != TSQueryPredicateStepType.TSQueryPredicateStepTypeString) {
             throw new TSQueryException(String.format("Second argument to #%s must be a string literal (value)", name));
         }
-        String value = getStringValueForId(arg2.getValueId());
+        String value = getNonNullStringValueForId(arg2.getValueId());
 
         return new TSQueryPredicate.TSQueryPredicateIs(name, key, value);
     }
@@ -427,28 +458,28 @@ public class TSQuery implements AutoCloseable {
             case 4:
                 return TSQuantifier.TSQuantifierOneOrMore;
             default:
-                throw new TSException("Can't handle quantifier type: %d" + quantifier);
+                throw new IllegalStateException("Can't handle quantifier type: " + quantifier);
         }
     }
 
     /**
-     * Get TSQueryPredicateStepTypeString by id. See {@link #getPredicateForPattern(int)}
-     * @param id the <code>valueId</code> got from {@link #getPredicateForPattern(int)}.
-     * @return the literal string value.
+     * Get the string value for the given id.
+     *
+     * @param id the string id.
+     * @return the string value, or <code>null</code> if the query is closed.
      * @throws TSException if the id is invalid.
      */
-    /**
-     * Get the string value for the given id.
-     * @param id the string id.
-     * @return the string value.
-     */
-    public String getStringValueForId(int id) {
-        ensureOpen();
+    public @Nullable String getStringValueForId(int id) {
+        if (closed) return null;
         int stringCount = getStringCount();
         if (id < 0 || id >= stringCount) {
-            throw new TSException("Invalid string id: " + id);
+            throw new IndexOutOfBoundsException("Invalid string id: " + id);
         }
-        return ts_query_string_value_for_id(ptr, id);
+        String value = ts_query_string_value_for_id(ptr, id);
+        if (value == null) {
+            throw new TSException("Invariant violation: string value is null for valid id " + id);
+        }
+        return value;
     }
 
     /**

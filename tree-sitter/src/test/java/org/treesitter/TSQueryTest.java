@@ -78,6 +78,8 @@ class TSQueryTest {
     @Test
     void getCaptureNameForId() {
         assertEquals("root", query.getCaptureNameForId(0));
+        assertThrows(IndexOutOfBoundsException.class, () -> query.getCaptureNameForId(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> query.getCaptureNameForId(query.getCaptureCount()));
     }
 
     @Test
@@ -88,6 +90,8 @@ class TSQueryTest {
     @Test
     void getStringValueForId() {
         assertEquals("foo", query.getStringValueForId(1));
+        assertThrows(IndexOutOfBoundsException.class, () -> query.getStringValueForId(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> query.getStringValueForId(query.getStringCount()));
     }
 
     @Test

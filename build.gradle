@@ -125,7 +125,6 @@ subprojects {
             }
 
             disable("FutureReturnValueIgnored")
-            disable("MissingSummary")
             disable("NonCanonicalType")
 
             excludedPaths = ".*/src/main/java/(dev/|eu/|org/treesitter/tests/).*"
@@ -193,7 +192,6 @@ subprojects {
 
     test {
         useJUnitPlatform()
-        mustRunAfter("spotlessCheck")
 
         // Test execution settings
         testLogging {

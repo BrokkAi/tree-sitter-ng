@@ -16,6 +16,14 @@ public class TSNode {
     private long idPtr;
     private long treePtr;
 
+    /**
+     * Check if the node is null.
+     * @return True if the node is null.
+     */
+    boolean isNull() {
+        return idPtr == 0;
+    }
+
     @SuppressWarnings("NullAway.Init")
     private TSTree tree;
 
@@ -141,7 +149,7 @@ public class TSNode {
      *
      * @return The node's type.
      */
-    public String getType() {
+    public @Nullable String getType() {
         return ts_node_type(this);
     }
 
@@ -270,7 +278,7 @@ public class TSNode {
      * Get the node's immediate parent. <br>
      * Prefer {@link #getChildWithDescendant(TSNode)} for iterating over the node's ancestors.
      *
-     * @return The node's parent.
+     * @return The node's parent, or <code>null</code> if this is the root node.
      */
     public @Nullable TSNode getParent() {
         TSNode ret = ts_node_parent(this);
@@ -314,11 +322,11 @@ public class TSNode {
 
     /**
      * Get the field name for node's child at the given index, where zero represents
-     * the first child. Returns <code>null</code>, if no field is found.
+     * the first child.
      *
      * @param index The index of the child to get.
      *
-     * @return The field name for the node's child at the given index.
+     * @return The field name for the node's child at the given index, or <code>null</code> if no field is found.
      */
     public @Nullable String getFieldNameForChild(int index) {
         return ts_node_field_name_for_child(this, index);
@@ -413,7 +421,7 @@ public class TSNode {
      *
      * @param fieldName The field name of the child to get.
      *
-     * @return The node's child with the given field name.
+     * @return The node's child with the given field name, or <code>null</code> if not found.
      */
     public @Nullable TSNode getChildByFieldName(String fieldName) {
         TSNode ret = ts_node_child_by_field_name(this, fieldName);
@@ -431,7 +439,7 @@ public class TSNode {
      *
      * @param fieldId The field id of the child to get.
      *
-     * @return The node's child with the given field id.
+     * @return The node's child with the given field id, or <code>null</code> if not found.
      */
     public @Nullable TSNode getChildByFieldId(int fieldId) {
         TSNode ret = ts_node_child_by_field_id(this, fieldId);
@@ -446,7 +454,7 @@ public class TSNode {
      *
      * @param startByte The byte offset to search.
      *
-     * @return The node's first child that beyond the given byte offset.
+     * @return The node's first child that beyond the given byte offset, or <code>null</code> if not found.
      */
     public @Nullable TSNode getFirstChildForByte(int startByte) {
         TSNode ret = ts_node_first_child_for_byte(this, startByte);
@@ -562,8 +570,7 @@ public class TSNode {
      *
      * @param a The first node to compare.
      * @param b The second node to compare.
-     *
-     * @return Whether the two nodes are identical.
+     * @return {@code true} if the two nodes are identical.
      */
     public static boolean eq(@Nullable TSNode a, @Nullable TSNode b) {
         if (Objects.equals(a, b)) return true;
@@ -584,7 +591,7 @@ public class TSNode {
      *
      * @return Node grammar type
      */
-    public String getGrammarType() {
+    public @Nullable String getGrammarType() {
         return TSParser.ts_node_grammar_type(this);
     }
 

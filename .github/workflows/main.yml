@@ -29,7 +29,6 @@ jobs:
 
   test:
     name: Test on ${{ matrix.os }}
-    needs: formatting
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -52,4 +51,4 @@ jobs:
         with:
           cache-read-only: true
       - name: Test with Gradle
-        run: ./gradlew test --stacktrace
+        run: ./gradlew spotlessCheck test --stacktrace

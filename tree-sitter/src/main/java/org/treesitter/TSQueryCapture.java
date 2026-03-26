@@ -14,4 +14,16 @@ public class TSQueryCapture {
     public int getIndex() {
         return index;
     }
+
+    /**
+     * Create a copy of this capture.
+     *
+     * @return A new capture instance.
+     */
+    public TSQueryCapture copy() {
+        TSQueryCapture copy = new TSQueryCapture();
+        copy.node = this.node;
+        copy.index = this.index;
+        return copy;
+    }
 }

@@ -7,9 +7,11 @@ import java.lang.ref.Cleaner.Cleanable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.jspecify.annotations.Nullable;
 
-public class TSQueryCursor implements AutoCloseable {
+public class TSQueryCursor implements AutoCloseable, Iterable<TSQueryMatch> {
 
     private final long ptr;
     private final long progressPayloadPtr;
@@ -353,28 +355,51 @@ public class TSQueryCursor implements AutoCloseable {
 
     private void assertExecuted() {
         if (!executed) {
-            throw new TSException("Query not executed, call exec() first.");
+            throw new IllegalStateException("Query not executed, call exec() first.");
         }
     }
 
     /**
-     * Get the match iterator.<br>
+     * Get an iterable over the matches.<br>
      *
-     * @return An iterator over the matches.
+     * @return An iterable over the matches.
      *
      */
-    public TSMatchIterator getMatches() {
+    public Iterable<TSQueryMatch> getMatches() {
+        return () -> new TSMatchIterator(this, false);
+    }
+
+    /**
+     * Get an iterable over the captures.<br>
+     *
+     * @return An iterable over the captures.
+     *
+     */
+    public Iterable<TSQueryMatch> getCaptures() {
+        return () -> new TSMatchIterator(this, true);
+    }
+
+    @Override
+    public Iterator<TSQueryMatch> iterator() {
         return new TSMatchIterator(this, false);
     }
 
     /**
-     * Get the capture iterator.<br>
+     * Returns a sequential {@code Stream} with the matches as its source.
      *
-     * @return An iterator over the captures.
-     *
+     * @return a sequential {@code Stream} over the matches.
      */
-    public TSMatchIterator getCaptures() {
-        return new TSMatchIterator(this, true);
+    public Stream<TSQueryMatch> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    /**
+     * Returns a sequential {@code Stream} with the captures as its source.
+     *
+     * @return a sequential {@code Stream} over the captures.
+     */
+    public Stream<TSQueryMatch> streamCaptures() {
+        return StreamSupport.stream(getCaptures().spliterator(), false);
     }
 
     public static class TSMatchIterator implements Iterator<TSQueryMatch> {
@@ -388,8 +413,7 @@ public class TSQueryCursor implements AutoCloseable {
             this.isCapture = isCapture;
         }
 
-        @Override
-        public boolean hasNext() {
+        private boolean fetchNext() {
             if (hasNextTempMatch != null) {
                 return true;
             }
@@ -404,22 +428,19 @@ public class TSQueryCursor implements AutoCloseable {
         }
 
         @Override
+        public boolean hasNext() {
+            return fetchNext();
+        }
+
+        @Override
         public TSQueryMatch next() {
-            if (hasNextTempMatch != null) {
-                TSQueryMatch lastMatch = hasNextTempMatch;
-                hasNextTempMatch = null;
-                return lastMatch;
-            }
-            cursor.ensureOpen();
-            cursor.assertExecuted();
-            TSQueryMatch match = new TSQueryMatch();
-            boolean hasNext = isCapture ? cursor.nextCapture(match) : cursor.nextMatch(match);
-            if (hasNext) {
-                lastMatch = match;
-                return match;
-            } else {
+            if (!fetchNext()) {
                 throw new NoSuchElementException();
             }
+            TSQueryMatch currentMatch = Objects.requireNonNull(hasNextTempMatch);
+            hasNextTempMatch = null;
+            lastMatch = currentMatch;
+            return currentMatch;
         }
 
         @Override
