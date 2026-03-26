@@ -20,6 +20,7 @@ import static org.treesitter.TSParser.ts_query_string_value_for_id;
 import java.lang.ref.Cleaner.Cleanable;
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public class TSQuery implements AutoCloseable {
     private final long ptr;
@@ -222,7 +223,7 @@ public class TSQuery implements AutoCloseable {
      *
      * @return The name of the capture.
      */
-    public String getCaptureNameForId(int captureId) {
+    public @Nullable String getCaptureNameForId(int captureId) {
         ensureOpen();
         int captureCount = getCaptureCount();
         if (captureId >= captureCount) {
@@ -442,7 +443,7 @@ public class TSQuery implements AutoCloseable {
      * @param id the string id.
      * @return the string value.
      */
-    public String getStringValueForId(int id) {
+    public @Nullable String getStringValueForId(int id) {
         ensureOpen();
         int stringCount = getStringCount();
         if (id < 0 || id >= stringCount) {
