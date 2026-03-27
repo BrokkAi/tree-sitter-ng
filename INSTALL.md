@@ -1,137 +1,140 @@
-# Integrating Tree-Sitter-NG into Gradle
+# Integrating Tree-Sitter-NG into Gradle (Multi-Project)
 
-Because these libraries contain native components and are hosted as a bundled ZIP release on GitHub, the integration
-requires a two-step process:
+Because these libraries contain native components and are hosted as a bundled ZIP release on GitHub, they lack standard Maven metadata. The most robust way to integrate them is using a dedicated "provider" submodule.
 
-1. **Automated Retrieval**: A Gradle task to download and extract the JARs.
-2. **Repository Configuration**: A `flatDir` repository that points to the extracted artifacts.
+## 1. Register the Submodule
 
-## 1. Define Versions in `libs.versions.toml`
+In your `settings.gradle.kts`, include the new module:
 
-First, add the coordinates to your Version Catalog. We use a custom namespace (`ai.brokk`) to avoid collisions with
-upstream libraries.
+```kotlin
+include("treesitter-provider")
+```
+
+## 2. Define Version in `libs.versions.toml`
+
+Keep your version centralized in the catalog:
 
 ```toml
 [versions]
-treesitter = "0.2.0"
-
-[libraries]
-# Core Runtime
-treesitter-api = { group = "ai.brokk", name = "tree-sitter", version.ref = "treesitter" }
-
-# Language Modules
-treesitter-java = { group = "ai.brokk", name = "tree-sitter-java", version.ref = "treesitter" }
-treesitter-python = { group = "ai.brokk", name = "tree-sitter-python", version.ref = "treesitter" }
-# Add other languages as needed...
+treesitter = "0.2.4"
 ```
 
-## 2. Configure the Download Task
+## 3. Create the `treesitter-provider` Module
 
-In your **root** `build.gradle.kts`, create a task to handle the lifecycle of the native ZIP. This task is incremental,
-meaning it only runs when the version changes.
+Create `treesitter-provider/build.gradle.kts`. This module handles the download, SHA-256 verification, and extraction. It exports the resulting JARs to other modules.
 
 ```kotlin
-tasks.register("downloadTreeSitterNg") {
+import java.net.URI
+import java.security.MessageDigest
+
+plugins {
+    `java-library`
+}
+
+val treeSitterNgVersion = libs.versions.treesitter.get()
+val jarsDir = layout.buildDirectory.dir("jars").get().asFile
+
+val downloadTreeSitterNg = tasks.register("downloadTreeSitterNg") {
     description = "Downloads and extracts tree-sitter-ng native libraries"
     group = "build setup"
 
     val version = treeSitterNgVersion
     val downloadUrl = "https://github.com/BrokkAi/tree-sitter-ng/releases/download/v$version/tree-sitter-ng-jar.zip"
-    val cacheDir = file(".gradle/tree-sitter-ng/v$version")
-    val zipFile = file(".gradle/tree-sitter-ng/tree-sitter-ng-$version.zip")
+    val checksumsUrl = "https://github.com/BrokkAi/tree-sitter-ng/releases/download/v$version/checksums.txt"
+    
+    val cacheDir = layout.buildDirectory.dir("cache/v$version").get().asFile
+    val zipFile = layout.buildDirectory.file("cache/tree-sitter-ng-$version.zip").get().asFile
+    val checksumsFile = cacheDir.resolve("checksums.txt")
 
     inputs.property("version", version)
     outputs.dir(cacheDir)
+    outputs.file(zipFile)
+    outputs.dir(jarsDir)
 
     doLast {
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs()
-        }
+        if (!cacheDir.exists()) cacheDir.mkdirs()
 
-        if (!zipFile.exists()) {
-            logger.lifecycle("Downloading TreeSitter NG v$version...")
-            zipFile.parentFile.mkdirs()
-            java.net.URI(downloadUrl).toURL().openStream().use { input ->
-                zipFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
+        // 1. Download checksums.txt
+        if (!checksumsFile.exists()) {
+            URI(checksumsUrl).toURL().openStream().use { input ->
+                checksumsFile.outputStream().use { output -> input.copyTo(output) }
             }
         }
 
-        logger.lifecycle("Extracting TreeSitter NG modules to ${cacheDir.absolutePath}...")
-        val jarsDir = cacheDir.resolve("jars")
-        jarsDir.mkdirs()
+        // 2. Download ZIP
+        if (!zipFile.exists()) {
+            zipFile.parentFile.mkdirs()
+            URI(downloadUrl).toURL().openStream().use { input ->
+                zipFile.outputStream().use { output -> input.copyTo(output) }
+            }
+        }
 
+        // 3. Verify Checksum
+        val expectedFileName = "tree-sitter-ng-jar.zip"
+        val expectedHash = checksumsFile.useLines { lines ->
+            lines.map { it.split(Regex("\\s+")) }
+                .find { it.size >= 2 && it[1] == expectedFileName }
+                ?.get(0)
+        } ?: throw GradleException("No checksum entry found for $expectedFileName")
+
+        val digest = MessageDigest.getInstance("SHA-256")
+        val actualHash = zipFile.inputStream().use { input ->
+            val buffer = ByteArray(8192)
+            var read = input.read(buffer)
+            while (read != -1) {
+                digest.update(buffer, 0, read)
+                read = input.read(buffer)
+            }
+            digest.digest().joinToString("") { b -> "%02x".format(b) }
+        }
+
+        if (!actualHash.equals(expectedHash, ignoreCase = true)) {
+            zipFile.delete()
+            throw GradleException("SHA-256 mismatch for $zipFile")
+        }
+
+        // 4. Extract
+        if (!jarsDir.exists()) jarsDir.mkdirs()
         copy {
             from(zipTree(zipFile))
             into(jarsDir)
             include("**/*.jar")
-            // Flatten the directory structure so all JARs are in the root of 'jarsDir'
             eachFile {
-                path = name
+                path = name // Flatten
+                path = path.replace("tree-sitter-ng", "tree-sitter") // Normalize names
             }
             includeEmptyDirs = false
         }
     }
 }
-```
 
-## 3. Set Up the Local Repository
-
-In the `allprojects` or `subprojects` block of your root build script, configure Gradle to look into the extracted
-folders for dependencies.
-
-> **Note:** `flatDir` does not support recursive searching, so you must point it directly to the subdirectories
-> containing the `.jar` files.
-
-```kotlin
-allprojects {
-    repositories {
-        val tsVersion = "0.2.0"
-        flatDir {
-            dirs(
-                rootProject.file(".gradle/tree-sitter-ng/v$tsVersion/tree-sitter"),
-                rootProject.file(".gradle/tree-sitter-ng/v$tsVersion/tree-sitter-java"),
-                rootProject.file(".gradle/tree-sitter-ng/v$tsVersion/tree-sitter-python")
-            )
-        }
-        mavenCentral()
-    }
+dependencies {
+    // Export the directory as a library. 'builtBy' ensures the task runs first.
+    api(fileTree(jarsDir) {
+        include("*.jar")
+        builtBy(downloadTreeSitterNg)
+    })
 }
 ```
 
-## 4. Usage in Subprojects
+## 4. Usage in Other Subprojects
 
-In your application or library module (e.g., `app/build.gradle.kts`), declare the dependencies and ensure the download
-task runs before compilation.
+In any module that needs Tree-sitter (e.g., `app/build.gradle.kts`), simply add the project dependency. Gradle will automatically ensure the download task in `:treesitter-provider` completes before compiling `:app`.
 
 ```kotlin
 dependencies {
-    implementation(libs.treesitter.api)
-    implementation(libs.treesitter.java)
-    implementation(libs.treesitter.python)
-}
-
-// Ensure JARs are extracted before the IDE or compiler tries to find them
-tasks.withType<JavaCompile> {
-    dependsOn(":downloadTreeSitterNg")
+    implementation(project(":treesitter-provider"))
 }
 ```
 
 ## Important Considerations
 
-### Why Use `flatDir`?
-
-Since these JARs are extracted from a ZIP and do not include Maven `pom.xml` metadata, `flatDir` is the simplest way to
-treat a local directory as a repository. It matches the filename (e.g., `tree-sitter-java.jar`) to the dependency name.
+### Why this approach?
+Unlike `flatDir`, which is a repository type that can be "empty" during configuration if the files aren't there yet, a `project` dependency with `builtBy` creates a hard link in the Gradle task graph. This eliminates race conditions where the compiler starts before the JARs are downloaded.
 
 ### Native Access
-
-When running your application with these libraries, remember that Tree-sitter uses JNI (Java Native Interface). If you
-are using JDK 21+, you may need to pass the following JVM argument to allow native access:
+When running your application, Tree-sitter uses JNI. For JDK 21+, you must allow native access:
 `--enable-native-access=ALL-UNNAMED`
 
-### Cleaning
-
-The artifacts are stored in the `.gradle` folder. Running `./gradlew clean` typically does not remove this folder. If
-you need to force a re-download, delete the `.gradle/tree-sitter-ng` directory manually.
+### IDE Sync
+Because the JARs are only available after the download task runs, you may need to run `./gradlew :treesitter-provider:downloadTreeSitterNg` once before your IDE (IntelliJ/Eclipse) can fully resolve the symbols.
