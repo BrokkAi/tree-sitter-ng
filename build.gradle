@@ -95,6 +95,7 @@ subprojects {
 
         testImplementation platform(libs.junit.bom)
         testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         if (project.name != 'tree-sitter') {
             // All other subprojects need the core tree-sitter classes to compile
             api project(":tree-sitter")
