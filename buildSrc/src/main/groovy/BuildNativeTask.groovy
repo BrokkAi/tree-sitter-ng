@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFile
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -12,9 +13,17 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
 import org.treesitter.build.Utils
+import javax.inject.Inject
 
-class BuildNativeTask extends DefaultTask{
+abstract class BuildNativeTask extends DefaultTask{
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @Inject
+    abstract FileSystemOperations getFs()
 
     static String libExt(String target){
         if(target.contains("windows")){
@@ -193,7 +202,7 @@ class BuildNativeTask extends DefaultTask{
             allFiles.addAll(additionalCFiles.files)
             cmd.addAll(allFiles.collect { it.absolutePath })
             
-            project.exec{
+            execOperations.exec{
                 workingDir jniCDir
                 commandLine(cmd)
             }
@@ -206,6 +215,8 @@ class BuildNativeTask extends DefaultTask{
             include("**/*.pdb")
             include("**/*.lib")
         }
-        project.delete(files)
+        fs.delete {
+            delete(files)
+        }
     }
 }

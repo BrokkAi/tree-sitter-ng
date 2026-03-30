@@ -9,9 +9,14 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import org.gradle.process.ExecOperations
 import org.treesitter.build.Utils
+import javax.inject.Inject
 
-class DownloadZigTask extends DefaultTask{
+abstract class DownloadZigTask extends DefaultTask{
+
+    @Inject
+    abstract ExecOperations getExecOperations()
     @Internal
     DefaultOperatingSystem os
 
@@ -168,7 +173,7 @@ class DownloadZigTask extends DefaultTask{
         def mirrorUrls = mirrorUrls()
         downloadZigFromMirrors(mirrorUrls, zigZipFile.asFile, zigSignatureFile.asFile)
         miniSignExe.asFile.setExecutable(true, true)
-        def zipVerified = project.exec {
+        def zipVerified = execOperations.exec {
             ignoreExitValue = true
             workingDir zigDir.asFile
             commandLine miniSignExe,
@@ -177,7 +182,7 @@ class DownloadZigTask extends DefaultTask{
                            "-P",
                            zigPubKey
         }
-        if(!zipVerified) {
+        if(zipVerified.exitValue != 0) {
             throw new GradleException("$zigZipFile signature does not match!")
         }
         Utils.unzipArchive(zigZipFile.asFile, zigDir.asFile)

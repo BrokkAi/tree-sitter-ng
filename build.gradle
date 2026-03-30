@@ -18,6 +18,7 @@ allprojects {
     }
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+        options.release.set(11)
         options.compilerArgs << "-Werror"
     }
 }
@@ -95,6 +96,7 @@ subprojects {
 
         testImplementation platform(libs.junit.bom)
         testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         if (project.name != 'tree-sitter') {
             // All other subprojects need the core tree-sitter classes to compile
             api project(":tree-sitter")

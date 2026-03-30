@@ -11,6 +11,7 @@ ecosystem breadth.
 * **Ecosystem Breadth**: Expanded support for the modern stack (Kotlin, Zig, Angular, Vue.js), supplementing the
   official grammars maintained by the upstream project.
 * **Modern Java Ergonomics**: Moving away from C-style wrappers toward a library that feels native to modern Java, while maintaining a low **Java 11+** baseline requirement.
+  > **Note on Building**: While the compiled library targets **Java 11**, building the project from source requires **JDK 17+** (due to Gradle 9 requirements).
     * **Strict Null Safety**: Integration with **JSpecify** and **Error Prone** for compile-time safety at the JNI
       boundary.
     * **Idiomatic Patterns**: Lazy collection patterns (e.g., `getNamedChildren()`) and strict handling (e.g.,
