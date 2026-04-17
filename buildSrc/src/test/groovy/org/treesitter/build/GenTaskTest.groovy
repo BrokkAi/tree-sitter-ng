@@ -131,4 +131,64 @@ class GenTaskTest {
         assertTrue(content.contains("public static final Set<TsxNodeType> DECLARATION_SET = Set.of(ABSTRACT_CLASS_DECLARATION, FUNCTION_DECLARATION);"),
                 "Should generate a declaration set containing named subtype constants")
     }
+
+    @Test
+    void "should generate NodeField and NodeSchema from fields and children metadata"() {
+        // Arrange
+        def jsonFile = new File(tempDir, "upstream/src/node-types.json")
+        jsonFile.parentFile.mkdirs()
+        jsonFile.text = """
+[
+  {
+    "type": "function_declaration",
+    "named": true,
+    "fields": {
+      "name": {
+        "required": true,
+        "multiple": false,
+        "types": [{ "type": "identifier", "named": true }]
+      },
+      "body": {
+        "required": true,
+        "multiple": false,
+        "types": [{ "type": "statement_block", "named": true }]
+      }
+    },
+    "children": {
+      "required": false,
+      "multiple": true,
+      "types": [{ "type": "comment", "named": true }, { "type": "missing", "named": false }]
+    }
+  },
+  { "type": "identifier", "named": true },
+  { "type": "statement_block", "named": true },
+  { "type": "comment", "named": true }
+]
+""".trim()
+
+        // Act
+        def parsed = GenTask.parseNodeTypes(jsonFile)
+        def outDir = new File(tempDir, "gen")
+        GenTask.writeNodeTypesClass("tsx", outDir, parsed)
+        GenTask.writeNodeFieldsClass("tsx", outDir, parsed)
+        GenTask.writeNodeSchemaClass("tsx", outDir, parsed)
+
+        // Assert
+        def fieldFile = new File(outDir, "org/treesitter/TsxNodeField.java")
+        assertTrue(fieldFile.exists(), "NodeField enum should be generated")
+        def fieldContent = fieldFile.text
+        assertTrue(fieldContent.contains("public enum TsxNodeField"), "Should generate a TsxNodeField enum")
+        assertTrue(fieldContent.contains("NAME(\"name\")"), "Should generate a NAME field constant")
+        assertTrue(fieldContent.contains("BODY(\"body\")"), "Should generate a BODY field constant")
+        assertTrue(fieldContent.contains("public static TsxNodeField fromName"), "Should generate a lookup helper")
+
+        def schemaFile = new File(outDir, "org/treesitter/TsxNodeSchema.java")
+        assertTrue(schemaFile.exists(), "NodeSchema helper should be generated")
+        def schemaContent = schemaFile.text
+        assertTrue(schemaContent.contains("public final class TsxNodeSchema"), "Should generate a TsxNodeSchema helper")
+        assertTrue(schemaContent.contains("static Set<TsxNodeField> fields"), "Should expose fields(owner)")
+        assertTrue(schemaContent.contains("static Set<TsxNodeType> allowedTypes"), "Should expose allowedTypes(owner, field)")
+        assertTrue(schemaContent.contains("static Set<TsxNodeType> allowedChildTypes"), "Should expose allowedChildTypes(owner)")
+        assertTrue(schemaContent.contains("FUNCTION_DECLARATION"), "Should include owner node type constants")
+    }
 }

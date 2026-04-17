@@ -13,11 +13,45 @@ class GenTask extends DefaultTask {
         final String type
         final boolean named
         final List<ParsedNodeType> subtypes
+        final Map<String, ParsedFieldInfo> fields
+        final ParsedChildrenInfo children
 
-        ParsedNodeType(String type, boolean named, List<ParsedNodeType> subtypes) {
+        ParsedNodeType(
+                String type,
+                boolean named,
+                List<ParsedNodeType> subtypes,
+                Map<String, ParsedFieldInfo> fields,
+                ParsedChildrenInfo children
+        ) {
             this.type = type
             this.named = named
             this.subtypes = subtypes
+            this.fields = fields
+            this.children = children
+        }
+    }
+
+    static final class ParsedFieldInfo {
+        final boolean required
+        final boolean multiple
+        final List<String> allowedTypes
+
+        ParsedFieldInfo(boolean required, boolean multiple, List<String> allowedTypes) {
+            this.required = required
+            this.multiple = multiple
+            this.allowedTypes = allowedTypes
+        }
+    }
+
+    static final class ParsedChildrenInfo {
+        final boolean required
+        final boolean multiple
+        final List<String> allowedTypes
+
+        ParsedChildrenInfo(boolean required, boolean multiple, List<String> allowedTypes) {
+            this.required = required
+            this.multiple = multiple
+            this.allowedTypes = allowedTypes
         }
     }
 
@@ -88,7 +122,7 @@ class GenTask extends DefaultTask {
         }
         return ((List) parsed).collect { obj ->
             if (!(obj instanceof Map)) {
-                return new ParsedNodeType(null, false, [])
+                return new ParsedNodeType(null, false, [], [:], null)
             }
             def type = obj.get("type")
             def named = obj.get("named") == true
@@ -100,14 +134,71 @@ class GenTask extends DefaultTask {
                         return new ParsedNodeType(
                                 st.get("type") instanceof String ? (String) st.get("type") : null,
                                 st.get("named") == true,
-                                []
+                                [],
+                                [:],
+                                null
                         )
                     }
-                    return new ParsedNodeType(null, false, [])
+                    return new ParsedNodeType(null, false, [], [:], null)
                 }
             }
-            return new ParsedNodeType(type instanceof String ? (String) type : null, named, (List<ParsedNodeType>) subtypes)
+
+            def fields = parseFields(obj.get("fields"))
+            def children = parseChildren(obj.get("children"))
+
+            return new ParsedNodeType(
+                    type instanceof String ? (String) type : null,
+                    named,
+                    (List<ParsedNodeType>) subtypes,
+                    fields,
+                    children
+            )
         }
+    }
+
+    private static Map<String, ParsedFieldInfo> parseFields(Object fieldsRaw) {
+        if (!(fieldsRaw instanceof Map)) return [:]
+        def out = new LinkedHashMap<String, ParsedFieldInfo>()
+        ((Map) fieldsRaw).each { k, v ->
+            if (!(k instanceof String)) return
+            if (!(v instanceof Map)) return
+            def fieldName = ((String) k).trim()
+            if (fieldName.isEmpty()) return
+            out.put(fieldName, parseFieldInfo((Map) v))
+        }
+        return out
+    }
+
+    private static ParsedFieldInfo parseFieldInfo(Map infoRaw) {
+        def required = infoRaw.get("required") == true
+        def multiple = infoRaw.get("multiple") == true
+        def allowedTypes = parseAllowedTypes(infoRaw.get("types"))
+        return new ParsedFieldInfo(required, multiple, allowedTypes)
+    }
+
+    private static ParsedChildrenInfo parseChildren(Object childrenRaw) {
+        if (!(childrenRaw instanceof Map)) return null
+        def m = (Map) childrenRaw
+        def required = m.get("required") == true
+        def multiple = m.get("multiple") == true
+        def allowedTypes = parseAllowedTypes(m.get("types"))
+        return new ParsedChildrenInfo(required, multiple, allowedTypes)
+    }
+
+    private static List<String> parseAllowedTypes(Object typesRaw) {
+        if (!(typesRaw instanceof List)) return []
+        def out = []
+        ((List) typesRaw).each { t ->
+            if (!(t instanceof Map)) return
+            def named = ((Map) t).get("named") == true
+            def type = ((Map) t).get("type")
+            if (!named) return
+            if (!(type instanceof String)) return
+            def s = ((String) type).trim()
+            if (s.isEmpty()) return
+            out.add(s)
+        }
+        return out.unique().sort()
     }
 
     private static final Set<String> JAVA_KEYWORDS = [
@@ -142,12 +233,7 @@ class GenTask extends DefaultTask {
         return s
     }
 
-    static void writeNodeTypesClass(String libShortName, File outDir, List<ParsedNodeType> nodes) {
-        def capitalized = capitalizedLibName(libShortName)
-        def enumName = "${capitalized}NodeType"
-        def pkgDir = new File(outDir, "org/treesitter")
-        def outFile = new File(pkgDir, "${enumName}.java")
-
+    private static Map<String, String> namedTypeConstMap(List<ParsedNodeType> nodes) {
         def namedNodes = nodes.findAll { it.named && it.type instanceof String && it.type != null }
         def constByType = new LinkedHashMap<String, String>()
         def usedConstNames = new HashSet<String>()
@@ -163,6 +249,42 @@ class GenTask extends DefaultTask {
             usedConstNames.add(name)
             constByType.put(type, name)
         }
+        return constByType
+    }
+
+    private static Map<String, String> fieldNameConstMap(List<ParsedNodeType> nodes) {
+        def fieldNames = new LinkedHashSet<String>()
+        nodes.each { n ->
+            if (n.fields instanceof Map) {
+                n.fields.keySet().each { fn ->
+                    if (fn instanceof String && !((String) fn).trim().isEmpty()) fieldNames.add(((String) fn).trim())
+                }
+            }
+        }
+        def constByFieldName = new LinkedHashMap<String, String>()
+        def usedConstNames = new HashSet<String>()
+        fieldNames.toList().unique().sort().each { String fieldName ->
+            def base = constantNameForNodeType(fieldName)
+            if (base == null) return
+            def name = base
+            def i = 2
+            while (usedConstNames.contains(name)) {
+                name = "${base}_${i}"
+                i++
+            }
+            usedConstNames.add(name)
+            constByFieldName.put(fieldName, name)
+        }
+        return constByFieldName
+    }
+
+    static void writeNodeTypesClass(String libShortName, File outDir, List<ParsedNodeType> nodes) {
+        def capitalized = capitalizedLibName(libShortName)
+        def enumName = "${capitalized}NodeType"
+        def pkgDir = new File(outDir, "org/treesitter")
+        def outFile = new File(pkgDir, "${enumName}.java")
+
+        def constByType = namedTypeConstMap(nodes)
 
         def setDecls = []
         nodes.each { n ->
@@ -240,6 +362,246 @@ class GenTask extends DefaultTask {
         content.append("            if (t.type != null) m.put(t.type, t);\n")
         content.append("        }\n")
         content.append("        return Collections.unmodifiableMap(m);\n")
+        content.append("    }\n")
+        content.append("}\n")
+
+        pkgDir.mkdirs()
+        try (OutputStream outputStream = new FileOutputStream(outFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content.toString()) }
+        }
+    }
+
+    static void writeNodeFieldsClass(String libShortName, File outDir, List<ParsedNodeType> nodes) {
+        def capitalized = capitalizedLibName(libShortName)
+        def enumName = "${capitalized}NodeField"
+        def pkgDir = new File(outDir, "org/treesitter")
+        def outFile = new File(pkgDir, "${enumName}.java")
+
+        def constByFieldName = fieldNameConstMap(nodes)
+
+        def content = new StringBuilder()
+        content.append("package org.treesitter;\n\n")
+        content.append("import java.util.Collections;\n")
+        content.append("import java.util.HashMap;\n")
+        content.append("import java.util.Map;\n")
+        content.append("import org.jspecify.annotations.Nullable;\n\n")
+        content.append("/**\n")
+        content.append(" * Node field names for {@code ${libShortName}} from tree-sitter {@code node-types.json}.\n")
+        content.append(" */\n")
+        content.append("public enum ${enumName} {\n")
+        content.append("    /** Represents a null field reference or a null field name. */\n")
+        content.append("    __NULL__(null)")
+        if (!constByFieldName.isEmpty()) {
+            content.append(",\n")
+        } else {
+            content.append(";\n")
+        }
+
+        def entries = constByFieldName.entrySet().toList().sort { a, b -> a.value <=> b.value }
+        entries.eachWithIndex { e, idx ->
+            def suffix = (idx == entries.size() - 1) ? ";" : ","
+            content.append("    ${e.value}(\"${e.key}\")${suffix}\n")
+        }
+
+        content.append("\n")
+        content.append("    private final @Nullable String name;\n\n")
+        content.append("    ${enumName}(@Nullable String name) {\n")
+        content.append("        this.name = name;\n")
+        content.append("    }\n\n")
+        content.append("    public @Nullable String getName() {\n")
+        content.append("        return name;\n")
+        content.append("    }\n\n")
+        content.append("    public static ${enumName} fromName(@Nullable String name) {\n")
+        content.append("        if (name == null) return __NULL__;\n")
+        content.append("        ${enumName} f = LOOKUP.get(name);\n")
+        content.append("        return f == null ? __NULL__ : f;\n")
+        content.append("    }\n\n")
+        content.append("    private static final Map<String, ${enumName}> LOOKUP = initLookup();\n\n")
+        content.append("    private static Map<String, ${enumName}> initLookup() {\n")
+        content.append("        HashMap<String, ${enumName}> m = new HashMap<>();\n")
+        content.append("        for (${enumName} f : values()) {\n")
+        content.append("            if (f.name != null) m.put(f.name, f);\n")
+        content.append("        }\n")
+        content.append("        return Collections.unmodifiableMap(m);\n")
+        content.append("    }\n")
+        content.append("}\n")
+
+        pkgDir.mkdirs()
+        try (OutputStream outputStream = new FileOutputStream(outFile)) {
+            outputStream.withPrintWriter { writer -> writer.write(content.toString()) }
+        }
+    }
+
+    static void writeNodeSchemaClass(String libShortName, File outDir, List<ParsedNodeType> nodes) {
+        def capitalized = capitalizedLibName(libShortName)
+        def nodeTypeName = "${capitalized}NodeType"
+        def fieldEnumName = "${capitalized}NodeField"
+        def className = "${capitalized}NodeSchema"
+        def pkgDir = new File(outDir, "org/treesitter")
+        def outFile = new File(pkgDir, "${className}.java")
+
+        def constByType = namedTypeConstMap(nodes)
+        def constByFieldName = fieldNameConstMap(nodes)
+
+        def ownerToFields = new LinkedHashMap<String, List<Map>>()
+        def ownerToChildren = new LinkedHashMap<String, Map>()
+
+        nodes.each { n ->
+            if (!n.named) return
+            def rawType = n.type instanceof String ? (String) n.type : null
+            if (rawType == null) return
+            def ownerConst = constByType.get(rawType)
+            if (ownerConst == null) return
+
+            if (n.fields instanceof Map && !n.fields.isEmpty()) {
+                def list = []
+                n.fields.each { fn, info ->
+                    if (!(fn instanceof String)) return
+                    def fieldName = ((String) fn).trim()
+                    if (fieldName.isEmpty()) return
+                    def fieldConst = constByFieldName.get(fieldName)
+                    if (fieldConst == null) return
+                    if (!(info instanceof ParsedFieldInfo)) return
+
+                    def allowedConsts = []
+                    info.allowedTypes.each { at ->
+                        def c = constByType.get(at)
+                        if (c != null) allowedConsts.add("${nodeTypeName}.${c}")
+                    }
+                    allowedConsts = allowedConsts.unique().sort()
+
+                    list.add([
+                            fieldConst: fieldConst,
+                            required  : info.required == true,
+                            multiple  : info.multiple == true,
+                            allowed   : allowedConsts
+                    ])
+                }
+                if (!list.isEmpty()) {
+                    list = list.sort { a, b -> a.fieldConst <=> b.fieldConst }
+                    ownerToFields.put(ownerConst, list)
+                }
+            }
+
+            if (n.children != null) {
+                def allowedConsts = []
+                n.children.allowedTypes.each { at ->
+                    def c = constByType.get(at)
+                    if (c != null) allowedConsts.add("${nodeTypeName}.${c}")
+                }
+                allowedConsts = allowedConsts.unique().sort()
+                ownerToChildren.put(ownerConst, [
+                        required: n.children.required == true,
+                        multiple: n.children.multiple == true,
+                        allowed : allowedConsts
+                ])
+            }
+        }
+
+        def content = new StringBuilder()
+        content.append("package org.treesitter;\n\n")
+        content.append("import java.util.Collections;\n")
+        content.append("import java.util.EnumMap;\n")
+        content.append("import java.util.Map;\n")
+        content.append("import java.util.Set;\n")
+        content.append("import org.jspecify.annotations.Nullable;\n\n")
+        content.append("/**\n")
+        content.append(" * Lightweight schema utilities for {@code ${libShortName}} from tree-sitter {@code node-types.json}.\n")
+        content.append(" */\n")
+        content.append("public final class ${className} {\n")
+        content.append("    private ${className}() {}\n\n")
+        content.append("    public static Set<${fieldEnumName}> fields(@Nullable ${nodeTypeName} owner) {\n")
+        content.append("        if (owner == null) return Collections.emptySet();\n")
+        content.append("        Map<${fieldEnumName}, FieldInfo> m = FIELDS.get(owner);\n")
+        content.append("        if (m == null) return Collections.emptySet();\n")
+        content.append("        return m.keySet();\n")
+        content.append("    }\n\n")
+        content.append("    public static Set<${nodeTypeName}> allowedTypes(@Nullable ${nodeTypeName} owner, @Nullable ${fieldEnumName} field) {\n")
+        content.append("        if (owner == null || field == null) return Collections.emptySet();\n")
+        content.append("        Map<${fieldEnumName}, FieldInfo> m = FIELDS.get(owner);\n")
+        content.append("        if (m == null) return Collections.emptySet();\n")
+        content.append("        FieldInfo info = m.get(field);\n")
+        content.append("        if (info == null) return Collections.emptySet();\n")
+        content.append("        return info.allowedTypes;\n")
+        content.append("    }\n\n")
+        content.append("    public static boolean isRequired(@Nullable ${nodeTypeName} owner, @Nullable ${fieldEnumName} field) {\n")
+        content.append("        if (owner == null || field == null) return false;\n")
+        content.append("        Map<${fieldEnumName}, FieldInfo> m = FIELDS.get(owner);\n")
+        content.append("        if (m == null) return false;\n")
+        content.append("        FieldInfo info = m.get(field);\n")
+        content.append("        return info != null && info.required;\n")
+        content.append("    }\n\n")
+        content.append("    public static boolean isMultiple(@Nullable ${nodeTypeName} owner, @Nullable ${fieldEnumName} field) {\n")
+        content.append("        if (owner == null || field == null) return false;\n")
+        content.append("        Map<${fieldEnumName}, FieldInfo> m = FIELDS.get(owner);\n")
+        content.append("        if (m == null) return false;\n")
+        content.append("        FieldInfo info = m.get(field);\n")
+        content.append("        return info != null && info.multiple;\n")
+        content.append("    }\n\n")
+        content.append("    public static Set<${nodeTypeName}> allowedChildTypes(@Nullable ${nodeTypeName} owner) {\n")
+        content.append("        if (owner == null) return Collections.emptySet();\n")
+        content.append("        ChildInfo info = CHILDREN.get(owner);\n")
+        content.append("        if (info == null) return Collections.emptySet();\n")
+        content.append("        return info.allowedTypes;\n")
+        content.append("    }\n\n")
+        content.append("    public static boolean childrenRequired(@Nullable ${nodeTypeName} owner) {\n")
+        content.append("        if (owner == null) return false;\n")
+        content.append("        ChildInfo info = CHILDREN.get(owner);\n")
+        content.append("        return info != null && info.required;\n")
+        content.append("    }\n\n")
+        content.append("    public static boolean childrenMultiple(@Nullable ${nodeTypeName} owner) {\n")
+        content.append("        if (owner == null) return false;\n")
+        content.append("        ChildInfo info = CHILDREN.get(owner);\n")
+        content.append("        return info != null && info.multiple;\n")
+        content.append("    }\n\n")
+        content.append("    private static final EnumMap<${nodeTypeName}, Map<${fieldEnumName}, FieldInfo>> FIELDS = initFields();\n")
+        content.append("    private static final EnumMap<${nodeTypeName}, ChildInfo> CHILDREN = initChildren();\n\n")
+        content.append("    // Some grammars have no fields/children schema; keep constructors 'used' under -Werror.\n")
+        content.append("    @SuppressWarnings(\"unused\")\n")
+        content.append("    private static final FieldInfo UNUSED_FIELD_INFO = new FieldInfo(false, false, Collections.emptySet());\n")
+        content.append("    @SuppressWarnings(\"unused\")\n")
+        content.append("    private static final ChildInfo UNUSED_CHILD_INFO = new ChildInfo(false, false, Collections.emptySet());\n\n")
+        content.append("    private static EnumMap<${nodeTypeName}, Map<${fieldEnumName}, FieldInfo>> initFields() {\n")
+        content.append("        EnumMap<${nodeTypeName}, Map<${fieldEnumName}, FieldInfo>> out = new EnumMap<>(${nodeTypeName}.class);\n")
+        ownerToFields.entrySet().toList().sort { a, b -> a.key <=> b.key }.each { e ->
+            content.append("        {\n")
+            content.append("            EnumMap<${fieldEnumName}, FieldInfo> m = new EnumMap<>(${fieldEnumName}.class);\n")
+            e.value.each { fi ->
+                def allowed = (fi.allowed instanceof List && !fi.allowed.isEmpty()) ? "Set.of(${fi.allowed.join(', ')})" : "Collections.emptySet()"
+                content.append("            m.put(${fieldEnumName}.${fi.fieldConst}, new FieldInfo(${fi.required}, ${fi.multiple}, ${allowed}));\n")
+            }
+            content.append("            out.put(${nodeTypeName}.${e.key}, Collections.unmodifiableMap(m));\n")
+            content.append("        }\n")
+        }
+        content.append("        return out;\n")
+        content.append("    }\n\n")
+        content.append("    private static EnumMap<${nodeTypeName}, ChildInfo> initChildren() {\n")
+        content.append("        EnumMap<${nodeTypeName}, ChildInfo> out = new EnumMap<>(${nodeTypeName}.class);\n")
+        ownerToChildren.entrySet().toList().sort { a, b -> a.key <=> b.key }.each { e ->
+            def allowed = (e.value.allowed instanceof List && !e.value.allowed.isEmpty()) ? "Set.of(${e.value.allowed.join(', ')})" : "Collections.emptySet()"
+            content.append("        out.put(${nodeTypeName}.${e.key}, new ChildInfo(${e.value.required}, ${e.value.multiple}, ${allowed}));\n")
+        }
+        content.append("        return out;\n")
+        content.append("    }\n\n")
+        content.append("    private static final class FieldInfo {\n")
+        content.append("        final boolean required;\n")
+        content.append("        final boolean multiple;\n")
+        content.append("        final Set<${nodeTypeName}> allowedTypes;\n\n")
+        content.append("        FieldInfo(boolean required, boolean multiple, Set<${nodeTypeName}> allowedTypes) {\n")
+        content.append("            this.required = required;\n")
+        content.append("            this.multiple = multiple;\n")
+        content.append("            this.allowedTypes = allowedTypes;\n")
+        content.append("        }\n")
+        content.append("    }\n\n")
+        content.append("    private static final class ChildInfo {\n")
+        content.append("        final boolean required;\n")
+        content.append("        final boolean multiple;\n")
+        content.append("        final Set<${nodeTypeName}> allowedTypes;\n\n")
+        content.append("        ChildInfo(boolean required, boolean multiple, Set<${nodeTypeName}> allowedTypes) {\n")
+        content.append("            this.required = required;\n")
+        content.append("            this.multiple = multiple;\n")
+        content.append("            this.allowedTypes = allowedTypes;\n")
+        content.append("        }\n")
         content.append("    }\n")
         content.append("}\n")
 

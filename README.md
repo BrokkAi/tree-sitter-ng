@@ -84,22 +84,36 @@ macOS, and Windows (x86_64 and aarch64) from a single CI environment without com
 # Build and test all subprojects
 ./gradlew build
 
-# (Re)generate NodeTypes constants for a language module
-# Produces/updates src/main/java/org/treesitter/<Lang>NodeTypes.java from upstream node-types.json
+# (Re)generate NodeType/NodeField/NodeSchema sources for a language module
+# Produces/updates src/main/java/org/treesitter/<Lang>NodeType.java (+ NodeField/NodeSchema) from upstream node-types.json
 ./gradlew :tree-sitter-tsx:generateNodeTypes
 
-# (Re)generate NodeTypes constants for all language modules
+# (Re)generate NodeType/NodeField/NodeSchema sources for all language modules
 ./gradlew :generateNodeTypes
 ```
 
-## Node Type Constants (NodeTypes)
+## Node Type & Schema API (NodeType / NodeField / NodeSchema)
 
 Most upstream tree-sitter grammars publish a `node-types.json` file describing supported node types. This repo can
-generate and ship those node types as a Java enum per language module in `org.treesitter.<Lang>NodeType`.
+generate and ship:
+
+- `org.treesitter.<Lang>NodeType` — named node types (enum)
+- `org.treesitter.<Lang>NodeField` — field names (enum)
+- `org.treesitter.<Lang>NodeSchema` — lightweight schema helpers derived from `node-types.json`
 
 Example (TSX): `org.treesitter.TsxNodeType.ABSTRACT_CLASS_DECLARATION.getType().equals("abstract_class_declaration")`.
-You can also do `TsxNodeType.from(node)` / `TsxNodeType.fromType(node.getType())` which return `TsxNodeType.NONE` for
-null input (the sentinel constant is `TsxNodeType.__NULL__`).
+You can also do `TsxNodeType.from(node)` / `TsxNodeType.fromType(node.getType())` which return `TsxNodeType.__NULL__`
+for null input (or unknown types).
+
+Field/schema usage (TSX):
+
+```java
+Set<TsxNodeField> possibleFields = TsxNodeSchema.fields(TsxNodeType.FUNCTION_DECLARATION);
+Set<TsxNodeType> allowedNameTypes = TsxNodeSchema.allowedTypes(TsxNodeType.FUNCTION_DECLARATION, TsxNodeField.NAME);
+boolean isNameRequired = TsxNodeSchema.isRequired(TsxNodeType.FUNCTION_DECLARATION, TsxNodeField.NAME);
+
+Set<TsxNodeType> allowedChildTypes = TsxNodeSchema.allowedChildTypes(TsxNodeType.FUNCTION_DECLARATION);
+```
 
 Generation is done via the Gradle task `:tree-sitter-<lang>:generateNodeTypes` and the generated sources are checked in
 under each subproject’s `src/main/java` so they ship in published artifacts without requiring codegen at consumer build

@@ -210,7 +210,7 @@ abstract class BuildNativeTask extends DefaultTask{
         this.removeWindowsDebugFiles()
     }
 
-    private void removeWindowsDebugFiles(){
+    protected void removeWindowsDebugFiles(){
         def files = jniOutDir.asFileTree.matching {
             include("**/*.pdb")
             include("**/*.lib")
