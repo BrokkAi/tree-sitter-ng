@@ -86,6 +86,9 @@ macOS, and Windows (x86_64 and aarch64) from a single CI environment without com
 # (Re)generate NodeTypes constants for a language module
 # Produces/updates src/main/java/org/treesitter/<Lang>NodeTypes.java from upstream node-types.json
 ./gradlew :tree-sitter-tsx:generateNodeTypes
+
+# (Re)generate NodeTypes constants for all language modules
+./gradlew :generateNodeTypes
 ```
 
 ## Node Type Constants (NodeTypes)
