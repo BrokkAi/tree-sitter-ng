@@ -51,5 +51,7 @@ class GenerateNodeTypesTask extends DefaultTask {
         }
 
         GenTask.writeNodeTypesClass(libShortName, out, nodes)
+        GenTask.writeNodeFieldsClass(libShortName, out, nodes)
+        GenTask.writeNodeSchemaClass(libShortName, out, nodes)
     }
 }
