@@ -83,7 +83,27 @@ macOS, and Windows (x86_64 and aarch64) from a single CI environment without com
 
 # Build and test all subprojects
 ./gradlew build
+
+# (Re)generate NodeTypes constants for a language module
+# Produces/updates src/main/java/org/treesitter/<Lang>NodeTypes.java from upstream node-types.json
+./gradlew :tree-sitter-tsx:generateNodeTypes
+
+# (Re)generate NodeTypes constants for all language modules
+./gradlew :generateNodeTypes
 ```
+
+## Node Type Constants (NodeTypes)
+
+Most upstream tree-sitter grammars publish a `node-types.json` file describing supported node types. This repo can
+generate and ship those node types as a Java enum per language module in `org.treesitter.<Lang>NodeType`.
+
+Example (TSX): `org.treesitter.TsxNodeType.ABSTRACT_CLASS_DECLARATION.getType().equals("abstract_class_declaration")`.
+You can also do `TsxNodeType.from(node)` / `TsxNodeType.fromType(node.getType())` which return `TsxNodeType.NONE` for
+null input (the sentinel constant is `TsxNodeType.__NULL__`).
+
+Generation is done via the Gradle task `:tree-sitter-<lang>:generateNodeTypes` and the generated sources are checked in
+under each subproject’s `src/main/java` so they ship in published artifacts without requiring codegen at consumer build
+time.
 
 # Releases
 

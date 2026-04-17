@@ -285,6 +285,13 @@ subprojects {
             dependsOn downloadSource
         }
 
+        def generateNodeTypes = tasks.register('generateNodeTypes', GenerateNodeTypesTask) {
+            dependsOn downloadSource
+            // Some parsers unzip into a different top-level folder name than project.name (e.g. tsx from tree-sitter-typescript),
+            // so search the whole download dir for node-types.json.
+            upstreamRootDir.set(downloadSource.map { it.downloadDir })
+        }
+
         def buildNative = tasks.register('buildNative', BuildNativeTask) {
             zigExe = rootProject.downloadZig.zigExe
             dependsOn downloadSource, rootProject.downloadZig
@@ -333,6 +340,16 @@ tasks.register("compile") {
         dependsOn(sub.tasks.named("compileJava"))
         sub.tasks.matching { it.name == "buildNative" }.all { t ->
             dependsOn(t)
+        }
+    }
+}
+
+tasks.register("generateNodeTypes") {
+    group = "build setup"
+    description = "Generate NodeTypes constants for all language modules"
+    subprojects.forEach { sub ->
+        if (sub.name != "tree-sitter" && sub.name != "tree-sitter-demo" && sub.name != "tree-sitter-tests") {
+            dependsOn(sub.tasks.named("generateNodeTypes"))
         }
     }
 }
