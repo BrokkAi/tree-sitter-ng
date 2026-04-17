@@ -94,4 +94,41 @@ class GenTaskTest {
         assertTrue(content.contains("Java_org_treesitter_TreeSitterHtml_tree_1sitter_1html"), "Should handle underscore escaping for JNI")
         assertTrue(content.contains("return (jlong) tree_sitter_html();"), "Should call native symbol")
     }
+
+    @Test
+    void "should generate NodeTypes class with named constants and subtype sets"() {
+        // Arrange
+        def jsonFile = new File(tempDir, "upstream/src/node-types.json")
+        jsonFile.parentFile.mkdirs()
+        jsonFile.text = """
+[
+  { "type": "abstract_class_declaration", "named": true },
+  { "type": "function_declaration", "named": true },
+  {
+    "type": "declaration",
+    "named": true,
+    "subtypes": [
+      { "type": "abstract_class_declaration", "named": true },
+      { "type": "function_declaration", "named": true },
+      { "type": "missing", "named": false }
+    ]
+  }
+]
+""".trim()
+
+        // Act
+        def parsed = GenTask.parseNodeTypes(jsonFile)
+        def outDir = new File(tempDir, "gen")
+        GenTask.writeNodeTypesClass("tsx", outDir, parsed)
+
+        // Assert
+        def outFile = new File(outDir, "org/treesitter/TsxNodeTypes.java")
+        assertTrue(outFile.exists(), "NodeTypes file should be generated")
+        def content = outFile.text
+        assertTrue(content.contains("public static final String ABSTRACT_CLASS_DECLARATION = \"abstract_class_declaration\";"))
+        assertTrue(content.contains("public static final String FUNCTION_DECLARATION = \"function_declaration\";"))
+        assertTrue(content.contains("public static final Set<String> DECLARATION_SET = Set.of(ABSTRACT_CLASS_DECLARATION, FUNCTION_DECLARATION);") ||
+                content.contains("public static final Set<String> DECLARATION = Set.of(ABSTRACT_CLASS_DECLARATION, FUNCTION_DECLARATION);"),
+                "Should generate a declaration set containing named subtype constants")
+    }
 }
