@@ -144,9 +144,9 @@ class GenTask extends DefaultTask {
 
     static void writeNodeTypesClass(String libShortName, File outDir, List<ParsedNodeType> nodes) {
         def capitalized = capitalizedLibName(libShortName)
-        def className = "${capitalized}NodeTypes"
+        def enumName = "${capitalized}NodeType"
         def pkgDir = new File(outDir, "org/treesitter")
-        def outFile = new File(pkgDir, "${className}.java")
+        def outFile = new File(pkgDir, "${enumName}.java")
 
         def namedNodes = nodes.findAll { it.named && it.type instanceof String && it.type != null }
         def constByType = new LinkedHashMap<String, String>()
@@ -183,31 +183,64 @@ class GenTask extends DefaultTask {
             subtypeConsts = subtypeConsts.unique().sort()
             if (subtypeConsts.isEmpty()) return
 
-            def setName = constByType.values().contains(setBase) ? "${setBase}_SET" : setBase
+            // In an enum, constants share the same namespace as static fields, so always suffix sets.
+            def setName = "${setBase}_SET"
             setDecls.add([name: setName, members: subtypeConsts])
         }
         setDecls = setDecls.unique { it.name }.sort { a, b -> a.name <=> b.name }
 
         def content = new StringBuilder()
         content.append("package org.treesitter;\n\n")
+        content.append("import java.util.Collections;\n")
+        content.append("import java.util.HashMap;\n")
+        content.append("import java.util.Map;\n")
         if (!setDecls.isEmpty()) {
-            content.append("import java.util.Set;\n\n")
+            content.append("import java.util.Set;\n")
         }
+        content.append("import org.jspecify.annotations.Nullable;\n\n")
         content.append("/**\n")
-        content.append(" * Node type constants for {@code ${libShortName}} from tree-sitter {@code node-types.json}.\n")
+        content.append(" * Node types for {@code ${libShortName}} from tree-sitter {@code node-types.json}.\n")
         content.append(" */\n")
-        content.append("public final class ${className} {\n")
-        content.append("    private ${className}() {}\n\n")
+        content.append("public enum ${enumName} {\n")
+        content.append("    /** Represents a null TSNode reference or a TSNode with a null type. */\n")
+        content.append("    __NULL__(null),\n")
 
-        constByType.entrySet().toList().sort { a, b -> a.value <=> b.value }.each { e ->
-            content.append("    public static final String ${e.value} = \"${e.key}\";\n")
+        def entries = constByType.entrySet().toList().sort { a, b -> a.value <=> b.value }
+        entries.eachWithIndex { e, idx ->
+            def suffix = (idx == entries.size() - 1) ? ";" : ","
+            content.append("    ${e.value}(\"${e.key}\")${suffix}\n")
         }
         if (!setDecls.isEmpty()) {
             content.append("\n")
             setDecls.each { s ->
-                content.append("    public static final Set<String> ${s.name} = Set.of(${s.members.join(', ')});\n")
+                content.append("    public static final Set<${enumName}> ${s.name} = Set.of(${s.members.join(', ')});\n")
             }
         }
+        content.append("\n")
+        content.append("    private final @Nullable String type;\n\n")
+        content.append("    ${enumName}(@Nullable String type) {\n")
+        content.append("        this.type = type;\n")
+        content.append("    }\n\n")
+        content.append("    public @Nullable String getType() {\n")
+        content.append("        return type;\n")
+        content.append("    }\n\n")
+        content.append("    public static ${enumName} from(@Nullable TSNode node) {\n")
+        content.append("        if (node == null) return __NULL__;\n")
+        content.append("        return fromType(node.getType());\n")
+        content.append("    }\n\n")
+        content.append("    public static ${enumName} fromType(@Nullable String type) {\n")
+        content.append("        if (type == null) return __NULL__;\n")
+        content.append("        ${enumName} t = LOOKUP.get(type);\n")
+        content.append("        return t == null ? __NULL__ : t;\n")
+        content.append("    }\n\n")
+        content.append("    private static final Map<String, ${enumName}> LOOKUP = initLookup();\n\n")
+        content.append("    private static Map<String, ${enumName}> initLookup() {\n")
+        content.append("        HashMap<String, ${enumName}> m = new HashMap<>();\n")
+        content.append("        for (${enumName} t : values()) {\n")
+        content.append("            if (t.type != null) m.put(t.type, t);\n")
+        content.append("        }\n")
+        content.append("        return Collections.unmodifiableMap(m);\n")
+        content.append("    }\n")
         content.append("}\n")
 
         pkgDir.mkdirs()

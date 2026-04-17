@@ -42,6 +42,14 @@ class GenerateNodeTypesTask extends DefaultTask {
 
         def nodes = GenTask.parseNodeTypes(json)
         def out = outputDir.get().asFile
+
+        // If switching from the old String-constants class to the enum-based API, remove the old file.
+        def capitalized = GenTask.capitalizedLibName(libShortName)
+        def oldFile = new File(out, "org/treesitter/${capitalized}NodeTypes.java")
+        if (oldFile.exists()) {
+            oldFile.delete()
+        }
+
         GenTask.writeNodeTypesClass(libShortName, out, nodes)
     }
 }

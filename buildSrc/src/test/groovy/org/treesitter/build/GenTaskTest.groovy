@@ -49,11 +49,10 @@ class GenTaskTest {
     @Test
     void "should generate build gradle file with downloadSource task"() {
         // Arrange
-        String libName = "json"
         String url = "https://example.com/tree-sitter-json.zip"
         
         // Act
-        GenTask.genBuildGradle(tempDir, libName, url)
+        GenTask.genBuildGradle(tempDir, url)
         
         // Assert
         File gradleFile = new File(tempDir, "build.gradle")
@@ -75,7 +74,7 @@ class GenTaskTest {
         // Assert
         File propsFile = new File(tempDir, "gradle.properties")
         assertTrue(propsFile.exists(), "gradle.properties should be generated")
-        assertEquals("libVersion=0.20.0", propsFile.text.trim())
+        assertEquals("upstreamVersion=0.20.0", propsFile.text.trim())
     }
 
     @Test
@@ -122,13 +121,14 @@ class GenTaskTest {
         GenTask.writeNodeTypesClass("tsx", outDir, parsed)
 
         // Assert
-        def outFile = new File(outDir, "org/treesitter/TsxNodeTypes.java")
-        assertTrue(outFile.exists(), "NodeTypes file should be generated")
+        def outFile = new File(outDir, "org/treesitter/TsxNodeType.java")
+        assertTrue(outFile.exists(), "NodeType enum should be generated")
         def content = outFile.text
-        assertTrue(content.contains("public static final String ABSTRACT_CLASS_DECLARATION = \"abstract_class_declaration\";"))
-        assertTrue(content.contains("public static final String FUNCTION_DECLARATION = \"function_declaration\";"))
-        assertTrue(content.contains("public static final Set<String> DECLARATION_SET = Set.of(ABSTRACT_CLASS_DECLARATION, FUNCTION_DECLARATION);") ||
-                content.contains("public static final Set<String> DECLARATION = Set.of(ABSTRACT_CLASS_DECLARATION, FUNCTION_DECLARATION);"),
+        assertTrue(content.contains("public enum TsxNodeType"), "Should generate a TsxNodeType enum")
+        assertTrue(content.contains("__NULL__(null)"), "Should generate a null sentinel enum constant")
+        assertTrue(content.contains("ABSTRACT_CLASS_DECLARATION(\"abstract_class_declaration\")"))
+        assertTrue(content.contains("FUNCTION_DECLARATION(\"function_declaration\")"))
+        assertTrue(content.contains("public static final Set<TsxNodeType> DECLARATION_SET = Set.of(ABSTRACT_CLASS_DECLARATION, FUNCTION_DECLARATION);"),
                 "Should generate a declaration set containing named subtype constants")
     }
 }
