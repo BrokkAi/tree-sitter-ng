@@ -1,5 +1,8 @@
 # Tree Sitter NG
 
+> [!IMPORTANT]
+> This repository is archived and is no longer under active development because we are continuing development in Rust rather than Java.
+
 [![CI](https://github.com/BrokkAi/tree-sitter-ng/actions/workflows/main.yml/badge.svg)](https://github.com/BrokkAi/tree-sitter-ng/actions)
 [![Latest Release](https://img.shields.io/github/v/release/BrokkAi/tree-sitter-ng)](https://github.com/BrokkAi/tree-sitter-ng/releases)
 
